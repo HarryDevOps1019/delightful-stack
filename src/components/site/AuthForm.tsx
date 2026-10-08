@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -9,27 +9,67 @@ import { Button } from "@/components/ui/button";
 
 const loginSchema = z.object({
   email: z.string().trim().email("Enter a valid email"),
-  password: z.string().min(8, "At least 8 characters"),
+  password: z.string().min(1, "Password is required"),
 });
-const registerSchema = loginSchema.extend({
+
+const registerSchema = z.object({
   name: z.string().trim().min(2, "Enter your name").max(80),
+  email: z.string().trim().email("Enter a valid email"),
+  password: z.string().min(8, "At least 8 characters"),
   confirm: z.string(),
 }).refine((v) => v.password === v.confirm, { path: ["confirm"], message: "Passwords don't match" });
 
 type Values = { email: string; password: string; name?: string; confirm?: string };
 
 export function AuthForm({ mode }: { mode: "login" | "register" }) {
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<Values>({
+  const navigate = useNavigate();
+  const { register, handleSubmit, reset, setValue, formState: { errors, isSubmitting } } = useForm<Values>({
     resolver: zodResolver(mode === "login" ? loginSchema : registerSchema) as never,
   });
-  const onSubmit = async () => {
-    await new Promise((r) => setTimeout(r, 500)); // future: Supabase auth
-    reset();
-    toast.info(mode === "login" ? "Demo only — sign-in isn't connected yet." : "Demo only — no account was created.");
+
+  const fillAdmin = () => {
+    setValue("email", "admin@gmail.com");
+    setValue("password", "12345");
+    toast.info("Admin credentials auto-filled!");
   };
+
+  const onSubmit = async (data: Values) => {
+    await new Promise((r) => setTimeout(r, 400));
+    if (mode === "login" && data.email.toLowerCase().trim() === "admin@gmail.com" && data.password === "12345") {
+      toast.success("Welcome Admin! Accessing Admin Portal...");
+      navigate({ to: "/admin" });
+      return;
+    }
+
+    if (mode === "login") {
+      toast.success("Signed in successfully.");
+      navigate({ to: "/account" });
+    } else {
+      toast.success("Account created successfully.");
+      navigate({ to: "/account" });
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="mx-auto max-w-md space-y-4 border border-border p-6 sm:p-8">
-      <DemoNotice>Accounts aren't active yet. Nothing you enter is stored.</DemoNotice>
+      <DemoNotice>
+        {mode === "login" ? (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
+            <span>
+              <strong>Admin Access:</strong> <code className="bg-muted px-1.5 py-0.5 rounded font-mono">admin@gmail.com</code> / <code className="bg-muted px-1.5 py-0.5 rounded font-mono">12345</code>
+            </span>
+            <button
+              type="button"
+              onClick={fillAdmin}
+              className="text-primary hover:underline font-semibold text-xs whitespace-nowrap"
+            >
+              Auto-fill Admin
+            </button>
+          </div>
+        ) : (
+          "Accounts aren't active yet. Nothing you enter is stored."
+        )}
+      </DemoNotice>
       {mode === "register" && <Field label="Full name" error={errors.name?.message} {...register("name")} autoComplete="name" />}
       <Field label="Email" type="email" error={errors.email?.message} {...register("email")} autoComplete="email" />
       <Field label="Password" type="password" error={errors.password?.message} {...register("password")} autoComplete={mode === "login" ? "current-password" : "new-password"} />
@@ -48,3 +88,4 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
     </form>
   );
 }
+
