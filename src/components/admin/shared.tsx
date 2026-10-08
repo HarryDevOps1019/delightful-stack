@@ -92,17 +92,109 @@ export function StockBadge({ stock }: { stock: number }) {
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
 
-export const mockOrders = [
-  { id: "AE-10431", customer: "Kasun Perera",          date: "2026-10-07", status: "Processing", total: 129900, items: 1, product: "43\" 4K UHD Smart TV" },
-  { id: "AE-10430", customer: "Nimali Silva",           date: "2026-10-07", status: "Shipped",    total:  38500, items: 1, product: "Portable Bluetooth Speaker 20W" },
-  { id: "AE-10429", customer: "Amal Fernando",          date: "2026-10-06", status: "Delivered",  total:  56350, items: 3, product: "Capacitor Kit + Solder + Op-Amp" },
-  { id: "AE-10428", customer: "Dilini Rajapaksa",       date: "2026-10-06", status: "Delivered",  total:  24500, items: 1, product: "OLED Display Assembly" },
-  { id: "AE-10427", customer: "Chamara Jayawardena",    date: "2026-10-05", status: "Cancelled",  total:  89900, items: 1, product: "2.1 Soundbar with Wireless Subwoofer" },
-  { id: "AE-10426", customer: "Ishara Bandara",         date: "2026-10-05", status: "Delivered",  total:  17900, items: 1, product: "Wireless Earbuds ANC" },
-  { id: "AE-10425", customer: "Ruwan Dissanayake",      date: "2026-10-04", status: "Processing", total: 239900, items: 1, product: "55\" QLED Smart TV" },
-  { id: "AE-10424", customer: "Thilini Wickramasinghe", date: "2026-10-04", status: "Shipped",    total:  14500, items: 2, product: "Solar Flood Light 100W" },
-  { id: "AE-10423", customer: "Pradeep Kumara",         date: "2026-10-03", status: "Delivered",  total:  38900, items: 1, product: "Soldering Station FX-888D" },
-  { id: "AE-10422", customer: "Sanduni Herath",         date: "2026-10-03", status: "Delivered",  total:   6900, items: 1, product: "Replacement Battery Galaxy A52" },
+export type OrderStatus = "Processing" | "Shipped" | "Delivered" | "Cancelled";
+
+export interface OrderLineItem {
+  name: string;
+  sku: string;
+  qty: number;
+  unitPrice: number;
+}
+
+export interface MockOrder {
+  id: string;
+  customer: string;
+  email: string;
+  phone: string;
+  date: string;
+  status: OrderStatus;
+  total: number;
+  items: number;
+  product: string;
+  address: string;
+  city: string;
+  district: string;
+  paymentMethod: string;
+  trackingNumber?: string;
+  notes?: string;
+  lineItems: OrderLineItem[];
+}
+
+export const mockOrders: MockOrder[] = [
+  {
+    id: "AE-10431", customer: "Kasun Perera", email: "kasun.perera@gmail.com", phone: "+94 71 234 5678",
+    date: "2026-10-07", status: "Processing", total: 129900, items: 1, product: "43\" 4K UHD Smart TV",
+    address: "45/3 Galle Road", city: "Colombo", district: "Colombo", paymentMethod: "Card (Visa ****4321)",
+    notes: "Please deliver after 5 PM.",
+    lineItems: [{ name: "43\" 4K UHD Smart TV", sku: "AE-TV-5001", qty: 1, unitPrice: 129900 }],
+  },
+  {
+    id: "AE-10430", customer: "Nimali Silva", email: "nimali.silva@yahoo.com", phone: "+94 77 345 6789",
+    date: "2026-10-07", status: "Shipped", total: 38500, items: 1, product: "Portable Bluetooth Speaker 20W",
+    address: "12 Temple Road", city: "Kandy", district: "Kandy", paymentMethod: "Cash on Delivery",
+    trackingNumber: "SL-TRK-88123456",
+    lineItems: [{ name: "Portable Bluetooth Speaker 20W", sku: "AE-AUD-2001", qty: 1, unitPrice: 38500 }],
+  },
+  {
+    id: "AE-10429", customer: "Amal Fernando", email: "amal.fernando@hotmail.com", phone: "+94 76 456 7890",
+    date: "2026-10-06", status: "Delivered", total: 56350, items: 3, product: "Capacitor Kit + Solder + Op-Amp",
+    address: "78/A Peradeniya Road", city: "Kandy", district: "Kandy", paymentMethod: "Bank Transfer",
+    trackingNumber: "SL-TRK-88109872",
+    lineItems: [
+      { name: "Electrolytic Capacitor Kit (120 pcs)", sku: "AE-CMP-1002", qty: 2, unitPrice: 1850 },
+      { name: "Lead-Free Solder Wire 0.8mm", sku: "AE-CMP-1005", qty: 1, unitPrice: 2200 },
+      { name: "LM358 Op-Amp IC (10 pack)", sku: "AE-CMP-1004", qty: 1, unitPrice: 650 },
+    ],
+  },
+  {
+    id: "AE-10428", customer: "Dilini Rajapaksa", email: "dilini.r@gmail.com", phone: "+94 70 567 8901",
+    date: "2026-10-06", status: "Delivered", total: 24500, items: 1, product: "OLED Display Assembly",
+    address: "No. 5, Sea View Lane", city: "Galle", district: "Galle", paymentMethod: "Card (Mastercard ****9871)",
+    trackingNumber: "SL-TRK-88099231",
+    lineItems: [{ name: "Replacement OLED Display Assembly", sku: "AE-MOB-4001", qty: 1, unitPrice: 24500 }],
+  },
+  {
+    id: "AE-10427", customer: "Chamara Jayawardena", email: "chamara.j@gmail.com", phone: "+94 71 678 9012",
+    date: "2026-10-05", status: "Cancelled", total: 89900, items: 1, product: "2.1 Soundbar with Wireless Subwoofer",
+    address: "34 Hill Street", city: "Matara", district: "Matara", paymentMethod: "Card (Visa ****2201)",
+    notes: "Customer requested cancellation due to change of mind.",
+    lineItems: [{ name: "2.1 Soundbar with Wireless Subwoofer", sku: "AE-AUD-2002", qty: 1, unitPrice: 89900 }],
+  },
+  {
+    id: "AE-10426", customer: "Ishara Bandara", email: "ishara.bandara@gmail.com", phone: "+94 75 789 0123",
+    date: "2026-10-05", status: "Delivered", total: 17900, items: 1, product: "Wireless Earbuds ANC",
+    address: "221 Flower Road", city: "Colombo", district: "Colombo", paymentMethod: "Cash on Delivery",
+    trackingNumber: "SL-TRK-88087654",
+    lineItems: [{ name: "Wireless Earbuds ANC", sku: "AE-AUD-2004", qty: 1, unitPrice: 17900 }],
+  },
+  {
+    id: "AE-10425", customer: "Ruwan Dissanayake", email: "ruwan.d@outlook.com", phone: "+94 78 890 1234",
+    date: "2026-10-04", status: "Processing", total: 239900, items: 1, product: "55\" QLED Smart TV",
+    address: "88/2 Negombo Road", city: "Negombo", district: "Gampaha", paymentMethod: "Card (Visa ****7654)",
+    notes: "Requires ground floor delivery, no elevator.",
+    lineItems: [{ name: "55\" QLED Smart TV", sku: "AE-TV-5002", qty: 1, unitPrice: 239900 }],
+  },
+  {
+    id: "AE-10424", customer: "Thilini Wickramasinghe", email: "thilini.w@gmail.com", phone: "+94 72 901 2345",
+    date: "2026-10-04", status: "Shipped", total: 14500, items: 2, product: "Solar Flood Light 100W",
+    address: "15/B Battaramulla Road", city: "Battaramulla", district: "Colombo", paymentMethod: "Cash on Delivery",
+    trackingNumber: "SL-TRK-88076543",
+    lineItems: [{ name: "Solar Flood Light 100W", sku: "AE-LGT-3004", qty: 2, unitPrice: 7250 }],
+  },
+  {
+    id: "AE-10423", customer: "Pradeep Kumara", email: "pradeep.k@gmail.com", phone: "+94 77 012 3456",
+    date: "2026-10-03", status: "Delivered", total: 38900, items: 1, product: "Soldering Station FX-888D",
+    address: "56 Main Street", city: "Kurunegala", district: "Kurunegala", paymentMethod: "Bank Transfer",
+    trackingNumber: "SL-TRK-88065432",
+    lineItems: [{ name: "Temperature Controlled Soldering Station", sku: "AE-CMP-1003", qty: 1, unitPrice: 38900 }],
+  },
+  {
+    id: "AE-10422", customer: "Sanduni Herath", email: "sanduni.h@gmail.com", phone: "+94 76 123 4567",
+    date: "2026-10-03", status: "Delivered", total: 6900, items: 1, product: "Replacement Battery Galaxy A52",
+    address: "9 Lake Drive", city: "Ratnapura", district: "Ratnapura", paymentMethod: "Cash on Delivery",
+    trackingNumber: "SL-TRK-88054321",
+    lineItems: [{ name: "Replacement Battery 4000mAh", sku: "AE-MOB-4002", qty: 1, unitPrice: 6900 }],
+  },
 ];
 
 export const revenueData  = [42, 58, 51, 67, 73, 65, 80, 88, 76, 92, 85, 98];
