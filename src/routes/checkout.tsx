@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useCart } from "@/context/cart";
+import { formatLKR } from "@/lib/format";
 import { OrderSummary } from "./cart";
 import { PageHeading, DemoNotice } from "@/components/site/PageHeading";
 import { Button } from "@/components/ui/button";
@@ -101,7 +102,7 @@ function CheckoutPage() {
         <OrderSummary>
           <ul className="mt-4 space-y-2 border-t border-border pt-4 text-xs">
             {cart.lines.map((l) => (
-              <li key={l.key} className="flex justify-between gap-3"><span className="min-w-0 truncate">{l.qty} × {l.product.name}</span><span className="shrink-0">{l.lineTotal / 100 >= 0 ? "" : ""}</span></li>
+              <li key={l.key} className="flex justify-between gap-3"><span className="min-w-0 truncate">{l.qty} × {l.product.name}</span><span className="shrink-0">{formatLKR(l.lineTotal)}</span></li>
             ))}
           </ul>
         </OrderSummary>
