@@ -5,6 +5,7 @@ import { ArrowRight } from "lucide-react";
 import { brands, categories, images } from "@/data/catalog";
 import { productsQuery } from "@/services/catalog";
 import { ProductGrid } from "@/components/site/ProductCard";
+import { SpecialOfferBanner } from "@/components/site/SpecialOfferBanner";
 
 const featuredQ = { sort: "featured" as const, pageSize: 8 };
 const newQ = { sort: "newest" as const, pageSize: 4 };
@@ -33,6 +34,9 @@ function Index() {
 
   return (
     <>
+      {/* Special Offer Banners — shown at top when active */}
+      <SpecialOfferBanner />
+
       {/* Promo grid */}
       <section className="container-shop pt-6 lg:pt-8">
         <div className="grid gap-4 lg:grid-cols-3 lg:grid-rows-[auto_auto]">

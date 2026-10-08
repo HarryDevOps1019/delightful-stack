@@ -3,7 +3,7 @@ import { useState } from "react";
 import {
   LayoutDashboard, Package, ShoppingBag, BarChart3,
   Settings, Bell, Search, Layers, Zap, Eye, LogOut,
-  ChevronRight, Menu, ExternalLink,
+  ChevronRight, Menu, ExternalLink, ImageIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { adminStyles } from "@/components/admin/shared";
@@ -19,12 +19,13 @@ export const Route = createFileRoute("/admin")({
 });
 
 const NAV = [
-  { to: "/admin",            label: "Overview",   icon: <LayoutDashboard className="h-4 w-4" />, exact: true  },
-  { to: "/admin/products",   label: "Products",   icon: <Package          className="h-4 w-4" />, exact: false },
-  { to: "/admin/orders",     label: "Orders",     icon: <ShoppingBag      className="h-4 w-4" />, exact: false },
-  { to: "/admin/inventory",  label: "Inventory",  icon: <Layers           className="h-4 w-4" />, exact: false },
-  { to: "/admin/analytics",  label: "Analytics",  icon: <BarChart3        className="h-4 w-4" />, exact: false },
-  { to: "/admin/settings",   label: "Settings",   icon: <Settings         className="h-4 w-4" />, exact: false },
+  { to: "/admin",            label: "Overview",       icon: <LayoutDashboard className="h-4 w-4" />, exact: true  },
+  { to: "/admin/products",   label: "Products",       icon: <Package          className="h-4 w-4" />, exact: false },
+  { to: "/admin/orders",     label: "Orders",         icon: <ShoppingBag      className="h-4 w-4" />, exact: false },
+  { to: "/admin/inventory",  label: "Inventory",      icon: <Layers           className="h-4 w-4" />, exact: false },
+  { to: "/admin/analytics",  label: "Analytics",      icon: <BarChart3        className="h-4 w-4" />, exact: false },
+  { to: "/admin/offers",     label: "Homepage Offers",icon: <ImageIcon        className="h-4 w-4" />, exact: false },
+  { to: "/admin/settings",   label: "Settings",       icon: <Settings         className="h-4 w-4" />, exact: false },
 ] as const;
 
 const TITLES: Record<string, string> = {
@@ -33,6 +34,7 @@ const TITLES: Record<string, string> = {
   "/admin/orders":    "Order Management",
   "/admin/inventory": "Inventory",
   "/admin/analytics": "Analytics",
+  "/admin/offers":    "Homepage Offers",
   "/admin/settings":  "Settings",
 };
 
