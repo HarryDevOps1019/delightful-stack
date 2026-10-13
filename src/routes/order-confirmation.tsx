@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 interface S { order?: string | undefined; total?: number | undefined; items?: number | undefined; payment?: string }
 
 export const Route = createFileRoute("/order-confirmation")({
-  validateSearch: (s: Record<string, unknown>): S => ({
+  validateSearch: (s: Partial<Record<keyof S, unknown>>): S => ({
     order: typeof s.order === "string" ? s.order : undefined,
     total: Number.isFinite(Number(s.total)) ? Number(s.total) : undefined,
     items: Number.isFinite(Number(s.items)) ? Number(s.items) : undefined,

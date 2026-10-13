@@ -146,11 +146,11 @@ function Index() {
   );
 }
 
-function SectionHead({ title, to, cta, search }: { title: string; to: "/shop"; cta: string; search?: { sort?: "newest" } }) {
+function SectionHead({ title, to, cta, search }: { title: string; to: "/shop"; cta: string; search?: { sort: "newest" } | undefined }) {
   return (
     <div className="flex items-center justify-between gap-4">
       <h2 className="section-title">{title}</h2>
-      <Link to={to} search={search} className="shrink-0 border-2 border-primary px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider hover:bg-primary hover:text-primary-foreground">
+      <Link to={to} search={search ?? {}} className="shrink-0 border-2 border-primary px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider hover:bg-primary hover:text-primary-foreground">
         {cta}
       </Link>
     </div>

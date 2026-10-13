@@ -59,7 +59,10 @@ function ProductPage() {
   const variantLabel = product.variants?.map((v) => `${v.name}: ${variant[v.name]}`).join(", ");
 
   const add = () => {
-    if (missing.length) return toast.error(`Please choose ${missing.map((m) => m.name.toLowerCase()).join(" and ")}`);
+    if (missing.length) {
+      toast.error(`Please choose ${missing.map((m) => m.name.toLowerCase()).join(" and ")}`);
+      return;
+    }
     const q = Math.min(qty, remaining);
     cart.add(product.id, q, variantLabel || undefined);
     toast.success(`Added ${q} × ${product.name}`);

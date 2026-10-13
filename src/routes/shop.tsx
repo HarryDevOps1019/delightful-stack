@@ -36,7 +36,7 @@ const num = (v: unknown) => {
 };
 
 export const Route = createFileRoute("/shop")({
-  validateSearch: (s: Record<string, unknown>): ShopSearch => ({
+  validateSearch: (s: Partial<Record<keyof ShopSearch, unknown>>): ShopSearch => ({
     q: typeof s.q === "string" && s.q ? s.q : undefined,
     category: categories.some((c) => c.slug === s.category) ? (s.category as CategorySlug) : undefined,
     brands: typeof s.brands === "string" && s.brands ? s.brands : undefined,
