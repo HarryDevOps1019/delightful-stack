@@ -11,15 +11,15 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 
 export interface ShopSearch {
-  q?: string;
-  category?: CategorySlug;
-  brands?: string;
-  min?: number;
-  max?: number;
-  inStock?: boolean;
-  attr?: string;
-  sort?: SortKey;
-  page?: number;
+  q?: string | undefined;
+  category?: CategorySlug | undefined;
+  brands?: string | undefined;
+  min?: number | undefined;
+  max?: number | undefined;
+  inStock?: boolean | undefined;
+  attr?: string | undefined;
+  sort?: SortKey | undefined;
+  page?: number | undefined;
 }
 
 const SORTS: { value: SortKey; label: string }[] = [
@@ -36,7 +36,7 @@ const num = (v: unknown) => {
 };
 
 export const Route = createFileRoute("/shop")({
-  validateSearch: (s: Record<string, unknown>): ShopSearch => ({
+  validateSearch: (s: Partial<Record<keyof ShopSearch, unknown>>): ShopSearch => ({
     q: typeof s.q === "string" && s.q ? s.q : undefined,
     category: categories.some((c) => c.slug === s.category) ? (s.category as CategorySlug) : undefined,
     brands: typeof s.brands === "string" && s.brands ? s.brands : undefined,
@@ -146,7 +146,7 @@ function ShopPage() {
   );
 }
 
-function PageBtn({ children, onClick, disabled, active, label }: { children: React.ReactNode; onClick: () => void; disabled?: boolean; active?: boolean; label: string }) {
+function PageBtn({ children, onClick, disabled, active, label }: { children: React.ReactNode; onClick: () => void; disabled?: boolean | undefined; active?: boolean | undefined; label: string }) {
   return (
     <button
       type="button"

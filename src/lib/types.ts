@@ -24,32 +24,32 @@ export interface Product {
   category: CategorySlug;
   /** Price in LKR cents (integer minor units) */
   priceCents: number;
-  compareAtCents?: number;
+  compareAtCents?: number | undefined;
   stock: number;
   images: string[];
   description: string;
   specs: Record<string, string>;
   attributes: Record<string, string>;
-  compatibility?: string[];
-  variants?: Variant[];
-  isNew?: boolean;
-  featured?: boolean;
+  compatibility?: string[] | undefined;
+  variants?: Variant[] | undefined;
+  isNew?: boolean | undefined;
+  featured?: boolean | undefined;
   createdAt: string;
 }
 
 export type SortKey = "featured" | "price-asc" | "price-desc" | "newest" | "name";
 
 export interface ProductQuery {
-  q?: string;
-  category?: CategorySlug;
-  brands?: string[];
-  min?: number;
-  max?: number;
-  inStock?: boolean;
-  attr?: string;
-  sort?: SortKey;
-  page?: number;
-  pageSize?: number;
+  q?: string | undefined;
+  category?: CategorySlug | undefined;
+  brands?: string[] | undefined;
+  min?: number | undefined;
+  max?: number | undefined;
+  inStock?: boolean | undefined;
+  attr?: string | undefined;
+  sort?: SortKey | undefined;
+  page?: number | undefined;
+  pageSize?: number | undefined;
 }
 
 export interface ProductPage {

@@ -4,7 +4,7 @@
  */
 import { queryOptions } from "@tanstack/react-query";
 import { brands, categories, products } from "@/data/catalog";
-import type { ProductPage, ProductQuery } from "@/lib/types";
+import type { ProductPage, ProductQuery, SortKey } from "@/lib/types";
 
 const delay = (ms = 250) => new Promise((r) => setTimeout(r, ms));
 
@@ -28,14 +28,14 @@ export async function listProducts(query: ProductQuery = {}): Promise<ProductPag
     const key = categories.find((c) => c.slug === category)?.filterKey;
     if (key) items = items.filter((p) => p.attributes[key] === attr);
   }
-  const sorters: Record<string, (a: (typeof items)[0], b: (typeof items)[0]) => number> = {
+  const sorters: Record<SortKey, (a: (typeof items)[0], b: (typeof items)[0]) => number> = {
     featured: (a, b) => Number(!!b.featured) - Number(!!a.featured),
     "price-asc": (a, b) => a.priceCents - b.priceCents,
     "price-desc": (a, b) => b.priceCents - a.priceCents,
     newest: (a, b) => b.createdAt.localeCompare(a.createdAt),
     name: (a, b) => a.name.localeCompare(b.name),
   };
-  items.sort(sorters[sort] ?? sorters.featured);
+  items.sort(sorters[sort]);
   const total = items.length;
   const pages = Math.max(1, Math.ceil(total / pageSize));
   const safePage = Math.min(Math.max(1, page), pages);

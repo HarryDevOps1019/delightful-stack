@@ -32,8 +32,8 @@ export function ProductCard({ product }: { product: Product }) {
 
   return (
     <motion.article
-      initial={{ opacity: 0, y: 8 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      initial={{ y: 8 }}
+      whileInView={{ y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.3 }}
       className="group flex flex-col border border-border bg-card p-4 transition-colors hover:border-foreground/30"

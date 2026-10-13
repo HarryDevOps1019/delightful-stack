@@ -3,10 +3,10 @@ import { CheckCircle2 } from "lucide-react";
 import { formatLKR } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 
-interface S { order?: string; total?: number; items?: number; payment?: string }
+interface S { order?: string | undefined; total?: number | undefined; items?: number | undefined; payment?: string | undefined }
 
 export const Route = createFileRoute("/order-confirmation")({
-  validateSearch: (s: Record<string, unknown>): S => ({
+  validateSearch: (s: Partial<Record<keyof S, unknown>>): S => ({
     order: typeof s.order === "string" ? s.order : undefined,
     total: Number.isFinite(Number(s.total)) ? Number(s.total) : undefined,
     items: Number.isFinite(Number(s.items)) ? Number(s.items) : undefined,

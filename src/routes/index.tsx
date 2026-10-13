@@ -25,7 +25,7 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const fade = { initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 } };
+const fade = { initial: { y: 12 }, animate: { y: 0 } };
 
 function Index() {
   const { data: featured } = useSuspenseQuery(productsQuery(featuredQ));
@@ -37,7 +37,7 @@ function Index() {
       <section className="container-shop pt-6 lg:pt-8">
         <div className="grid gap-4 lg:grid-cols-3 lg:grid-rows-[auto_auto]">
           <motion.div {...fade} transition={{ duration: 0.4 }} className="lg:col-span-2">
-            <Link to="/shop" search={{ category: "audio" }} className="group relative flex min-h-[240px] items-center overflow-hidden bg-tile">
+            <Link to="/shop" search={{ category: "audio" }} className="group relative flex h-full min-h-[240px] items-center overflow-hidden bg-tile">
               <div className="relative z-10 max-w-[55%] p-6 sm:p-8">
                 <span className="bg-primary px-2 py-1 text-[10px] font-bold text-primary-foreground">SAMPLE OFFER</span>
                 <h2 className="mt-4 font-display text-xl font-extrabold uppercase sm:text-2xl">2.1 Soundbars & Home Audio</h2>
@@ -146,11 +146,11 @@ function Index() {
   );
 }
 
-function SectionHead({ title, to, cta, search }: { title: string; to: "/shop"; cta: string; search?: { sort?: "newest" } }) {
+function SectionHead({ title, to, cta, search }: { title: string; to: "/shop"; cta: string; search?: { sort: "newest" } | undefined }) {
   return (
     <div className="flex items-center justify-between gap-4">
       <h2 className="section-title">{title}</h2>
-      <Link to={to} search={search} className="shrink-0 border-2 border-primary px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider hover:bg-primary hover:text-primary-foreground">
+      <Link to={to} search={search ?? {}} className="shrink-0 border-2 border-primary px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider hover:bg-primary hover:text-primary-foreground">
         {cta}
       </Link>
     </div>

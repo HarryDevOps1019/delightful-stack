@@ -1,7 +1,7 @@
 import { forwardRef, useId, type InputHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
-type Props = InputHTMLAttributes<HTMLInputElement> & { label: string; error?: string; multiline?: boolean };
+type Props = InputHTMLAttributes<HTMLInputElement> & { label: string; error?: string | undefined };
 
 export const Field = forwardRef<HTMLInputElement, Props>(function Field({ label, error, className, ...rest }, ref) {
   const id = useId();

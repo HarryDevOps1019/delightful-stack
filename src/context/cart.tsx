@@ -5,12 +5,12 @@ import type { Product } from "@/lib/types";
 export interface CartLine {
   key: string;
   productId: string;
-  variant?: string;
+  variant?: string | undefined;
   qty: number;
 }
 
 type Action =
-  | { type: "add"; productId: string; variant?: string; qty: number }
+  | { type: "add"; productId: string; variant?: string | undefined; qty: number }
   | { type: "set"; key: string; qty: number }
   | { type: "remove"; key: string }
   | { type: "clear" }
@@ -20,7 +20,7 @@ const STORAGE_KEY = "ae-demo-cart";
 const findProduct = (id: string) => products.find((p) => p.id === id);
 const cap = (id: string, qty: number) => Math.max(0, Math.min(qty, findProduct(id)?.stock ?? 0));
 
-function reducer(state: CartLine[], a: Action): CartLine[] {
+export function reducer(state: CartLine[], a: Action): CartLine[] {
   switch (a.type) {
     case "add": {
       const key = `${a.productId}::${a.variant ?? ""}`;
@@ -59,7 +59,7 @@ interface CartCtx {
   subtotal: number;
   delivery: number;
   total: number;
-  add: (productId: string, qty?: number, variant?: string) => void;
+  add: (productId: string, qty?: number, variant?: string) => void | undefined;
   setQty: (key: string, qty: number) => void;
   remove: (key: string) => void;
   clear: () => void;
