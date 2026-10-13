@@ -37,7 +37,7 @@ function Index() {
       <section className="container-shop pt-6 lg:pt-8">
         <div className="grid gap-4 lg:grid-cols-3 lg:grid-rows-[auto_auto]">
           <motion.div {...fade} transition={{ duration: 0.4 }} className="lg:col-span-2">
-            <Link to="/shop" search={{ category: "audio" }} className="group relative flex min-h-[240px] items-center overflow-hidden bg-tile">
+            <Link to="/shop" search={{ category: "audio" }} className="group relative flex h-full min-h-[240px] items-center overflow-hidden bg-tile">
               <div className="relative z-10 max-w-[55%] p-6 sm:p-8">
                 <span className="bg-primary px-2 py-1 text-[10px] font-bold text-primary-foreground">SAMPLE OFFER</span>
                 <h2 className="mt-4 font-display text-xl font-extrabold uppercase sm:text-2xl">2.1 Soundbars & Home Audio</h2>
