@@ -25,7 +25,7 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const fade = { initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 } };
+const fade = { initial: { y: 12 }, animate: { y: 0 } };
 
 function Index() {
   const { data: featured } = useSuspenseQuery(productsQuery(featuredQ));
