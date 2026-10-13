@@ -5,12 +5,12 @@ import type { Product } from "@/lib/types";
 export interface CartLine {
   key: string;
   productId: string;
-  variant?: string;
+  variant?: string | undefined;
   qty: number;
 }
 
 type Action =
-  | { type: "add"; productId: string; variant?: string; qty: number }
+  | { type: "add"; productId: string; variant?: string | undefined; qty: number }
   | { type: "set"; key: string; qty: number }
   | { type: "remove"; key: string }
   | { type: "clear" }
@@ -59,7 +59,7 @@ interface CartCtx {
   subtotal: number;
   delivery: number;
   total: number;
-  add: (productId: string, qty?: number, variant?: string) => void;
+  add: (productId: string, qty?: number, variant?: string) => void | undefined;
   setQty: (key: string, qty: number) => void;
   remove: (key: string) => void;
   clear: () => void;
