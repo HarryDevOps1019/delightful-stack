@@ -9,7 +9,7 @@ import { PageHeading, DemoNotice } from "@/components/site/PageHeading";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/site/Field";
 
-const schema = z.object({
+export const checkoutSchema = z.object({
   fullName: z.string().trim().min(2, "Enter your full name").max(80),
   email: z.string().trim().email("Enter a valid email"),
   phone: z.string().trim().regex(/^(?:\+94|0)7\d{8}$/, "Enter a Sri Lankan mobile number, e.g. 0771234567"),
@@ -18,7 +18,7 @@ const schema = z.object({
   payment: z.enum(["card", "bank", "cod"], { errorMap: () => ({ message: "Choose a payment option" }) }),
   notes: z.string().max(300).optional(),
 });
-type Values = z.infer<typeof schema>;
+type Values = z.infer<typeof checkoutSchema>;
 
 const PAYMENTS = [
   { value: "card", label: "Card payment", note: "Will be handled by PayHere later. No card details are collected here." },
@@ -41,7 +41,7 @@ export const Route = createFileRoute("/checkout")({
 function CheckoutPage() {
   const cart = useCart();
   const navigate = useNavigate();
-  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<Values>({ resolver: zodResolver(schema) });
+  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<Values>({ resolver: zodResolver(checkoutSchema) });
   const payment = watch("payment");
 
   const onSubmit = async (v: Values) => {

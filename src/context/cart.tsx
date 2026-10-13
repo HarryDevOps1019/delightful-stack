@@ -20,7 +20,7 @@ const STORAGE_KEY = "ae-demo-cart";
 const findProduct = (id: string) => products.find((p) => p.id === id);
 const cap = (id: string, qty: number) => Math.max(0, Math.min(qty, findProduct(id)?.stock ?? 0));
 
-function reducer(state: CartLine[], a: Action): CartLine[] {
+export function reducer(state: CartLine[], a: Action): CartLine[] {
   switch (a.type) {
     case "add": {
       const key = `${a.productId}::${a.variant ?? ""}`;
