@@ -1,4 +1,4 @@
-export type CategorySlug = "components" | "audio" | "lighting" | "mobile" | "tv";
+export type CategorySlug = string;
 
 export interface Category {
   slug: CategorySlug;
@@ -24,16 +24,16 @@ export interface Product {
   category: CategorySlug;
   /** Price in LKR cents (integer minor units) */
   priceCents: number;
-  compareAtCents?: number;
+  compareAtCents?: number | undefined;
   stock: number;
   images: string[];
   description: string;
   specs: Record<string, string>;
   attributes: Record<string, string>;
-  compatibility?: string[];
-  variants?: Variant[];
-  isNew?: boolean;
-  featured?: boolean;
+  compatibility?: string[] | undefined;
+  variants?: Variant[] | undefined;
+  isNew?: boolean | undefined;
+  featured?: boolean | undefined;
   createdAt: string;
 }
 

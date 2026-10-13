@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { categories } from "@/data/catalog";
+import { useCatalog } from "@/services/catalog";
 import { Logo } from "./SiteHeader";
 
 const policies = [
@@ -11,6 +11,7 @@ const policies = [
 ];
 
 export function SiteFooter() {
+  const { categories } = useCatalog();
   return (
     <footer className="mt-20 border-t border-border">
       <div className="container-shop grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-4">

@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, Link, useRouterState, useNavigate } from "@tan
 import { useState } from "react";
 import {
   LayoutDashboard, Package, ShoppingBag, BarChart3,
-  Settings, Bell, Search, Layers, Zap, Eye, LogOut,
+  Settings, Layers, Zap, Eye, LogOut,
   ChevronRight, Menu, ExternalLink, ImageIcon,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -142,13 +142,6 @@ function AdminLayout() {
                   <LogOut className="h-4 w-4" />
                 </button>
               </div>
-
-              <button
-                onClick={handleLogout}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold text-zinc-400 hover:text-white hover:bg-zinc-800/60 rounded-lg border border-zinc-800 transition-colors"
-              >
-                <LogOut className="h-3.5 w-3.5 text-red-400" /> Sign Out to Storefront
-              </button>
             </div>
           </aside>
 
@@ -193,14 +186,6 @@ function AdminLayout() {
                 >
                   <ExternalLink className="h-3.5 w-3.5 text-orange-400" />
                   Exit Admin
-                </button>
-                <div className="relative hidden sm:block">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-500" />
-                  <input placeholder="Quick search…" className="admin-input pl-8 w-48 text-xs" />
-                </div>
-                <button className="relative p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors">
-                  <Bell className="h-4 w-4" />
-                  <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-orange-500" />
                 </button>
               </div>
             </header>

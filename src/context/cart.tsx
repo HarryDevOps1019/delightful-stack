@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useReducer, useRef, type ReactNode } from "react";
-import { products } from "@/data/catalog";
+import { getStoredProducts } from "@/services/catalog";
 import type { Product } from "@/lib/types";
 
 export interface CartLine {
@@ -17,7 +17,7 @@ type Action =
   | { type: "hydrate"; lines: CartLine[] };
 
 const STORAGE_KEY = "ae-demo-cart";
-const findProduct = (id: string) => products.find((p) => p.id === id);
+const findProduct = (id: string) => getStoredProducts().find((p) => p.id === id);
 const cap = (id: string, qty: number) => Math.max(0, Math.min(qty, findProduct(id)?.stock ?? 0));
 
 function reducer(state: CartLine[], a: Action): CartLine[] {

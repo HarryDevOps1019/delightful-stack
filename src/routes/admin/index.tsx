@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { DollarSign, ShoppingCart, Package, Users, ArrowUpRight, Layers, ShoppingBag, AlertTriangle } from "lucide-react";
-import { products } from "@/data/catalog";
+import { useCatalog } from "@/services/catalog";
 import { formatLKR } from "@/lib/format";
 import {
   Sparkline, StatusBadge, StockBadge,
@@ -12,12 +12,13 @@ export const Route = createFileRoute("/admin/")({
   component: OverviewPage,
 });
 
-const lowStock = products.filter(p => p.stock > 0 && p.stock <= 5);
-const outOfStock = products.filter(p => p.stock === 0);
-
 function OverviewPage() {
+  const { products } = useCatalog();
+  const lowStock = products.filter((p) => p.stock > 0 && p.stock <= 5);
+  const outOfStock = products.filter((p) => p.stock === 0);
+
   const totalRevenue = mockOrders
-    .filter(o => o.status !== "Cancelled")
+    .filter((o) => o.status !== "Cancelled")
     .reduce((a, o) => a + o.total, 0);
 
   const kpis = [

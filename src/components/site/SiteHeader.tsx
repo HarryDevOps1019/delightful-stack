@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { ChevronDown, Menu, Phone, Search, ShoppingCart, Truck, User } from "lucide-react";
 import { useState, type FormEvent } from "react";
-import { categories } from "@/data/catalog";
+import { useCatalog } from "@/services/catalog";
 import { useCart } from "@/context/cart";
 import {
   DropdownMenu,
@@ -55,6 +55,7 @@ function SearchForm({ className = "" }: { className?: string }) {
 
 export function SiteHeader() {
   const { count } = useCart();
+  const { categories } = useCatalog();
   const [open, setOpen] = useState(false);
 
   return (

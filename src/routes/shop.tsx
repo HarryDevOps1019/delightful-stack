@@ -2,8 +2,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, SlidersHorizontal, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { attributeOptions, brands, categories, productsQuery } from "@/services/catalog";
-import type { CategorySlug, SortKey } from "@/lib/types";
+import { attributeOptions, productsQuery, useCatalog } from "@/services/catalog";
+import type { Category, CategorySlug, SortKey } from "@/lib/types";
 import { ProductGrid, ProductGridSkeleton } from "@/components/site/ProductCard";
 import { PageHeading } from "@/components/site/PageHeading";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -38,7 +38,7 @@ const num = (v: unknown) => {
 export const Route = createFileRoute("/shop")({
   validateSearch: (s: Record<string, unknown>): ShopSearch => ({
     q: typeof s.q === "string" && s.q ? s.q : undefined,
-    category: categories.some((c) => c.slug === s.category) ? (s.category as CategorySlug) : undefined,
+    category: typeof s.category === "string" && s.category ? (s.category as CategorySlug) : undefined,
     brands: typeof s.brands === "string" && s.brands ? s.brands : undefined,
     min: num(s.min),
     max: num(s.max),
@@ -67,9 +67,19 @@ export const Route = createFileRoute("/shop")({
 function ShopPage() {
   const search = Route.useSearch();
   const navigate = useNavigate({ from: "/shop" });
+  const { categories, brands } = useCatalog();
   const brandList = search.brands?.split(",").filter(Boolean) ?? [];
   const query = { ...search, brands: brandList, page: search.page ?? 1 };
   const { data, isLoading, isError, isFetching, refetch } = useQuery({ ...productsQuery(query), placeholderData: keepPreviousData });
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      void refetch();
+    };
+    window.addEventListener("ae-catalog-updated", handleUpdate);
+    return () => window.removeEventListener("ae-catalog-updated", handleUpdate);
+  }, [refetch]);
+
   const cat = categories.find((c) => c.slug === search.category);
 
   const update = (patch: Partial<ShopSearch>) =>
@@ -77,7 +87,17 @@ function ShopPage() {
   const clearAll = () => navigate({ search: search.q ? { q: search.q } : {} });
   const activeCount = [search.category, search.brands, search.min, search.max, search.inStock, search.attr].filter((v) => v !== undefined).length;
 
-  const filters = <Filters search={search} brandList={brandList} update={update} clearAll={clearAll} activeCount={activeCount} />;
+  const filters = (
+    <Filters
+      search={search}
+      brandList={brandList}
+      update={update}
+      clearAll={clearAll}
+      activeCount={activeCount}
+      categories={categories}
+      brands={brands}
+    />
+  );
 
   return (
     <>
@@ -161,12 +181,22 @@ function PageBtn({ children, onClick, disabled, active, label }: { children: Rea
   );
 }
 
-function Filters({ search, brandList, update, clearAll, activeCount }: {
+function Filters({
+  search,
+  brandList,
+  update,
+  clearAll,
+  activeCount,
+  categories,
+  brands,
+}: {
   search: ShopSearch;
   brandList: string[];
   update: (p: Partial<ShopSearch>) => void;
   clearAll: () => void;
   activeCount: number;
+  categories: Category[];
+  brands: string[];
 }) {
   const [min, setMin] = useState(search.min?.toString() ?? "");
   const [max, setMax] = useState(search.max?.toString() ?? "");
