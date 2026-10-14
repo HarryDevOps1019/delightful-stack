@@ -13,10 +13,59 @@ import {
   images,
 } from "@/data/catalog";
 import type { Category, Product, ProductPage, ProductQuery } from "@/lib/types";
+import {
+  createProductApi,
+  updateProductApi,
+  deleteProductApi,
+  createCategoryApi,
+  deleteCategoryApi,
+  fetchProductsApi,
+  fetchCategoriesApi,
+} from "./api";
 
 const PRODUCTS_STORAGE_KEY = "ae_products_catalog_v2";
 const CATEGORIES_STORAGE_KEY = "ae_categories_catalog_v2";
 const CATALOG_UPDATED_EVENT = "ae-catalog-updated";
+
+let initialSyncPromise: Promise<void> | null = null;
+export async function syncCatalogWithBackend() {
+  if (typeof window === "undefined") return;
+  if (initialSyncPromise) return initialSyncPromise;
+
+  initialSyncPromise = (async () => {
+    try {
+      const [prodRes, cats] = await Promise.all([
+        fetchProductsApi({ limit: 1000 }),
+        fetchCategoriesApi(),
+      ]);
+
+      if (prodRes && Array.isArray(prodRes.products)) {
+        saveStoredProducts(prodRes.products);
+      }
+      if (cats && Array.isArray(cats)) {
+        // Preserve Vite-bundled image URLs — backend stores plain "/assets/" paths
+        // which would 404 on the frontend. Fall back to our local bundled images.
+        const mergedCats = cats.map((backendCat) => {
+          const localDefault = defaultCategories.find((d) => d.slug === backendCat.slug);
+          const imageIsBackendPath =
+            !backendCat.image ||
+            backendCat.image.startsWith("/assets/") ||
+            backendCat.image.startsWith("http") === false && backendCat.image.startsWith("data:") === false && !backendCat.image.includes(".");
+          return {
+            ...backendCat,
+            image: imageIsBackendPath && localDefault ? localDefault.image : backendCat.image,
+            short: localDefault?.short ?? backendCat.short ?? backendCat.name,
+          };
+        });
+        saveStoredCategories(mergedCats);
+      }
+    } catch (err) {
+      console.warn("Catalog sync with Supabase failed, using cached:", err);
+    }
+  })();
+
+  return initialSyncPromise;
+}
 
 const delay = (ms = 100) => new Promise((r) => setTimeout(r, ms));
 
@@ -34,9 +83,21 @@ export function getStoredProducts(): Product[] {
   if (typeof window === "undefined") return defaultProducts;
   try {
     const raw = localStorage.getItem(PRODUCTS_STORAGE_KEY);
-    if (!raw) return defaultProducts;
+    if (raw === null) return defaultProducts;
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : defaultProducts;
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      const existingIds = new Set(parsed.map((p: Product) => p.slug || p.id));
+      const missing = defaultProducts.filter((p) => !existingIds.has(p.slug) && !existingIds.has(p.id));
+      if (missing.length > 0) {
+        const merged = [...parsed, ...missing];
+        try {
+          localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(merged));
+        } catch {}
+        return merged;
+      }
+      return parsed;
+    }
+    return defaultProducts;
   } catch {
     return defaultProducts;
   }
@@ -56,9 +117,20 @@ export function getStoredCategories(): Category[] {
   if (typeof window === "undefined") return defaultCategories;
   try {
     const raw = localStorage.getItem(CATEGORIES_STORAGE_KEY);
-    if (!raw) return defaultCategories;
+    if (raw === null) return defaultCategories;
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : defaultCategories;
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      // Repair stale /assets/ paths written by older backend syncs
+      const repaired = parsed.map((cat: Category) => {
+        const local = defaultCategories.find((d) => d.slug === cat.slug);
+        if (local && (!cat.image || cat.image.startsWith("/assets/"))) {
+          return { ...cat, image: local.image, short: local.short ?? cat.short };
+        }
+        return cat;
+      });
+      return repaired;
+    }
+    return defaultCategories;
   } catch {
     return defaultCategories;
   }
@@ -130,6 +202,24 @@ export function createProduct(input: CreateProductInput): Product {
 
   const updated = [newProduct, ...current];
   saveStoredProducts(updated);
+  void createProductApi({
+    id: newProduct.id,
+    slug: newProduct.slug,
+    name: newProduct.name,
+    sku: newProduct.sku,
+    brand: newProduct.brand,
+    model: newProduct.model,
+    category: newProduct.category,
+    priceCents: newProduct.priceCents,
+    compareAtCents: newProduct.compareAtCents,
+    stock: newProduct.stock,
+    images: newProduct.images,
+    description: newProduct.description,
+    specs: newProduct.specs,
+    attributes: newProduct.attributes,
+    featured: newProduct.featured,
+    isNew: newProduct.isNew,
+  });
   return newProduct;
 }
 
@@ -168,6 +258,21 @@ export function updateProduct(id: string, updates: Partial<CreateProductInput>):
   const updatedList = [...current];
   updatedList[idx] = updatedProduct;
   saveStoredProducts(updatedList);
+  void updateProductApi(id, {
+    name: updatedProduct.name,
+    sku: updatedProduct.sku,
+    brand: updatedProduct.brand,
+    model: updatedProduct.model,
+    category: updatedProduct.category,
+    priceCents: updatedProduct.priceCents,
+    compareAtCents: updatedProduct.compareAtCents,
+    stock: updatedProduct.stock,
+    description: updatedProduct.description,
+    images: updatedProduct.images,
+    featured: updatedProduct.featured,
+    isNew: updatedProduct.isNew,
+    slug: updatedProduct.slug,
+  });
   return updatedProduct;
 }
 
@@ -176,6 +281,7 @@ export function deleteProduct(id: string): boolean {
   const filtered = current.filter((p) => p.id !== id);
   if (filtered.length === current.length) return false;
   saveStoredProducts(filtered);
+  void deleteProductApi(id);
   return true;
 }
 
@@ -207,6 +313,7 @@ export function createCategory(input: CreateCategoryInput): Category {
   };
 
   saveStoredCategories([...current, newCat]);
+  void createCategoryApi(newCat);
   return newCat;
 }
 
@@ -230,6 +337,7 @@ export function updateCategory(slug: string, updates: Partial<CreateCategoryInpu
   const updatedList = [...current];
   updatedList[idx] = updatedCat;
   saveStoredCategories(updatedList);
+  void createCategoryApi(updatedCat);
   return updatedCat;
 }
 
@@ -238,6 +346,7 @@ export function deleteCategory(slug: string): boolean {
   const filtered = current.filter((c) => c.slug !== slug);
   if (filtered.length === current.length) return false;
   saveStoredCategories(filtered);
+  void deleteCategoryApi(slug);
   return true;
 }
 
@@ -312,8 +421,10 @@ export function generate800SKUs(): { count: number; total: number } {
     const num = 1000 + seq;
     const sku = `AE-${tpl.prefix}-${num}`;
     const name = tpl.name.replace("{val}", val);
-    const brand = tpl.brand || (sampleBrands[i % sampleBrands.length] ?? "Generic");
-    const category = categorySlugs.includes("components") ? "components" : (categorySlugs[0] ?? "components");
+    let catSlug = "components";
+    if (tpl.type === "Lighting") catSlug = "lighting";
+    else if (tpl.type === "Mobile Parts" || tpl.type === "Power") catSlug = "mobile";
+    const category = categorySlugs.includes(catSlug) ? catSlug : (categorySlugs[0] ?? "components");
 
     const minPrice = tpl.priceRange[0];
     const maxPrice = tpl.priceRange[1];
@@ -327,6 +438,15 @@ export function generate800SKUs(): { count: number; total: number } {
     const hasDiscount = i % 5 === 0;
     const compareLKR = hasDiscount ? Math.round(priceLKR * 1.15) : undefined;
 
+    const catImgMap: Record<string, string> = {
+      components: images.catComponents,
+      audio: images.catAudio,
+      lighting: images.catLighting,
+      mobile: images.catMobile,
+      tv: images.catTv,
+    };
+    const prodImg = catImgMap[category] || images.catComponents;
+
     generated.push({
       id: `p_${seq}_${Math.random().toString(36).slice(2, 6)}`,
       slug: slugify(`${brand}-${name}-${sku}`),
@@ -338,7 +458,7 @@ export function generate800SKUs(): { count: number; total: number } {
       priceCents: priceLKR * 100,
       compareAtCents: compareLKR ? compareLKR * 100 : undefined,
       stock,
-      images: [images.catComponents],
+      images: [prodImg],
       description: `Industrial and repair grade ${name.toLowerCase()}. Certified genuine component for electronic repair and manufacturing.`,
       specs: {
         "Part Type": tpl.type,
@@ -435,9 +555,9 @@ export function attributeOptions(category: string) {
 // ─── React Hook for Live Catalog Updates ──────────────────────────────────────
 
 export function useCatalog() {
-  const [products, setProducts] = useState<Product[]>(getStoredProducts);
-  const [categories, setCategories] = useState<Category[]>(getStoredCategories);
-  const [brands, setBrands] = useState<string[]>(getStoredBrands);
+  const [products, setProducts] = useState<Product[]>(defaultProducts);
+  const [categories, setCategories] = useState<Category[]>(defaultCategories);
+  const [brands, setBrands] = useState<string[]>(defaultBrands);
 
   useEffect(() => {
     const handleUpdate = () => {
@@ -450,6 +570,9 @@ export function useCatalog() {
     window.addEventListener("storage", handleUpdate);
     // sync on mount
     handleUpdate();
+    void syncCatalogWithBackend().then(() => {
+      handleUpdate();
+    });
 
     return () => {
       window.removeEventListener(CATALOG_UPDATED_EVENT, handleUpdate);

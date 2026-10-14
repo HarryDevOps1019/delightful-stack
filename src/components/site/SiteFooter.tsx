@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useCatalog } from "@/services/catalog";
+import { categories as defaultCategories } from "@/data/catalog";
 import { Logo } from "./SiteHeader";
 
 const policies = [
@@ -11,7 +11,6 @@ const policies = [
 ];
 
 export function SiteFooter() {
-  const { categories } = useCatalog();
   return (
     <footer className="mt-20 border-t border-border">
       <div className="container-shop grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-4">
@@ -25,7 +24,7 @@ export function SiteFooter() {
           </Link>
         </div>
         <FooterCol title="Categories">
-          {categories.map((c) => (
+          {defaultCategories.map((c) => (
             <Link key={c.slug} to="/shop" search={{ category: c.slug }} className="hover:text-primary">{c.short}</Link>
           ))}
         </FooterCol>

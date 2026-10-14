@@ -140,11 +140,6 @@ export function ProductCard({ product }: { product: Product }) {
     >
       <div className="flex items-center justify-between">
         <StockBadge stock={product.stock} />
-        {product.compareAtCents && (
-          <span className="bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground">
-            -{Math.round((1 - product.priceCents / product.compareAtCents) * 100)}%
-          </span>
-        )}
       </div>
       <Link to="/product/$slug" params={{ slug: product.slug }} className="mt-3 block">
         <div className="aspect-square overflow-hidden bg-tile">
@@ -167,9 +162,6 @@ export function ProductCard({ product }: { product: Product }) {
         <div className="flex items-end justify-between gap-2">
           <div className="min-w-0">
             <p className="font-display text-base font-extrabold">{formatLKR(product.priceCents)}</p>
-            {product.compareAtCents && (
-              <p className="text-xs text-muted-foreground line-through">{formatLKR(product.compareAtCents)}</p>
-            )}
           </div>
           {needsVariant ? (
             <Link

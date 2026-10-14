@@ -2,17 +2,23 @@ import { createFileRoute, Outlet, Link, useRouterState, useNavigate } from "@tan
 import { useState } from "react";
 import {
   LayoutDashboard, Package, ShoppingBag, BarChart3,
-  Settings, Layers, Zap, Eye, LogOut,
+  Settings, Layers, Eye, LogOut,
   ChevronRight, Menu, ExternalLink, ImageIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { adminStyles } from "@/components/admin/shared";
+import logoImg from "@/assets/imgs/logopng.png";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
     meta: [
       { title: "Admin — Asia Electronics" },
       { name: "robots", content: "noindex, nofollow" },
+    ],
+    links: [
+      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/favicon-32x32.png", type: "image/png" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
     ],
   }),
   component: AdminLayout,
@@ -74,18 +80,24 @@ function AdminLayout() {
           >
             {/* Logo */}
             <div
-              className="flex items-center gap-3 px-5 py-5 border-b"
+              className="flex items-center gap-3 px-5 py-4 border-b"
               style={{ borderColor: "oklch(0.18 0.004 270)" }}
             >
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-orange-500 to-pink-600 flex items-center justify-center shrink-0">
-                <Zap className="h-4 w-4 text-white" />
-              </div>
-              <div>
-                <p className="text-xs font-black text-white tracking-tight">
-                  ASIA<span style={{ color: "oklch(0.65 0.235 22)" }}>ELECTRONICS</span>
-                </p>
-                <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">Admin Panel</p>
-              </div>
+              <Link to="/" className="flex items-center gap-3 group" title="Return to customer store">
+                <div className="h-9 w-9 rounded-xl bg-white p-1 flex items-center justify-center shrink-0 shadow-sm border border-white/10 group-hover:scale-105 transition-transform overflow-hidden">
+                  <img
+                    src={logoImg}
+                    alt="Asia Electronics Logo"
+                    className="h-full w-full object-contain"
+                  />
+                </div>
+                <div>
+                  <p className="text-xs font-black text-white tracking-tight">
+                    ASIA<span style={{ color: "oklch(0.65 0.235 22)" }}>ELECTRONICS</span>
+                  </p>
+                  <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">Admin Panel</p>
+                </div>
+              </Link>
             </div>
 
             {/* Nav */}
@@ -170,14 +182,19 @@ function AdminLayout() {
               >
                 <Menu className="h-5 w-5" />
               </button>
-              <div>
-                <h1
-                  className="text-base font-black text-white"
-                  style={{ fontFamily: "Montserrat, ui-sans-serif" }}
-                >
-                  {title}
-                </h1>
-                <p className="text-[10px] text-zinc-500">Asia Electronics & Cellular · Admin Portal</p>
+              <div className="flex items-center gap-3">
+                <div className="h-7 w-7 rounded bg-white p-0.5 flex items-center justify-center shrink-0 lg:hidden shadow-xs">
+                  <img src={logoImg} alt="Asia Electronics Logo" className="h-full w-full object-contain" />
+                </div>
+                <div>
+                  <h1
+                    className="text-base font-black text-white"
+                    style={{ fontFamily: "Montserrat, ui-sans-serif" }}
+                  >
+                    {title}
+                  </h1>
+                  <p className="text-[10px] text-zinc-500">Asia Electronics & Cellular · Admin Portal</p>
+                </div>
               </div>
               <div className="ml-auto flex items-center gap-3">
                 <button

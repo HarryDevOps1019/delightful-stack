@@ -1,14 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useSuspenseQuery } from "@tanstack/react-query";
 import { motion } from "motion/react";
 import { ArrowRight } from "lucide-react";
-import { brands, categories, images } from "@/data/catalog";
-import { productsQuery } from "@/services/catalog";
-import { ProductGrid } from "@/components/site/ProductCard";
+import { brands, images } from "@/data/catalog";
+import { useCatalog } from "@/services/catalog";
 import { SpecialOfferBanner } from "@/components/site/SpecialOfferBanner";
-
-const featuredQ = { sort: "featured" as const, pageSize: 8 };
-const newQ = { sort: "newest" as const, pageSize: 4 };
+import { CategoryProductSection } from "@/components/site/CategoryProductSection";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -19,18 +15,13 @@ export const Route = createFileRoute("/")({
       { property: "og:description", content: "Electronic components, audio, lighting, mobile parts and TVs — demo storefront." },
     ],
   }),
-  loader: ({ context }) => {
-    context.queryClient.ensureQueryData(productsQuery(featuredQ));
-    context.queryClient.ensureQueryData(productsQuery(newQ));
-  },
   component: Index,
 });
 
 const fade = { initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 } };
 
 function Index() {
-  const { data: featured } = useSuspenseQuery(productsQuery(featuredQ));
-  const { data: fresh } = useSuspenseQuery(productsQuery(newQ));
+  const { categories, products: allProducts } = useCatalog();
 
   return (
     <>
@@ -120,15 +111,19 @@ function Index() {
         </div>
       </section>
 
-      <section className="container-shop mt-16">
-        <SectionHead title="Featured Products" to="/shop" cta="View all" />
-        <div className="mt-6"><ProductGrid products={featured.items} /></div>
-      </section>
-
-      <section className="container-shop mt-16">
-        <SectionHead title="New Arrivals" to="/shop" search={{ sort: "newest" }} cta="See new" />
-        <div className="mt-6"><ProductGrid products={fresh.items} /></div>
-      </section>
+      {/* ─── Category Product Carousel Sections (Matching Reference Screenshots) ─── */}
+      <div className="mt-10 sm:mt-12">
+        {categories.map((cat) => {
+          const catProducts = allProducts.filter((p) => p.category === cat.slug);
+          return (
+            <CategoryProductSection
+              key={cat.slug}
+              category={cat}
+              products={catProducts}
+            />
+          );
+        })}
+      </div>
 
       <section className="container-shop mt-16 grid gap-8 lg:grid-cols-2">
         <div>

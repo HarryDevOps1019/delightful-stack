@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import {
   Search,
   Plus,
@@ -564,19 +564,34 @@ function ProductsPage() {
           {filtered.length === 0 && (
             <div className="py-16 text-center text-zinc-500 text-sm space-y-2">
               <Package className="h-8 w-8 mx-auto text-zinc-600" />
-              <p className="font-semibold text-zinc-300">No products match your filters</p>
-              <p className="text-xs text-zinc-500">Try adjusting your search query or reset filters.</p>
-              <button
-                onClick={() => {
-                  setSearch("");
-                  setCatFilter("all");
-                  setBrandFilter("all");
-                  setStockFilter("all");
-                }}
-                className="admin-btn-ghost text-xs mt-2"
-              >
-                Clear all filters
-              </button>
+              <p className="font-semibold text-zinc-300">
+                {products.length === 0 ? "No Products in Database" : "No products match your filters"}
+              </p>
+              <p className="text-xs text-zinc-500">
+                {products.length === 0
+                  ? "Your Supabase products table is currently empty. Click '+ Add Product' to add one."
+                  : "Try adjusting your search query or reset filters."}
+              </p>
+              {products.length === 0 ? (
+                <button
+                  onClick={handleOpenAdd}
+                  className="admin-btn-primary text-xs mt-3 inline-flex items-center gap-1.5"
+                >
+                  <Plus className="h-3.5 w-3.5" /> Add First Product
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    setSearch("");
+                    setCatFilter("all");
+                    setBrandFilter("all");
+                    setStockFilter("all");
+                  }}
+                  className="admin-btn-ghost text-xs mt-2"
+                >
+                  Clear all filters
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -739,6 +754,67 @@ function ProductFormModal({
   const [stock, setStock] = useState(editingProduct ? String(editingProduct.stock) : "25");
   const [description, setDescription] = useState(editingProduct?.description || "");
   const [image, setImage] = useState(editingProduct?.images[0] || images.catComponents);
+  const [imageInputMode, setImageInputMode] = useState<"url" | "upload" | "preset">(
+    editingProduct?.images[0]?.startsWith("data:") ? "upload" : "url"
+  );
+  const [fileName, setFileName] = useState("");
+  const [dragActive, setDragActive] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select a valid image file (PNG, JPG, WebP)");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image file is too large (max 5MB)");
+      return;
+    }
+
+    setFileName(file.name);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      if (dataUrl) {
+        setImage(dataUrl);
+        toast.success(`Loaded "${file.name}"`);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragActive(false);
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please drop a valid image file");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image file is too large (max 5MB)");
+      return;
+    }
+
+    setFileName(file.name);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      if (dataUrl) {
+        setImage(dataUrl);
+        toast.success(`Loaded "${file.name}"`);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   const [featured, setFeatured] = useState(!!editingProduct?.featured);
   const [isNew, setIsNew] = useState(editingProduct?.isNew !== undefined ? editingProduct.isNew : true);
 
@@ -952,53 +1028,172 @@ function ProductFormModal({
             </div>
           </div>
 
-          {/* Image Presets & Custom URL */}
-          <div>
-            <label className="block font-bold text-zinc-300 mb-1">Product Image URL</label>
-            <input
-              value={image}
-              onChange={(e) => setImage(e.target.value)}
-              placeholder="Paste image URL..."
-              className="admin-input w-full text-xs font-mono mb-2"
-            />
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] text-zinc-500 font-semibold">Quick image preset:</span>
-              <button
-                type="button"
-                onClick={() => setImage(images.catComponents)}
-                className="px-2 py-0.5 rounded bg-zinc-800 text-[10px] text-zinc-300 hover:text-white"
-              >
-                Components
-              </button>
-              <button
-                type="button"
-                onClick={() => setImage(images.catAudio)}
-                className="px-2 py-0.5 rounded bg-zinc-800 text-[10px] text-zinc-300 hover:text-white"
-              >
-                Audio
-              </button>
-              <button
-                type="button"
-                onClick={() => setImage(images.catLighting)}
-                className="px-2 py-0.5 rounded bg-zinc-800 text-[10px] text-zinc-300 hover:text-white"
-              >
-                Lighting
-              </button>
-              <button
-                type="button"
-                onClick={() => setImage(images.catMobile)}
-                className="px-2 py-0.5 rounded bg-zinc-800 text-[10px] text-zinc-300 hover:text-white"
-              >
-                Mobile Parts
-              </button>
-              <button
-                type="button"
-                onClick={() => setImage(images.catTv)}
-                className="px-2 py-0.5 rounded bg-zinc-800 text-[10px] text-zinc-300 hover:text-white"
-              >
-                TVs
-              </button>
+          {/* Image Upload & URL Section */}
+          <div className="rounded-xl p-4 bg-zinc-950/60 border border-zinc-800 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <label className="block font-bold text-zinc-300">
+                Product Image <span className="text-orange-500">*</span>
+              </label>
+
+              {/* Mode Switch Tabs */}
+              <div className="flex items-center gap-1 bg-zinc-800/90 p-0.5 rounded-lg text-[11px] font-bold">
+                <button
+                  type="button"
+                  onClick={() => setImageInputMode("url")}
+                  className={`px-2.5 py-1 rounded-md transition-colors ${
+                    imageInputMode === "url"
+                      ? "bg-orange-500 text-white shadow-xs"
+                      : "text-zinc-400 hover:text-white"
+                  }`}
+                >
+                  🌐 Web URL
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setImageInputMode("upload")}
+                  className={`px-2.5 py-1 rounded-md transition-colors ${
+                    imageInputMode === "upload"
+                      ? "bg-orange-500 text-white shadow-xs"
+                      : "text-zinc-400 hover:text-white"
+                  }`}
+                >
+                  📁 Upload Local
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setImageInputMode("preset")}
+                  className={`px-2.5 py-1 rounded-md transition-colors ${
+                    imageInputMode === "preset"
+                      ? "bg-orange-500 text-white shadow-xs"
+                      : "text-zinc-400 hover:text-white"
+                  }`}
+                >
+                  ⚡ Presets
+                </button>
+              </div>
             </div>
+
+            {/* Sub-view: Web Image URL */}
+            {imageInputMode === "url" && (
+              <div className="space-y-1.5">
+                <input
+                  type="url"
+                  value={image.startsWith("data:") ? "" : image}
+                  onChange={(e) => {
+                    setImage(e.target.value);
+                    setFileName("");
+                  }}
+                  placeholder="Paste browser image URL (e.g. https://example.com/item.jpg or https://images.unsplash.com/...)"
+                  className="admin-input w-full text-xs font-mono"
+                />
+                <p className="text-[10px] text-zinc-500">
+                  Tip: Right-click any image in your web browser → select <span className="text-zinc-400">"Copy image address"</span> and paste here.
+                </p>
+              </div>
+            )}
+
+            {/* Sub-view: Local File Upload */}
+            {imageInputMode === "upload" && (
+              <div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                <div
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setDragActive(true);
+                  }}
+                  onDragLeave={() => setDragActive(false)}
+                  onDrop={handleDrop}
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`border-2 border-dashed rounded-lg p-5 text-center cursor-pointer transition-colors ${
+                    dragActive
+                      ? "border-orange-500 bg-orange-500/10 text-orange-400"
+                      : "border-zinc-700 hover:border-zinc-500 bg-zinc-900/40 text-zinc-400"
+                  }`}
+                >
+                  <Upload className="h-6 w-6 mx-auto mb-1.5 text-zinc-400" />
+                  <p className="font-bold text-xs text-zinc-200">
+                    Click to browse or drag & drop image file from your computer
+                  </p>
+                  <p className="text-[10px] text-zinc-500 mt-0.5">
+                    Supports PNG, JPG, JPEG, WEBP, SVG (max 5MB)
+                  </p>
+                  {fileName && (
+                    <p className="text-[11px] font-mono text-emerald-400 mt-2">
+                      Selected: {fileName}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Sub-view: Presets */}
+            {imageInputMode === "preset" && (
+              <div className="flex flex-wrap gap-2 pt-1">
+                {[
+                  { name: "Electronic Components", src: images.catComponents },
+                  { name: "Audio & Speakers", src: images.catAudio },
+                  { name: "LED & Lighting", src: images.catLighting },
+                  { name: "Mobile Parts", src: images.catMobile },
+                  { name: "TVs & Displays", src: images.catTv },
+                ].map((preset) => (
+                  <button
+                    key={preset.name}
+                    type="button"
+                    onClick={() => {
+                      setImage(preset.src);
+                      setFileName("");
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                      image === preset.src
+                        ? "bg-orange-500/20 text-orange-400 border-orange-500/50"
+                        : "bg-zinc-800 text-zinc-400 border-zinc-700 hover:text-white"
+                    }`}
+                  >
+                    {preset.name}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Live Image Preview Thumbnail */}
+            {image && (
+              <div className="flex items-center gap-3 p-2.5 bg-zinc-900 rounded-lg border border-zinc-800">
+                <div className="h-14 w-14 rounded-md overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0">
+                  <img
+                    src={image}
+                    alt="Preview"
+                    className="h-full w-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = images.catComponents;
+                    }}
+                  />
+                </div>
+                <div className="min-w-0 flex-1 text-[11px]">
+                  <p className="font-bold text-zinc-200">Live Preview</p>
+                  <p className="text-zinc-500 truncate font-mono text-[10px]">
+                    {image.startsWith("data:") ? `Local file: ${fileName || "uploaded-image"}` : image}
+                  </p>
+                  <p className="text-emerald-400 text-[10px] font-semibold mt-0.5">Image ready for catalog</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setImage("");
+                    setFileName("");
+                  }}
+                  className="text-zinc-500 hover:text-red-400 p-1 rounded hover:bg-zinc-800"
+                  title="Remove image"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Description */}

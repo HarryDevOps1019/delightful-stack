@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Search, Download, Filter, Eye, Clock, CheckCircle2, Zap,
   X, MapPin, Phone, Mail, CreditCard, Package, Truck,
@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { formatLKR } from "@/lib/format";
 import { mockOrders, StatusBadge, type MockOrder, type OrderStatus } from "@/components/admin/shared";
+import { fetchOrdersApi, updateOrderStatusApi } from "@/services/api";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/orders")({
@@ -289,8 +290,40 @@ function InfoRow({
 function AdminOrders() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("All");
-  const [orders, setOrders] = useState(mockOrders);
+  const [orders, setOrders] = useState<MockOrder[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<MockOrder | null>(null);
+
+  useEffect(() => {
+    async function loadOrders() {
+      setLoading(true);
+      const liveOrders = await fetchOrdersApi();
+      if (liveOrders) {
+        const mapped: MockOrder[] = liveOrders.map((o) => ({
+          id: o.id,
+          customer: o.customerName,
+          email: o.email || "customer@example.com",
+          phone: o.phone,
+          product: o.items?.[0]?.name || "Electronics Component",
+          items: o.items?.reduce((s, it) => s + (it.qty || 1), 0) || 1,
+          total: o.totalLKR,
+          status: o.status,
+          date: new Date(o.createdAt).toLocaleDateString(),
+          paymentMethod: "Direct / WhatsApp",
+          shippingAddress: "Colombo, Sri Lanka",
+          lineItems: (o.items || []).map((it) => ({
+            name: it.name,
+            sku: it.sku,
+            qty: it.qty,
+            unitPrice: it.priceLKR,
+          })),
+        }));
+        setOrders(mapped);
+      }
+      setLoading(false);
+    }
+    void loadOrders();
+  }, []);
 
   const filteredOrders = useMemo(() => {
     return orders.filter((o) => {
@@ -313,6 +346,7 @@ function AdminOrders() {
 
   const handleStatusChange = (id: string, status: OrderStatus) => {
     setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
+    void updateOrderStatusApi(id, status);
   };
 
   return (
@@ -410,10 +444,19 @@ function AdminOrders() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-800/60 font-medium">
-                {filteredOrders.length === 0 ? (
+                {loading ? (
+                  <tr>
+                    <td colSpan={7} className="p-8 text-center text-zinc-400">
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="h-4 w-4 rounded-full border-2 border-orange-500 border-t-transparent animate-spin" />
+                        <span>Loading live orders from Supabase...</span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : filteredOrders.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="p-8 text-center text-zinc-500">
-                      No orders match your criteria.
+                      No orders found in database. Customer orders will appear here in real-time.
                     </td>
                   </tr>
                 ) : (

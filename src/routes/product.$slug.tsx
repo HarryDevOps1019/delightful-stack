@@ -122,7 +122,6 @@ function ProductPage() {
           </p>
           <div className="mt-5 flex items-baseline gap-3">
             <span className="font-display text-3xl font-black">{formatLKR(product.priceCents)}</span>
-            {product.compareAtCents && <span className="text-muted-foreground line-through">{formatLKR(product.compareAtCents)}</span>}
           </div>
           <p className="mt-1 text-xs text-muted-foreground">Sample price for demonstration only.</p>
           <p className="mt-5 text-sm leading-relaxed">{product.description}</p>
