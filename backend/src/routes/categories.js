@@ -1,5 +1,5 @@
 import express from "express";
-import { readCategories, insertCategory, deleteCategory, readProducts } from "../data/db.js";
+import { readCategories, insertCategory, updateCategoryInDb, deleteCategory, readProducts } from "../data/db.js";
 
 const router = express.Router();
 
@@ -41,6 +41,16 @@ router.post("/", async (req, res) => {
     const saved = await insertCategory(newCat);
 
     res.status(201).json({ success: true, data: saved, message: "Category created successfully" });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// PUT /api/categories/:slug
+router.put("/:slug", async (req, res) => {
+  try {
+    const updated = await updateCategoryInDb(req.params.slug, req.body);
+    res.json({ success: true, data: updated, message: "Category updated successfully" });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

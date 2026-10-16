@@ -13,28 +13,44 @@ router.get("/", async (req, res) => {
   }
 });
 
-// POST /api/orders
+// POST /api/orders  (Quotation request)
 router.post("/", async (req, res) => {
   try {
-    const { customerName, phone, email, items, totalLKR } = req.body;
-    if (!customerName || !phone || !items || !Array.isArray(items)) {
-      return res.status(400).json({ success: false, error: "customerName, phone, and items are required" });
+    const { customerName, phone, email, address, city, items, notes } = req.body;
+    if (!customerName || !phone || !items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: "customerName, phone, and items (array) are required",
+      });
     }
 
+    // Generate a unique AEC order ID
+    const uid = `AEC-${Date.now().toString(36).toUpperCase().slice(-6)}${Math.floor(100 + Math.random() * 900)}`;
+
+    const calculatedTotal = items.reduce((sum, item) => sum + (Number(item.priceLKR) || 0) * (Number(item.qty) || 1), 0);
+    const totalLKR = req.body.totalLKR !== undefined ? Number(req.body.totalLKR) : calculatedTotal;
+
     const newOrder = {
-      id: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
-      customerName,
-      phone,
-      email: email || "",
+      id: uid,
+      customerName: customerName.trim(),
+      phone: phone.trim(),
+      email: (email || "").trim(),
+      address: (address || "").trim(),
+      city: (city || "").trim(),
+      notes: (notes || "").trim(),
       items,
-      totalLKR: totalLKR || items.reduce((acc, it) => acc + (it.priceLKR || 0) * (it.qty || 1), 0),
-      status: "Processing",
+      totalLKR,
+      status: "Quotation Requested",
       createdAt: new Date().toISOString(),
     };
 
     const saved = await insertOrder(newOrder);
 
-    res.status(201).json({ success: true, data: saved, message: "Order placed successfully" });
+    res.status(201).json({
+      success: true,
+      data: saved,
+      message: "Quotation request saved successfully",
+    });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -44,14 +60,28 @@ router.post("/", async (req, res) => {
 router.patch("/:id/status", async (req, res) => {
   try {
     const { status } = req.body;
-    const validStatuses = ["Processing", "Shipped", "Delivered", "Cancelled"];
+    const validStatuses = [
+      "Quotation Requested",
+      "Quotation Sent",
+      "Processing",
+      "Shipped",
+      "Delivered",
+      "Cancelled",
+    ];
     if (!status || !validStatuses.includes(status)) {
-      return res.status(400).json({ success: false, error: `Status must be one of: ${validStatuses.join(", ")}` });
+      return res.status(400).json({
+        success: false,
+        error: `Status must be one of: ${validStatuses.join(", ")}`,
+      });
     }
 
     const updated = await updateOrderStatus(req.params.id, status);
 
-    res.json({ success: true, data: updated, message: `Order status updated to ${status}` });
+    res.json({
+      success: true,
+      data: updated,
+      message: `Order status updated to ${status}`,
+    });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

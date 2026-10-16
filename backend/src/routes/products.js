@@ -131,38 +131,84 @@ router.get("/:identifier", async (req, res) => {
 // POST /api/products (create)
 router.post("/", async (req, res) => {
   try {
-    const { name, sku, category, priceLKR, stock, brand, model, description, specs } = req.body;
-    if (!name || !sku || !category || priceLKR === undefined) {
-      return res.status(400).json({ success: false, error: "Missing required fields (name, sku, category, priceLKR)" });
+    const body = req.body;
+    const name = body.name;
+    const sku = body.sku;
+    const category = body.category;
+    const brand = body.brand || "Generic";
+    const model = body.model || "Standard";
+    const description = body.description || "Quality electronic component backed by Asia Electronics warranty.";
+    const stock = Number(body.stock) || 0;
+
+    // Accept either priceLKR or priceCents from the frontend
+    let priceCents;
+    if (body.priceCents !== undefined) {
+      priceCents = Number(body.priceCents);
+    } else if (body.priceLKR !== undefined) {
+      priceCents = Math.round(Number(body.priceLKR) * 100);
+    } else {
+      return res.status(400).json({ success: false, error: "Missing required field: priceCents or priceLKR" });
+    }
+
+    if (!name || !sku || !category) {
+      return res.status(400).json({ success: false, error: "Missing required fields: name, sku, category" });
     }
 
     const cleanSku = String(sku).trim().toUpperCase();
+    const cleanName = String(name).trim();
+
+    // Accept id and slug from frontend if provided (avoids duplicate on re-save)
+    const id = body.id || `prod_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+    const slug = body.slug || `ae-${cleanSku.toLowerCase()}-${cleanName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+
+    // compareAtCents: accept either compareAtCents or compareAtLKR
+    let compareAtCents;
+    if (body.compareAtCents !== undefined) {
+      compareAtCents = Number(body.compareAtCents) || undefined;
+    } else if (body.compareAtLKR) {
+      compareAtCents = Math.round(Number(body.compareAtLKR) * 100);
+    }
+
+    let finalImages = ["/assets/cat-components.jpg"];
+    if (Array.isArray(body.images) && body.images.length > 0) {
+      finalImages = body.images;
+    } else if (body.image) {
+      finalImages = [body.image];
+    }
 
     const newProd = {
-      id: `prod_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-      slug: `ae-${cleanSku.toLowerCase()}-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
-      name: String(name).trim(),
+      id,
+      slug,
+      name: cleanName,
       sku: cleanSku,
-      brand: brand || "Generic",
-      model: model || "Standard",
+      brand,
+      model,
       category,
-      priceCents: Math.round(Number(priceLKR) * 100),
-      compareAtCents: req.body.compareAtLKR ? Math.round(Number(req.body.compareAtLKR) * 100) : undefined,
-      stock: Number(stock) || 0,
-      images: req.body.images || ["/assets/cat-components.jpg"],
-      description: description || "Quality electronic component backed by Asia Electronics warranty.",
-      specs: specs || {},
-      attributes: req.body.attributes || {},
-      featured: Boolean(req.body.featured),
-      isNew: true,
-      createdAt: new Date().toISOString(),
+      priceCents,
+      compareAtCents,
+      stock,
+      images: finalImages,
+      description,
+      specs: body.specs || {},
+      attributes: body.attributes || {},
+      featured: Boolean(body.featured),
+      isNew: body.isNew !== undefined ? Boolean(body.isNew) : true,
+      showPrice: body.showPrice !== false,
+      showQuantity: body.showQuantity !== false,
+      showAvailability: body.showAvailability !== false,
+      createdAt: body.createdAt || new Date().toISOString(),
     };
 
     const saved = await insertProduct(newProd);
 
     res.status(201).json({ success: true, data: saved, message: "Product created successfully" });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    console.error("POST /api/products error:", err.message);
+    const isConflict = err.message?.includes("duplicate") || err.message?.includes("unique");
+    res.status(isConflict ? 409 : 500).json({
+      success: false,
+      error: isConflict ? `A product with this SKU or slug already exists: ${err.message}` : err.message,
+    });
   }
 });
 
@@ -171,6 +217,16 @@ router.put("/:id", async (req, res) => {
   try {
     const updated = await updateProduct(req.params.id, req.body);
     res.json({ success: true, data: updated, message: "Product updated successfully" });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// DELETE /api/products/clear-all (Clears all products from database)
+router.delete("/clear-all", async (req, res) => {
+  try {
+    await writeProducts([]);
+    res.json({ success: true, message: "All products cleared successfully" });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

@@ -46,22 +46,80 @@ CREATE TABLE IF NOT EXISTS orders (
   customer_name   TEXT NOT NULL,
   email           TEXT DEFAULT '',
   phone           TEXT NOT NULL,
+  address         TEXT DEFAULT '',
+  city            TEXT DEFAULT '',
   total_lkr       INTEGER NOT NULL DEFAULT 0,
-  status          TEXT NOT NULL DEFAULT 'Processing',
+  status          TEXT NOT NULL DEFAULT 'Quotation Requested',
   items           JSONB NOT NULL DEFAULT '[]'::jsonb,
+  notes           TEXT DEFAULT '',
   created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at      TIMESTAMPTZ
 );
 
+-- ──────────────── STORE SETTINGS ────────────────
+CREATE TABLE IF NOT EXISTS store_settings (
+  id              TEXT PRIMARY KEY DEFAULT 'default',
+  store_name      TEXT NOT NULL DEFAULT 'Asia Electronics & Cellular',
+  whatsapp_number TEXT NOT NULL DEFAULT '+94 74 106 6017',
+  office_email    TEXT NOT NULL DEFAULT 'aecpvt60@gmail.com',
+  phone           TEXT NOT NULL DEFAULT '+94 74 106 6017',
+  address         TEXT NOT NULL DEFAULT 'Sri Lanka',
+  currency        TEXT NOT NULL DEFAULT 'LKR (Rs.)',
+  tax_rate        TEXT NOT NULL DEFAULT '0%',
+  notifications   JSONB NOT NULL DEFAULT '{"newOrders":true,"lowStock":true,"weeklyReport":false}'::jsonb,
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at      TIMESTAMPTZ DEFAULT now()
+);
+
+-- Run these ALTER statements if tables already exist (idempotent):
+ALTER TABLE products ADD COLUMN IF NOT EXISTS show_price BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS show_quantity BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS show_availability BOOLEAN NOT NULL DEFAULT true;
+
+-- Add missing columns to orders table:
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS address TEXT DEFAULT '';
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS city TEXT DEFAULT '';
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS notes TEXT DEFAULT '';
+
 CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
 
--- ──────────────── ROW LEVEL SECURITY ────────────────
--- Disable RLS for server-side access via service role key
-ALTER TABLE products   ENABLE ROW LEVEL SECURITY;
-ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
-ALTER TABLE orders     ENABLE ROW LEVEL SECURITY;
+-- Insert default store settings if not already present:
+INSERT INTO store_settings (id, store_name, whatsapp_number, office_email, phone, address, currency, tax_rate, notifications)
+VALUES (
+  'default',
+  'Asia Electronics & Cellular',
+  '+94 74 106 6017',
+  'aecpvt60@gmail.com',
+  '+94 74 106 6017',
+  'Sri Lanka',
+  'LKR (Rs.)',
+  '0%',
+  '{"newOrders":true,"lowStock":true,"weeklyReport":false}'::jsonb
+)
+ON CONFLICT (id) DO NOTHING;
 
--- Allow full access for service role (bypasses RLS automatically)
--- Allow anon read for storefront
-CREATE POLICY "Public read products"  ON products  FOR SELECT USING (true);
-CREATE POLICY "Public read categories" ON categories FOR SELECT USING (true);
+-- ──────────────── ROW LEVEL SECURITY ────────────────
+ALTER TABLE products       ENABLE ROW LEVEL SECURITY;
+ALTER TABLE categories     ENABLE ROW LEVEL SECURITY;
+ALTER TABLE orders         ENABLE ROW LEVEL SECURITY;
+ALTER TABLE store_settings ENABLE ROW LEVEL SECURITY;
+
+-- Allow full read & write access
+DROP POLICY IF EXISTS "Public access products"       ON products;
+DROP POLICY IF EXISTS "Public read products"         ON products;
+DROP POLICY IF EXISTS "Public access categories"     ON categories;
+DROP POLICY IF EXISTS "Public read categories"       ON categories;
+DROP POLICY IF EXISTS "Public access orders"         ON orders;
+DROP POLICY IF EXISTS "Public read orders"           ON orders;
+DROP POLICY IF EXISTS "Public access store_settings" ON store_settings;
+DROP POLICY IF EXISTS "Public read store_settings"   ON store_settings;
+
+CREATE POLICY "Public access products"       ON products       FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public access categories"     ON categories     FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public access orders"         ON orders         FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public access store_settings" ON store_settings FOR ALL USING (true) WITH CHECK (true);
+
+-- Optional: To wipe all dummy products to add real products, run:
+-- TRUNCATE TABLE products;
+
+

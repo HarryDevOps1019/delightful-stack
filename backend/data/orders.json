@@ -1,9 +1,9 @@
 [
   {
     "id": "ORD-9401",
-    "customerName": "Demo Customer 1",
-    "email": "customer1@example.invalid",
-    "phone": "0000000000",
+    "customerName": "Kasun Perera",
+    "email": "kasun.p@gmail.com",
+    "phone": "0771234567",
     "totalLKR": 129900,
     "status": "Processing",
     "items": [
@@ -18,9 +18,9 @@
   },
   {
     "id": "ORD-9402",
-    "customerName": "Demo Customer 2",
-    "email": "customer2@example.invalid",
-    "phone": "0000000000",
+    "customerName": "Nimali Silva",
+    "email": "nimali.s@hotmail.com",
+    "phone": "0718899221",
     "totalLKR": 38500,
     "status": "Shipped",
     "items": [
@@ -35,9 +35,9 @@
   },
   {
     "id": "ORD-9403",
-    "customerName": "Demo Customer 3",
-    "email": "customer3@example.invalid",
-    "phone": "0000000000",
+    "customerName": "Amal Fernando",
+    "email": "amal.f@yahoo.com",
+    "phone": "0755543210",
     "totalLKR": 56350,
     "status": "Delivered",
     "items": [

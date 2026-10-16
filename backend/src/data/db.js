@@ -1,8 +1,23 @@
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 import { supabase } from "./supabase.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const SETTINGS_FILE = path.join(__dirname, "../../data/settings.json");
 
 // ─── Column mapping helpers ────────────────────────────────
 // JS camelCase ↔ Postgres snake_case
 function toDbProduct(p) {
+  const showPrice = p.showPrice !== false;
+  const showQuantity = p.showQuantity !== false;
+  const showAvailability = p.showAvailability !== false;
+  const attributes = {
+    ...(p.attributes || {}),
+    visibility: { showPrice, showQuantity, showAvailability },
+  };
+
   return {
     id: p.id,
     slug: p.slug,
@@ -17,7 +32,7 @@ function toDbProduct(p) {
     images: p.images,
     description: p.description,
     specs: p.specs,
-    attributes: p.attributes,
+    attributes,
     featured: p.featured,
     is_new: p.isNew,
     created_at: p.createdAt,
@@ -26,6 +41,9 @@ function toDbProduct(p) {
 }
 
 function fromDbProduct(row) {
+  const attrs = row.attributes || {};
+  const vis = attrs.visibility || {};
+
   return {
     id: row.id,
     slug: row.slug,
@@ -43,6 +61,9 @@ function fromDbProduct(row) {
     attributes: row.attributes,
     featured: row.featured,
     isNew: row.is_new,
+    showPrice: row.show_price !== undefined && row.show_price !== null ? row.show_price : (vis.showPrice !== undefined ? vis.showPrice : true),
+    showQuantity: row.show_quantity !== undefined && row.show_quantity !== null ? row.show_quantity : (vis.showQuantity !== undefined ? vis.showQuantity : true),
+    showAvailability: row.show_availability !== undefined && row.show_availability !== null ? row.show_availability : (vis.showAvailability !== undefined ? vis.showAvailability : true),
     createdAt: row.created_at,
     updatedAt: row.updated_at ?? undefined,
   };
@@ -74,23 +95,41 @@ function toDbOrder(o) {
     customer_name: o.customerName,
     email: o.email,
     phone: o.phone,
+    address: o.address ?? "",
+    city: o.city ?? "",
     total_lkr: o.totalLKR,
     status: o.status,
     items: o.items,
+    notes: o.notes ?? "",
     created_at: o.createdAt,
     updated_at: o.updatedAt ?? null,
   };
 }
 
 function fromDbOrder(row) {
+  let items = row.items;
+  if (typeof items === "string") {
+    try {
+      items = JSON.parse(items);
+    } catch {
+      items = [];
+    }
+  }
+  if (!Array.isArray(items)) {
+    items = [];
+  }
+
   return {
     id: row.id,
     customerName: row.customer_name,
     email: row.email,
     phone: row.phone,
+    address: row.address ?? "",
+    city: row.city ?? "",
     totalLKR: row.total_lkr,
     status: row.status,
-    items: row.items,
+    items,
+    notes: row.notes ?? "",
     createdAt: row.created_at,
     updatedAt: row.updated_at ?? undefined,
   };
@@ -98,27 +137,37 @@ function fromDbOrder(row) {
 
 // ─── Default starter categories ────────────────────────────
 const defaultCategories = [
-  { slug: "components", name: "Electronic Components & Repair Parts", short: "Components", image: "/assets/cat-components.jpg", filterKey: "Component Type" },
-  { slug: "audio", name: "Audio & Speakers", short: "Audio", image: "/assets/cat-audio.jpg", filterKey: "Connectivity" },
-  { slug: "lighting", name: "Lighting", short: "Lighting", image: "/assets/cat-lighting.jpg", filterKey: "Power" },
-  { slug: "mobile", name: "Mobile Parts & Accessories", short: "Mobile Parts", image: "/assets/cat-mobile.jpg", filterKey: "Compatibility" },
-  { slug: "tv", name: "TVs & Projectors", short: "TVs", image: "/assets/cat-tv.jpg", filterKey: "Screen Size" },
+  // Active categories (10)
+  { slug: "lighting",               name: "Lighting",                       short: "Lighting",          image: "/assets/imgs/lighting.png",                 filterKey: "Sub-type" },
+  { slug: "home-appliances",        name: "Home Appliances",                short: "Home Appliances",   image: "/assets/imgs/home-appliances.png",          filterKey: "Type" },
+  { slug: "kitchen-appliances",     name: "Kitchen Appliances",             short: "Kitchen Appliances",image: "/assets/imgs/kitchen-appliances.png",       filterKey: "Type" },
+  { slug: "appliance-spare-parts",  name: "Appliance Spare Parts",          short: "Spare Parts",       image: "/assets/imgs/appliance-spare-parts.png",    filterKey: "Compatible with" },
+  { slug: "electronic-components",  name: "Electronic Components",          short: "Components",        image: "/assets/imgs/electronic-components.png",    filterKey: "Type" },
+  { slug: "power-solar-batteries",  name: "Power, Solar & Batteries",       short: "Power & Solar",     image: "/assets/imgs/power-solar-batteries.png",    filterKey: "Type" },
+  { slug: "audio",                  name: "Audio & Music",                  short: "Audio & Music",     image: "/assets/imgs/audio-music.png",              filterKey: "Type" },
+  { slug: "mobile",                 name: "Mobile Parts & Accessories",     short: "Mobile Parts",      image: "/assets/imgs/mobile-parts-accessories.png", filterKey: "Compatible with" },
+  { slug: "tools-installation",     name: "Tools & Installation Supplies",  short: "Tools & Supplies",  image: "/assets/imgs/tools-installation-supplies.png", filterKey: "Type" },
+  { slug: "laboratory-equipment",   name: "Laboratory Equipment",           short: "Lab Equipment",     image: "/assets/imgs/laboratory-equipment.png",     filterKey: "Type" },
+  // Inactive / pending admin classification (3)
+  { slug: "name-boards",            name: "Name Boards",                    short: "Name Boards",       image: "/assets/imgs/name-boards.png",              filterKey: "Type" },
+  { slug: "magnet-bars",            name: "Magnet Bars",                    short: "Magnet Bars",       image: "/assets/imgs/magnet-bars.png",              filterKey: "Type" },
+  { slug: "equipment",              name: "Equipment",                      short: "Equipment",         image: "/assets/imgs/other-equipment.png",          filterKey: "Type" },
 ];
 
 // ─── Seed generator for 850 realistic electronics SKUs ─────
 export function generate850Products() {
   const subcats = [
-    { prefix: "RES", cat: "components", type: "Resistor", count: 120, brand: "Vishay", priceRange: [15, 60] },
-    { prefix: "CAP", cat: "components", type: "Capacitor", count: 120, brand: "Nichicon", priceRange: [25, 350] },
-    { prefix: "DIO", cat: "components", type: "Diode", count: 60, brand: "Vishay", priceRange: [20, 180] },
-    { prefix: "TRN", cat: "components", type: "Transistor", count: 70, brand: "STMicroelectronics", priceRange: [50, 450] },
-    { prefix: "IC",  cat: "components", type: "Integrated Circuit", count: 90, brand: "Texas Instruments", priceRange: [180, 2400] },
-    { prefix: "REG", cat: "components", type: "Voltage Regulator", count: 50, brand: "STMicroelectronics", priceRange: [90, 650] },
-    { prefix: "MCU", cat: "components", type: "Microcontroller Board", count: 40, brand: "Keyestudio", priceRange: [1200, 8500] },
-    { prefix: "AUD", cat: "audio",      type: "Audio Cable & Driver", count: 70, brand: "JBL", priceRange: [650, 42000] },
-    { prefix: "LGT", cat: "lighting",   type: "LED Strip & Driver", count: 80, brand: "Philips", priceRange: [350, 14500] },
-    { prefix: "MOB", cat: "mobile",     type: "Phone Screen & Cable", count: 90, brand: "OEM Grade", priceRange: [450, 28000] },
-    { prefix: "TV",  cat: "tv",         type: "TV Board & Backlight", count: 60, brand: "Samsung", priceRange: [1200, 185000] },
+    { prefix: "RES", cat: "electronic-components", type: "Resistor", count: 120, brand: "Vishay", priceRange: [15, 60] },
+    { prefix: "CAP", cat: "electronic-components", type: "Capacitor", count: 120, brand: "Nichicon", priceRange: [25, 350] },
+    { prefix: "DIO", cat: "electronic-components", type: "Diode", count: 60, brand: "Vishay", priceRange: [20, 180] },
+    { prefix: "TRN", cat: "electronic-components", type: "Transistor", count: 70, brand: "STMicroelectronics", priceRange: [50, 450] },
+    { prefix: "IC",  cat: "electronic-components", type: "Integrated Circuit", count: 90, brand: "Texas Instruments", priceRange: [180, 2400] },
+    { prefix: "REG", cat: "electronic-components", type: "Voltage Regulator", count: 50, brand: "STMicroelectronics", priceRange: [90, 650] },
+    { prefix: "MCU", cat: "electronic-components", type: "Microcontroller Board", count: 40, brand: "Keyestudio", priceRange: [1200, 8500] },
+    { prefix: "AUD", cat: "audio",                 type: "Audio Cable & Driver", count: 70, brand: "JBL", priceRange: [650, 42000] },
+    { prefix: "LGT", cat: "lighting",              type: "LED Strip & Driver", count: 80, brand: "Philips", priceRange: [350, 14500] },
+    { prefix: "MOB", cat: "mobile",                type: "Phone Screen & Cable", count: 90, brand: "OEM Grade", priceRange: [450, 28000] },
+    { prefix: "TV",  cat: "home-appliances",       type: "TV Board & Backlight", count: 60, brand: "Samsung", priceRange: [1200, 185000] },
   ];
 
   const prods = [];
@@ -191,19 +240,52 @@ export async function writeProducts(prods) {
   const rows = prods.map(toDbProduct);
   for (let i = 0; i < rows.length; i += 500) {
     const chunk = rows.slice(i, i + 500);
-    const { error } = await supabase.from("products").insert(chunk);
-    if (error) console.error(`Supabase insertProducts batch ${i} error:`, error.message);
+    let { error } = await supabase.from("products").insert(chunk);
+    if (error && (error.message?.includes("show_") || error.message?.includes("column"))) {
+      const sanitizedChunk = chunk.map((r) => {
+        const copy = { ...r };
+        delete copy.show_price;
+        delete copy.show_quantity;
+        delete copy.show_availability;
+        return copy;
+      });
+      const retry = await supabase.from("products").insert(sanitizedChunk);
+      if (retry.error) console.error(`Supabase insertProducts batch ${i} retry error:`, retry.error.message);
+    } else if (error) {
+      console.error(`Supabase insertProducts batch ${i} error:`, error.message);
+    }
   }
 }
 
 export async function insertProduct(prod) {
-  const { data, error } = await supabase
+  const row = toDbProduct(prod);
+  let { data, error } = await supabase
     .from("products")
-    .insert(toDbProduct(prod))
+    .insert(row)
     .select()
     .single();
 
-  if (error) throw new Error(error.message);
+  if (error && (error.message?.includes("show_") || error.message?.includes("column"))) {
+    console.warn("Retrying insertProduct without direct visibility columns (saved in attributes.visibility):", error.message);
+    const sanitized = { ...row };
+    delete sanitized.show_price;
+    delete sanitized.show_quantity;
+    delete sanitized.show_availability;
+    const retry = await supabase
+      .from("products")
+      .insert(sanitized)
+      .select()
+      .single();
+    if (retry.error) {
+      console.error("Supabase insertProduct retry error:", retry.error.message);
+      throw new Error(retry.error.message);
+    }
+    data = retry.data;
+  } else if (error) {
+    console.error("Supabase insertProduct error:", error.message);
+    throw new Error(error.message);
+  }
+
   return fromDbProduct(data);
 }
 
@@ -225,16 +307,54 @@ export async function updateProduct(id, updates) {
   if (updates.featured !== undefined)     dbUpdates.featured = updates.featured;
   if (updates.isNew !== undefined)        dbUpdates.is_new = updates.isNew;
   if (updates.slug !== undefined)         dbUpdates.slug = updates.slug;
+
+  // Visibility fields
+  if (updates.showPrice !== undefined) dbUpdates.show_price = Boolean(updates.showPrice);
+  if (updates.showQuantity !== undefined) dbUpdates.show_quantity = Boolean(updates.showQuantity);
+  if (updates.showAvailability !== undefined) dbUpdates.show_availability = Boolean(updates.showAvailability);
+
+  // Preserve inside attributes.visibility for resilience
+  try {
+    const current = await findProduct(id);
+    const baseAttrs = updates.attributes || current?.attributes || {};
+    dbUpdates.attributes = {
+      ...baseAttrs,
+      visibility: {
+        showPrice: updates.showPrice !== undefined ? Boolean(updates.showPrice) : (current?.showPrice !== false),
+        showQuantity: updates.showQuantity !== undefined ? Boolean(updates.showQuantity) : (current?.showQuantity !== false),
+        showAvailability: updates.showAvailability !== undefined ? Boolean(updates.showAvailability) : (current?.showAvailability !== false),
+      },
+    };
+  } catch (e) {
+    console.warn("Could not merge attributes.visibility:", e.message);
+  }
+
   dbUpdates.updated_at = new Date().toISOString();
 
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from("products")
     .update(dbUpdates)
     .eq("id", id)
     .select()
     .single();
 
-  if (error) throw new Error(error.message);
+  if (error && error.message?.includes("show_")) {
+    console.warn("Retrying update without direct visibility columns (saved in attributes.visibility):", error.message);
+    delete dbUpdates.show_price;
+    delete dbUpdates.show_quantity;
+    delete dbUpdates.show_availability;
+    const retry = await supabase
+      .from("products")
+      .update(dbUpdates)
+      .eq("id", id)
+      .select()
+      .single();
+    if (retry.error) throw new Error(retry.error.message);
+    data = retry.data;
+  } else if (error) {
+    throw new Error(error.message);
+  }
+
   return fromDbProduct(data);
 }
 
@@ -310,6 +430,24 @@ export async function deleteCategory(slug) {
   return true;
 }
 
+export async function updateCategoryInDb(slug, updates) {
+  const dbUpdates = {};
+  if (updates.name !== undefined) dbUpdates.name = updates.name;
+  if (updates.short !== undefined) dbUpdates.short = updates.short;
+  if (updates.image !== undefined) dbUpdates.image = updates.image;
+  if (updates.filterKey !== undefined) dbUpdates.filter_key = updates.filterKey;
+
+  const { data, error } = await supabase
+    .from("categories")
+    .update(dbUpdates)
+    .eq("slug", slug)
+    .select()
+    .single();
+
+  if (error) throw new Error(error.message);
+  return fromDbCategory(data);
+}
+
 // ─── ORDERS ────────────────────────────────────────────────
 export async function readOrders() {
   const { data, error } = await supabase
@@ -358,3 +496,117 @@ export async function updateOrderStatus(id, status) {
   if (error) throw new Error(error.message);
   return fromDbOrder(data);
 }
+
+// ─── SETTINGS ──────────────────────────────────────────────
+export const defaultSettings = {
+  id: "default",
+  storeName: "Asia Electronics & Cellular",
+  whatsappNumber: "+94 74 106 6017",
+  officeEmail: "aecpvt60@gmail.com",
+  phone: "+94 74 106 6017",
+  currency: "LKR (Rs.)",
+  taxRate: "0%",
+  address: "Sri Lanka",
+  notifications: {
+    newOrders: true,
+    lowStock: true,
+    weeklyReport: false,
+  },
+  updatedAt: new Date().toISOString(),
+};
+
+function readSettingsFile() {
+  try {
+    if (fs.existsSync(SETTINGS_FILE)) {
+      const raw = fs.readFileSync(SETTINGS_FILE, "utf-8");
+      return { ...defaultSettings, ...JSON.parse(raw) };
+    }
+  } catch (err) {
+    console.error("Error reading settings.json:", err.message);
+  }
+  return defaultSettings;
+}
+
+function writeSettingsFile(settings) {
+  try {
+    const dir = path.dirname(SETTINGS_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2), "utf-8");
+  } catch (err) {
+    console.error("Error writing settings.json:", err.message);
+  }
+}
+
+export async function readSettings() {
+  try {
+    const { data, error } = await supabase
+      .from("store_settings")
+      .select("*")
+      .eq("id", "default")
+      .maybeSingle();
+
+    if (!error && data) {
+      const merged = {
+        id: data.id,
+        storeName: data.store_name || defaultSettings.storeName,
+        whatsappNumber: data.whatsapp_number || defaultSettings.whatsappNumber,
+        officeEmail: data.office_email || defaultSettings.officeEmail,
+        phone: data.phone || defaultSettings.phone,
+        currency: data.currency || defaultSettings.currency,
+        taxRate: data.tax_rate || defaultSettings.taxRate,
+        address: data.address || defaultSettings.address,
+        notifications: data.notifications || defaultSettings.notifications,
+        updatedAt: data.updated_at || data.created_at,
+      };
+      writeSettingsFile(merged);
+      return merged;
+    }
+  } catch (err) {
+    console.warn("Supabase store_settings query error (using local file fallback):", err.message);
+  }
+
+  return readSettingsFile();
+}
+
+export async function updateSettings(updates) {
+  const current = await readSettings();
+  const merged = {
+    ...current,
+    ...updates,
+    notifications: {
+      ...current.notifications,
+      ...(updates.notifications || {}),
+    },
+    updatedAt: new Date().toISOString(),
+  };
+
+  // 1. Always save to local settings.json
+  writeSettingsFile(merged);
+
+  // 2. Try saving to Supabase store_settings table
+  try {
+    const row = {
+      id: "default",
+      store_name: merged.storeName,
+      whatsapp_number: merged.whatsappNumber,
+      office_email: merged.officeEmail,
+      phone: merged.phone,
+      currency: merged.currency,
+      tax_rate: merged.taxRate,
+      address: merged.address,
+      notifications: merged.notifications,
+      updated_at: merged.updatedAt,
+    };
+    const { error } = await supabase
+      .from("store_settings")
+      .upsert(row, { onConflict: "id" });
+    if (error) {
+      console.warn("Supabase store_settings upsert error (saved locally):", error.message);
+    }
+  } catch (err) {
+    console.warn("Supabase store_settings error:", err.message);
+  }
+
+  return merged;
+}
+
