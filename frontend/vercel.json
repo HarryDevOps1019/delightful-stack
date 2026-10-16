@@ -1,0 +1,9 @@
+{
+  "buildCommand": "npm install && npm run build",
+  "outputDirectory": ".vercel/output",
+  "installCommand": "echo 'install handled in buildCommand'",
+  "framework": null,
+  "env": {
+    "NITRO_PRESET": "vercel"
+  }
+}
