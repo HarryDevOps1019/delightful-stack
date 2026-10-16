@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS categories (
   slug        TEXT PRIMARY KEY,
   name        TEXT NOT NULL,
   short       TEXT DEFAULT '',
-  image       TEXT DEFAULT '/assets/cat-components.jpg',
+  image       TEXT DEFAULT '/assets/imgs/electronic-components.png',
   filter_key  TEXT DEFAULT 'Type'
 );
 
@@ -65,3 +65,4 @@ ALTER TABLE orders     ENABLE ROW LEVEL SECURITY;
 -- Allow anon read for storefront
 CREATE POLICY "Public read products"  ON products  FOR SELECT USING (true);
 CREATE POLICY "Public read categories" ON categories FOR SELECT USING (true);
+

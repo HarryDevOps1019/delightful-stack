@@ -29,6 +29,54 @@ const PRODUCTS_STORAGE_KEY = "ae_products_catalog_v6";
 const CATEGORIES_STORAGE_KEY = "ae_categories_catalog_v8";
 const CATALOG_UPDATED_EVENT = "ae-catalog-updated";
 
+export function sanitizeAssetPath(path?: string, defaultFallback = "/assets/imgs/electronic-components.png"): string {
+  if (!path) return defaultFallback;
+  const p = path.trim();
+  if (p.includes("cat-components") || p.includes("electronic-components")) {
+    return "/assets/imgs/electronic-components.png";
+  }
+  if (p.includes("cat-audio") || p.includes("audio-music")) {
+    return "/assets/imgs/audio-music.png";
+  }
+  if (p.includes("cat-lighting") || p.includes("lighting")) {
+    return "/assets/imgs/lighting.png";
+  }
+  if (p.includes("cat-mobile") || p.includes("mobile-parts")) {
+    return "/assets/imgs/mobile-parts-accessories.png";
+  }
+  if (p.includes("cat-tv") || p.includes("home-appliances")) {
+    return "/assets/imgs/home-appliances.png";
+  }
+  if (p.includes("kitchen-appliances")) {
+    return "/assets/imgs/kitchen-appliances.png";
+  }
+  if (p.includes("appliance-spare-parts") || p.includes("cat-spares")) {
+    return "/assets/imgs/appliance-spare-parts.png";
+  }
+  if (p.includes("power-solar") || p.includes("cat-power")) {
+    return "/assets/imgs/power-solar-batteries.png";
+  }
+  if (p.includes("laboratory-equipment") || p.includes("cat-lab")) {
+    return "/assets/imgs/laboratory-equipment.png";
+  }
+  if (p.includes("tools-installation") || p.includes("cat-tools")) {
+    return "/assets/imgs/tools-installation-supplies.png";
+  }
+  if (p.includes("name-boards")) {
+    return "/assets/imgs/name-boards.png";
+  }
+  if (p.includes("magnet-bars")) {
+    return "/assets/imgs/magnet-bars.png";
+  }
+  if (p.includes("other-equipment") || p.includes("cat-equipment")) {
+    return "/assets/imgs/other-equipment.png";
+  }
+  if (p.startsWith("/src/assets/")) {
+    return p.replace(/^\/src\/assets\//, "/assets/");
+  }
+  return p;
+}
+
 let initialSyncPromise: Promise<void> | null = null;
 export async function syncCatalogWithBackend() {
   if (typeof window === "undefined") return;
@@ -42,7 +90,13 @@ export async function syncCatalogWithBackend() {
       ]);
 
       if (prodRes && Array.isArray(prodRes.products)) {
-        saveStoredProducts(prodRes.products);
+        const sanitizedProds = prodRes.products.map((p) => ({
+          ...p,
+          images: Array.isArray(p.images) && p.images.length > 0
+            ? p.images.map((img) => sanitizeAssetPath(img))
+            : ["/assets/imgs/electronic-components.png"],
+        }));
+        saveStoredProducts(sanitizedProds);
       }
       if (cats && Array.isArray(cats) && cats.length > 0) {
         // Categories loaded directly from the Supabase database
@@ -50,7 +104,7 @@ export async function syncCatalogWithBackend() {
           const localDefault = defaultCategories.find((d) => d.slug === backendCat.slug);
           return {
             ...backendCat,
-            image: backendCat.image || localDefault?.image || "/assets/imgs/electronic-components.png",
+            image: sanitizeAssetPath(backendCat.image, localDefault?.image || "/assets/imgs/electronic-components.png"),
             short: backendCat.short || localDefault?.short || backendCat.name,
           };
         });
@@ -83,7 +137,12 @@ export function getStoredProducts(): Product[] {
     if (raw === null) return [];
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed)) {
-      return parsed;
+      return parsed.map((p: Product) => ({
+        ...p,
+        images: Array.isArray(p.images) && p.images.length > 0
+          ? p.images.map((img) => sanitizeAssetPath(img))
+          : ["/assets/imgs/electronic-components.png"],
+      }));
     }
     return [];
   } catch {
@@ -108,13 +167,16 @@ export function getStoredCategories(): Category[] {
     if (raw === null) return defaultCategories;
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed) && parsed.length > 0) {
-      // Fix any legacy stale /assets/cat-*.jpg paths if present
+      // Fix any legacy stale /src/assets/ or /assets/cat-*.jpg paths if present
       const repaired = parsed.map((cat: Category) => {
         const local = defaultCategories.find((d) => d.slug === cat.slug);
-        if (!cat.image || cat.image.startsWith("/assets/cat-")) {
-          return { ...cat, image: local?.image || `/assets/imgs/${cat.slug}.png`, short: local?.short ?? cat.short };
-        }
-        return cat;
+        const currentImg = cat.image || "";
+        const needsRepair = !currentImg || currentImg.includes("/src/assets/") || currentImg.includes("cat-");
+        return {
+          ...cat,
+          image: needsRepair ? (local?.image || sanitizeAssetPath(currentImg, `/assets/imgs/${cat.slug}.png`)) : sanitizeAssetPath(currentImg),
+          short: local?.short ?? cat.short,
+        };
       });
       return repaired;
     }

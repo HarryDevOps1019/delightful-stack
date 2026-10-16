@@ -98,7 +98,7 @@ function fromDbOrder(row) {
 
 // ─── Default starter categories ────────────────────────────
 const defaultCategories = [
-  { slug: "components", name: "Electronic Components & Repair Parts", short: "Components", image: "/assets/cat-components.jpg", filterKey: "Component Type" },
+  { slug: "components", name: "Electronic Components & Repair Parts", short: "Components", image: "/assets/imgs/electronic-components.png", filterKey: "Component Type" },
   { slug: "audio", name: "Audio & Speakers", short: "Audio", image: "/assets/cat-audio.jpg", filterKey: "Connectivity" },
   { slug: "lighting", name: "Lighting", short: "Lighting", image: "/assets/cat-lighting.jpg", filterKey: "Power" },
   { slug: "mobile", name: "Mobile Parts & Accessories", short: "Mobile Parts", image: "/assets/cat-mobile.jpg", filterKey: "Compatibility" },
@@ -143,7 +143,7 @@ export function generate850Products() {
         priceCents: priceLKR * 100,
         compareAtCents: compareLKR ? compareLKR * 100 : undefined,
         stock,
-        images: ["/assets/cat-components.jpg"],
+        images: ["/assets/imgs/electronic-components.png"],
         description: `Industrial grade ${group.type.toLowerCase()} engineered for electronics repair, manufacturing, and maintenance. Tested and quality-assured by Asia Electronics.`,
         specs: {
           "Standard": "RoHS Compliant",
@@ -358,3 +358,4 @@ export async function updateOrderStatus(id, status) {
   if (error) throw new Error(error.message);
   return fromDbOrder(data);
 }
+

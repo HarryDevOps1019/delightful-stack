@@ -192,7 +192,7 @@ export function generate850Products() {
         priceCents: priceLKR * 100,
         compareAtCents: compareLKR ? compareLKR * 100 : undefined,
         stock,
-        images: ["/assets/cat-components.jpg"],
+        images: ["/assets/imgs/electronic-components.png"],
         description: `Industrial grade ${group.type.toLowerCase()} engineered for electronics repair, manufacturing, and maintenance. Tested and quality-assured by Asia Electronics.`,
         specs: {
           "Standard": "RoHS Compliant",
@@ -609,4 +609,5 @@ export async function updateSettings(updates) {
 
   return merged;
 }
+
 

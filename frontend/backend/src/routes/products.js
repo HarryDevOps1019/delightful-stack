@@ -149,7 +149,7 @@ router.post("/", async (req, res) => {
       priceCents: Math.round(Number(priceLKR) * 100),
       compareAtCents: req.body.compareAtLKR ? Math.round(Number(req.body.compareAtLKR) * 100) : undefined,
       stock: Number(stock) || 0,
-      images: req.body.images || ["/assets/cat-components.jpg"],
+      images: req.body.images || ["/assets/imgs/electronic-components.png"],
       description: description || "Quality electronic component backed by Asia Electronics warranty.",
       specs: specs || {},
       attributes: req.body.attributes || {},
@@ -202,3 +202,4 @@ router.post("/seed-800", async (req, res) => {
 });
 
 export default router;
+

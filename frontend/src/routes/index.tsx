@@ -101,7 +101,17 @@ function Index() {
               className={`group flex h-28 items-center justify-between gap-3 overflow-hidden px-6 transition-colors ${i === 4 ? "bg-primary text-primary-foreground" : "bg-tile hover:bg-secondary"}`}
             >
               <span className="min-w-0 font-display text-xs font-extrabold uppercase leading-snug">{c.name}</span>
-              <img src={c.image} alt="" width={816} height={816} loading="lazy" className={`h-20 w-20 shrink-0 object-cover transition-transform group-hover:scale-110 motion-reduce:transition-none ${i === 4 ? "" : "mix-blend-multiply"}`} />
+              <img
+                src={c.image}
+                alt=""
+                width={816}
+                height={816}
+                loading="lazy"
+                onError={(e) => {
+                  e.currentTarget.src = "/assets/imgs/electronic-components.png";
+                }}
+                className={`h-20 w-20 shrink-0 object-cover transition-transform group-hover:scale-110 motion-reduce:transition-none ${i === 4 ? "" : "mix-blend-multiply"}`}
+              />
             </Link>
           ))}
           <Link to="/shop" className="flex h-28 items-center justify-between bg-ink px-6 text-ink-foreground">

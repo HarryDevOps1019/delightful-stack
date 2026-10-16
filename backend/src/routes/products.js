@@ -169,7 +169,7 @@ router.post("/", async (req, res) => {
       compareAtCents = Math.round(Number(body.compareAtLKR) * 100);
     }
 
-    let finalImages = ["/assets/cat-components.jpg"];
+    let finalImages = ["/assets/imgs/electronic-components.png"];
     if (Array.isArray(body.images) && body.images.length > 0) {
       finalImages = body.images;
     } else if (body.image) {
@@ -258,3 +258,4 @@ router.post("/seed-800", async (req, res) => {
 });
 
 export default router;
+

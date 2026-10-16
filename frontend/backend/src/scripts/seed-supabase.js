@@ -2,7 +2,7 @@ import { supabase } from "../data/supabase.js";
 import { generate850Products, writeProducts, writeCategories } from "../data/db.js";
 
 const defaultCategories = [
-  { slug: "components", name: "Electronic Components & Repair Parts", short: "Components", image: "/assets/cat-components.jpg", filterKey: "Component Type" },
+  { slug: "components", name: "Electronic Components & Repair Parts", short: "Components", image: "/assets/imgs/electronic-components.png", filterKey: "Component Type" },
   { slug: "audio", name: "Audio & Speakers", short: "Audio", image: "/assets/cat-audio.jpg", filterKey: "Connectivity" },
   { slug: "lighting", name: "Lighting", short: "Lighting", image: "/assets/cat-lighting.jpg", filterKey: "Power" },
   { slug: "mobile", name: "Mobile Parts & Accessories", short: "Mobile Parts", image: "/assets/cat-mobile.jpg", filterKey: "Compatibility" },
@@ -41,3 +41,4 @@ seed().catch((err) => {
   console.error("Error during seeding:", err);
   process.exitCode = 1;
 });
+

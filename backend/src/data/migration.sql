@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS categories (
   slug        TEXT PRIMARY KEY,
   name        TEXT NOT NULL,
   short       TEXT DEFAULT '',
-  image       TEXT DEFAULT '/assets/cat-components.jpg',
+  image       TEXT DEFAULT '/assets/imgs/electronic-components.png',
   filter_key  TEXT DEFAULT 'Type'
 );
 
@@ -121,5 +121,6 @@ CREATE POLICY "Public access store_settings" ON store_settings FOR ALL USING (tr
 
 -- Optional: To wipe all dummy products to add real products, run:
 -- TRUNCATE TABLE products;
+
 
 

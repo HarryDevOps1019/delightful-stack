@@ -34,7 +34,7 @@ router.post("/", async (req, res) => {
       name: String(name).trim(),
       slug: cleanSlug,
       short: short || name.split(" ")[0] || "General",
-      image: image || "/assets/cat-components.jpg",
+      image: image || "/assets/imgs/electronic-components.png",
       filterKey: filterKey || "Type",
     };
 
@@ -57,3 +57,4 @@ router.delete("/:slug", async (req, res) => {
 });
 
 export default router;
+

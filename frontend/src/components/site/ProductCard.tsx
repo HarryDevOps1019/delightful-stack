@@ -154,11 +154,14 @@ export function ProductCard({ product }: { product: Product }) {
       <Link to="/product/$slug" params={{ slug: product.slug }} className="mt-3 block">
         <div className="aspect-square overflow-hidden bg-tile">
           <img
-            src={product.images[0]}
+            src={product.images[0] || "/assets/imgs/electronic-components.png"}
             alt={product.name}
             loading="lazy"
             width={816}
             height={816}
+            onError={(e) => {
+              e.currentTarget.src = "/assets/imgs/electronic-components.png";
+            }}
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105 motion-reduce:transition-none"
           />
         </div>
