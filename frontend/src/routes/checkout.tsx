@@ -12,6 +12,7 @@ import { PageHeading } from "@/components/site/PageHeading";
 import { createOrderApi } from "@/services/api";
 import { toast } from "sonner";
 import { useSettings } from "@/context/settings";
+import { useAuth } from "@/context/auth";
 
 const schema = z.object({
   fullName: z.string().trim().min(2, "Enter your full name").max(80),
@@ -82,6 +83,7 @@ function openWhatsApp(
 function CheckoutPage() {
   const cart = useCart();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { whatsappDigits } = useSettings();
   const [submitting, setSubmitting] = useState(false);
 
@@ -89,7 +91,17 @@ function CheckoutPage() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<Values>({ resolver: zodResolver(schema) });
+  } = useForm<Values>({
+    resolver: zodResolver(schema),
+    values: {
+      fullName: user?.name || "",
+      email: user?.email || "",
+      phone: "",
+      address: "",
+      city: "",
+      notes: "",
+    },
+  });
 
   const onSubmit = async (v: Values) => {
     if (submitting) return; // prevent double-submit
