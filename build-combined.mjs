@@ -39,14 +39,28 @@ fs.writeFileSync(
   `import app from "./src/server.js";\nexport default app;\n`
 );
 
+// Adopt the same Node.js runtime as Nitro (e.g. nodejs24.x or nodejs22.x) to prevent discontinued runtime warnings
+let serverRuntime = "nodejs22.x";
+const serverFuncConfig = path.join(rootOutput, "functions/__server.func/.vc-config.json");
+if (fs.existsSync(serverFuncConfig)) {
+  try {
+    const parsed = JSON.parse(fs.readFileSync(serverFuncConfig, "utf-8"));
+    if (parsed.runtime) serverRuntime = parsed.runtime;
+  } catch (e) {
+    console.warn("Could not read Nitro runtime, defaulting to nodejs22.x");
+  }
+}
+
 // Vercel Serverless Function Configuration
 const vcConfig = {
-  runtime: "nodejs20.x",
+  runtime: serverRuntime,
   handler: "index.js",
   launcherType: "Nodejs",
   shouldAddHelpers: true,
 };
 fs.writeFileSync(path.join(apiFuncDir, ".vc-config.json"), JSON.stringify(vcConfig, null, 2));
+console.log(`Configured api.func with runtime: ${serverRuntime}`);
+
 
 console.log("=== [4/4] Injecting /api/* route into config.json ===");
 const configPath = path.join(rootOutput, "config.json");
