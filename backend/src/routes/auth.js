@@ -104,20 +104,21 @@ router.post("/login", async (req, res) => {
 
     const cleanEmail = email.trim().toLowerCase();
 
-    // Auto-provision default admin if admin@gmail.com / 12345 is used for the first time
-    if (cleanEmail === "admin@gmail.com" && password === "12345") {
+    // Auto-provision default admin if admin@gmail.com is used for the first time
+    if (cleanEmail === "admin@gmail.com" && (password === "123456" || password === "12345")) {
       const { data: existingUsers } = await supabase.auth.admin.listUsers();
       const adminExists = existingUsers?.users?.some((u) => u.email?.toLowerCase() === "admin@gmail.com");
 
       if (!adminExists) {
         await supabase.auth.admin.createUser({
           email: "admin@gmail.com",
-          password: "12345",
+          password: "123456",
           email_confirm: true,
           user_metadata: { name: "Store Administrator", role: "admin" },
         });
       }
     }
+
 
     // Authenticate with Supabase
     const { data, error } = await supabase.auth.signInWithPassword({
