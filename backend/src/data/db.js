@@ -500,6 +500,28 @@ export async function updateOrderStatus(id, status) {
   return fromDbOrder(data);
 }
 
+export async function updateOrder(id, fields) {
+  const updates = {
+    updated_at: new Date().toISOString(),
+  };
+  if (fields.customerName !== undefined) updates.customer_name = String(fields.customerName).trim();
+  if (fields.phone !== undefined)        updates.phone = String(fields.phone).trim();
+  if (fields.email !== undefined)        updates.email = String(fields.email).trim();
+  if (fields.address !== undefined)      updates.address = String(fields.address).trim();
+  if (fields.city !== undefined)         updates.city = String(fields.city).trim();
+  if (fields.notes !== undefined)        updates.notes = String(fields.notes).trim();
+
+  const { data, error } = await supabase
+    .from("orders")
+    .update(updates)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) throw new Error(error.message);
+  return fromDbOrder(data);
+}
+
 // ─── SETTINGS ──────────────────────────────────────────────
 export const defaultSettings = {
   id: "default",
