@@ -5,7 +5,7 @@ import {
   X, MapPin, Phone, Mail, CreditCard, Package, Truck,
   FileText, ChevronRight, Save,
 } from "lucide-react";
-import { formatLKR } from "@/lib/format";
+import { formatLKR, formatRupees } from "@/lib/format";
 import { mockOrders, StatusBadge, type MockOrder, type OrderStatus } from "@/components/admin/shared";
 import { fetchOrdersApi, updateOrderStatusApi } from "@/services/api";
 import { toast } from "sonner";
@@ -16,13 +16,22 @@ export const Route = createFileRoute("/admin/orders")({
 
 // ── Order Detail Modal ────────────────────────────────────────────────────────
 
-const STATUS_OPTIONS: OrderStatus[] = ["Processing", "Shipped", "Delivered", "Cancelled"];
+const STATUS_OPTIONS: OrderStatus[] = [
+  "Processing",
+  "Shipped",
+  "Delivered",
+  "Cancelled",
+  "Quotation Requested",
+  "Quotation Sent",
+];
 
 const STATUS_COLORS: Record<OrderStatus, string> = {
-  Processing: "bg-amber-500/20 text-amber-400 border-amber-500/40",
-  Shipped:    "bg-blue-500/20 text-blue-400 border-blue-500/40",
-  Delivered:  "bg-emerald-500/20 text-emerald-400 border-emerald-500/40",
-  Cancelled:  "bg-red-500/20 text-red-400 border-red-500/40",
+  Processing:            "bg-amber-500/20 text-amber-400 border-amber-500/40",
+  Shipped:               "bg-blue-500/20 text-blue-400 border-blue-500/40",
+  Delivered:             "bg-emerald-500/20 text-emerald-400 border-emerald-500/40",
+  Cancelled:             "bg-red-500/20 text-red-400 border-red-500/40",
+  "Quotation Requested": "bg-purple-500/20 text-purple-400 border-purple-500/40",
+  "Quotation Sent":      "bg-sky-500/20 text-sky-400 border-sky-500/40",
 };
 
 function OrderDetailModal({
@@ -46,8 +55,8 @@ function OrderDetailModal({
     onClose();
   };
 
-  const deliveryFee = 500;
   const subtotal = order.lineItems.reduce((s, l) => s + l.qty * l.unitPrice, 0);
+  const deliveryFee = order.total > subtotal ? order.total - subtotal : 0;
 
   return (
     /* Backdrop */
@@ -184,8 +193,8 @@ function OrderDetailModal({
                     </div>
                   </div>
                   <div className="text-right shrink-0 ml-3">
-                    <p className="font-bold text-white">{formatLKR(item.qty * item.unitPrice * 100)}</p>
-                    <p className="text-[10px] text-zinc-500">{formatLKR(item.unitPrice * 100)} each</p>
+                    <p className="font-bold text-white">{formatRupees(item.qty * item.unitPrice)}</p>
+                    <p className="text-[10px] text-zinc-500">{formatRupees(item.unitPrice)} each</p>
                   </div>
                 </div>
               ))}
@@ -197,15 +206,24 @@ function OrderDetailModal({
               >
                 <div className="flex justify-between text-zinc-400">
                   <span>Subtotal</span>
-                  <span>{formatLKR(subtotal * 100)}</span>
+                  <span>{formatRupees(subtotal)}</span>
                 </div>
-                <div className="flex justify-between text-zinc-400">
-                  <span>Delivery fee</span>
-                  <span>{formatLKR(deliveryFee * 100)}</span>
-                </div>
+                {deliveryFee > 0 ? (
+                  <div className="flex justify-between text-zinc-400">
+                    <span>Delivery fee</span>
+                    <span>{formatRupees(deliveryFee)}</span>
+                  </div>
+                ) : (
+                  <div className="flex justify-between text-zinc-500">
+                    <span>Delivery fee</span>
+                    <span>Included / Free</span>
+                  </div>
+                )}
                 <div className="flex justify-between font-black text-white text-sm pt-1.5" style={{ borderTop: "1px solid oklch(0.25 0.004 270)" }}>
                   <span>Total</span>
-                  <span className="text-orange-400">{formatLKR(order.total * 100)}</span>
+                  <span className={order.status === "Cancelled" ? "text-zinc-500 line-through" : "text-orange-400"}>
+                    {formatRupees(order.total)}
+                  </span>
                 </div>
               </div>
             </div>
@@ -314,7 +332,7 @@ function AdminOrders() {
             phone: o.phone || "—",
             product: productSummary,
             items: itemCount,
-            total: o.totalLKR,
+            total: Number(o.totalLKR) || 0,
             status: (o.status as MockOrder["status"]) || "Processing",
             date: new Date(o.createdAt).toLocaleDateString("en-GB"),
             paymentMethod: "Direct / WhatsApp",
@@ -337,24 +355,40 @@ function AdminOrders() {
     void loadOrders();
   }, []);
 
+  const stats = useMemo(() => {
+    // Only non-cancelled orders count towards actual Total Sales revenue
+    const validOrders = orders.filter((o) => o.status !== "Cancelled");
+    const total = validOrders.reduce((acc, o) => acc + (Number(o.total) || 0), 0);
+    const processing = orders.filter(
+      (o) => o.status === "Processing" || o.status === "Quotation Requested" || o.status === "Quotation Sent"
+    ).length;
+    const shipped = orders.filter((o) => o.status === "Shipped").length;
+    const delivered = orders.filter((o) => o.status === "Delivered").length;
+    const cancelled = orders.filter((o) => o.status === "Cancelled").length;
+    return {
+      total,
+      processing,
+      shipped,
+      delivered,
+      cancelled,
+      validSalesCount: validOrders.length,
+      totalOrders: orders.length,
+    };
+  }, [orders]);
+
   const filteredOrders = useMemo(() => {
     return orders.filter((o) => {
       const matchSearch =
         o.id.toLowerCase().includes(search.toLowerCase()) ||
         o.customer.toLowerCase().includes(search.toLowerCase()) ||
         o.product.toLowerCase().includes(search.toLowerCase());
-      const matchStatus = statusFilter === "All" || o.status === statusFilter;
+      const matchStatus =
+        statusFilter === "All" ||
+        o.status === statusFilter ||
+        (statusFilter === "Processing" && (o.status === "Quotation Requested" || o.status === "Quotation Sent"));
       return matchSearch && matchStatus;
     });
   }, [search, statusFilter, orders]);
-
-  const stats = useMemo(() => {
-    const total = orders.reduce((acc, o) => acc + o.total, 0);
-    const processing = orders.filter((o) => o.status === "Processing").length;
-    const shipped = orders.filter((o) => o.status === "Shipped").length;
-    const delivered = orders.filter((o) => o.status === "Delivered").length;
-    return { total, processing, shipped, delivered };
-  }, [orders]);
 
   const handleStatusChange = (id: string, status: OrderStatus) => {
     setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
@@ -376,9 +410,15 @@ function AdminOrders() {
         {/* Top summary stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="admin-card">
-            <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Total Sales</p>
-            <p className="text-xl font-black text-white mt-1">{formatLKR(stats.total * 100)}</p>
-            <p className="text-xs text-zinc-400 mt-1">{orders.length} total orders</p>
+            <div className="flex items-center justify-between">
+              <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Total Sales</p>
+              <CreditCard className="h-4 w-4 text-orange-400" />
+            </div>
+            <p className="text-xl font-black text-white mt-1">{formatRupees(stats.total)}</p>
+            <p className="text-xs text-zinc-400 mt-1">
+              {stats.validSalesCount} {stats.validSalesCount === 1 ? "order" : "orders"}
+              {stats.cancelled > 0 ? ` (${stats.cancelled} cancelled excluded)` : " total"}
+            </p>
           </div>
           <div className="admin-card">
             <div className="flex items-center justify-between">
@@ -421,17 +461,32 @@ function AdminOrders() {
 
             <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
               <Filter className="h-3.5 w-3.5 text-zinc-500 shrink-0" />
-              {["All", "Processing", "Shipped", "Delivered", "Cancelled"].map((st) => (
+              {[
+                { id: "All", label: "All", count: orders.length },
+                { id: "Processing", label: "Processing", count: stats.processing },
+                { id: "Shipped", label: "Shipped", count: stats.shipped },
+                { id: "Delivered", label: "Delivered", count: stats.delivered },
+                { id: "Cancelled", label: "Cancelled", count: stats.cancelled },
+              ].map((tab) => (
                 <button
-                  key={st}
-                  onClick={() => setStatusFilter(st)}
-                  className={`px-3 py-1.5 rounded-md text-xs font-bold transition-colors whitespace-nowrap ${
-                    statusFilter === st
+                  key={tab.id}
+                  onClick={() => setStatusFilter(tab.id)}
+                  className={`px-3 py-1.5 rounded-md text-xs font-bold transition-colors whitespace-nowrap flex items-center gap-1.5 ${
+                    statusFilter === tab.id
                       ? "bg-orange-500/20 text-orange-400 border border-orange-500/40"
                       : "bg-zinc-800/60 text-zinc-400 hover:text-white"
                   }`}
                 >
-                  {st}
+                  <span>{tab.label}</span>
+                  <span
+                    className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono ${
+                      statusFilter === tab.id
+                        ? "bg-orange-500/30 text-orange-300 font-bold"
+                        : "bg-zinc-700/60 text-zinc-400"
+                    }`}
+                  >
+                    {tab.count}
+                  </span>
                 </button>
               ))}
 
@@ -523,7 +578,9 @@ function AdminOrders() {
                           </div>
                         )}
                       </td>
-                      <td className="p-3 font-bold text-white">{formatLKR(o.total * 100)}</td>
+                      <td className={`p-3 font-bold ${o.status === "Cancelled" ? "text-zinc-500 line-through" : "text-white"}`}>
+                        {formatRupees(o.total)}
+                      </td>
                       <td className="p-3"><StatusBadge status={o.status} /></td>
                       <td className="p-3 text-right">
                         <button

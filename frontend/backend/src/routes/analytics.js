@@ -10,9 +10,10 @@ router.get("/", async (req, res) => {
     const orders = await readOrders();
     const categories = await readCategories();
 
-    const totalRevenue = orders.reduce((sum, o) => sum + (o.totalLKR || 0), 0);
+    const validOrders = orders.filter((o) => o.status !== "Cancelled");
+    const totalRevenue = validOrders.reduce((sum, o) => sum + (Number(o.totalLKR) || 0), 0);
     const completedOrders = orders.filter((o) => o.status === "Delivered").length;
-    const processingOrders = orders.filter((o) => o.status === "Processing").length;
+    const processingOrders = orders.filter((o) => o.status === "Processing" || o.status === "Quotation Requested").length;
 
     // Revenue by category breakdown
     const categoryBreakdown = categories.map((c) => {
