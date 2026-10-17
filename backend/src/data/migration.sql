@@ -99,28 +99,30 @@ VALUES (
 ON CONFLICT (id) DO NOTHING;
 
 -- ──────────────── ROW LEVEL SECURITY ────────────────
-ALTER TABLE products       ENABLE ROW LEVEL SECURITY;
-ALTER TABLE categories     ENABLE ROW LEVEL SECURITY;
-ALTER TABLE orders         ENABLE ROW LEVEL SECURITY;
-ALTER TABLE store_settings ENABLE ROW LEVEL SECURITY;
+-- Fix for: "new row violates row-level security policy for table products"
+-- Run this in your Supabase Dashboard -> SQL Editor:
 
--- Allow full read & write access
-DROP POLICY IF EXISTS "Public access products"       ON products;
-DROP POLICY IF EXISTS "Public read products"         ON products;
-DROP POLICY IF EXISTS "Public access categories"     ON categories;
-DROP POLICY IF EXISTS "Public read categories"       ON categories;
-DROP POLICY IF EXISTS "Public access orders"         ON orders;
-DROP POLICY IF EXISTS "Public read orders"           ON orders;
-DROP POLICY IF EXISTS "Public access store_settings" ON store_settings;
-DROP POLICY IF EXISTS "Public read store_settings"   ON store_settings;
+-- Option 1 (Recommended for simple e-commerce backend): Disable RLS
+ALTER TABLE products       DISABLE ROW LEVEL SECURITY;
+ALTER TABLE categories     DISABLE ROW LEVEL SECURITY;
+ALTER TABLE orders         DISABLE ROW LEVEL SECURITY;
+ALTER TABLE store_settings DISABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Public access products"       ON products       FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Public access categories"     ON categories     FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Public access orders"         ON orders         FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Public access store_settings" ON store_settings FOR ALL USING (true) WITH CHECK (true);
+-- Option 2 (If you prefer RLS enabled, run these permissive policies):
+-- ALTER TABLE products       ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE categories     ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE orders         ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE store_settings ENABLE ROW LEVEL SECURITY;
 
--- Optional: To wipe all dummy products to add real products, run:
--- TRUNCATE TABLE products;
+-- DROP POLICY IF EXISTS "Public access products"       ON products;
+-- DROP POLICY IF EXISTS "Public access categories"     ON categories;
+-- DROP POLICY IF EXISTS "Public access orders"         ON orders;
+-- DROP POLICY IF EXISTS "Public access store_settings" ON store_settings;
+
+-- CREATE POLICY "Public access products"       ON products       FOR ALL TO public USING (true) WITH CHECK (true);
+-- CREATE POLICY "Public access categories"     ON categories     FOR ALL TO public USING (true) WITH CHECK (true);
+-- CREATE POLICY "Public access orders"         ON orders         FOR ALL TO public USING (true) WITH CHECK (true);
+-- CREATE POLICY "Public access store_settings" ON store_settings FOR ALL TO public USING (true) WITH CHECK (true);
 
 
 
