@@ -8,6 +8,8 @@ import categoriesRouter from "./routes/categories.js";
 import ordersRouter from "./routes/orders.js";
 import analyticsRouter from "./routes/analytics.js";
 import settingsRouter from "./routes/settings.js";
+import authRouter from "./routes/auth.js";
+
 
 dotenv.config();
 
@@ -60,6 +62,9 @@ app.use("/api/analytics", analyticsRouter);
 app.use("/analytics", analyticsRouter);
 app.use("/api/settings", settingsRouter);
 app.use("/settings", settingsRouter);
+app.use("/api/auth", authRouter);
+app.use("/auth", authRouter);
+
 
 
 // 404 handler for undefined API routes

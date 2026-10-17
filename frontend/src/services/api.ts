@@ -350,3 +350,91 @@ export async function updateSettingsApi(settings: Partial<ApiSettings>): Promise
   }
 }
 
+// ─── Authentication API (Supabase Auth) ───────────────────
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  name: string;
+  role: "admin" | "customer";
+}
+
+export interface AuthResponse {
+  success: boolean;
+  user: AuthUser;
+  token?: string | null;
+  refreshToken?: string | null;
+  message?: string;
+  error?: string;
+}
+
+export async function loginApi(credentials: { email: string; password: string }): Promise<AuthResponse> {
+  try {
+    const res = await fetch(`${API_BASE}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(credentials),
+    });
+
+    const json = await res.json();
+    if (!res.ok) {
+      throw new Error(json.error || "Failed to sign in");
+    }
+    return json;
+  } catch (err: any) {
+    console.error("loginApi error:", err);
+    throw err;
+  }
+}
+
+export async function registerApi(data: { name: string; email: string; password: string }): Promise<AuthResponse> {
+  try {
+    const res = await fetch(`${API_BASE}/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    const json = await res.json();
+    if (!res.ok) {
+      throw new Error(json.error || "Failed to create account");
+    }
+    return json;
+  } catch (err: any) {
+    console.error("registerApi error:", err);
+    throw err;
+  }
+}
+
+export async function fetchCurrentUserApi(token: string): Promise<AuthUser | null> {
+  try {
+    const res = await fetch(`${API_BASE}/auth/me`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json.user || null;
+  } catch (err) {
+    return null;
+  }
+}
+
+export async function logoutApi(token?: string | null): Promise<void> {
+  try {
+    await fetch(`${API_BASE}/auth/logout`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+  } catch (err) {
+    console.warn("logoutApi error:", err);
+  }
+}
+
+

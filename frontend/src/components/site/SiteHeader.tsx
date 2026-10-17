@@ -15,7 +15,9 @@ import {
 import logoImg from "@/assets/imgs/logopng.png";
 import { useCatalog } from "@/services/catalog";
 import { useCart } from "@/context/cart";
+import { useAuth } from "@/context/auth";
 import { CategoryMegaMenu, CATEGORY_ICONS } from "./CategoryMegaMenu";
+
 import { BrandsMegaMenu } from "./BrandsMegaMenu";
 import { MobileBottomNav } from "./MobileBottomNav";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -127,7 +129,9 @@ function MobileSearchOverlay({ onClose }: { onClose: () => void }) {
 export function SiteHeader() {
   const { count } = useCart();
   const { categories, brands } = useCatalog();
+  const { user, logout, isAdmin } = useAuth();
   const [activeMenu, setActiveMenu] = useState<"categories" | "brands" | null>(null);
+
   const [mobileOpen, setMobileOpen] = useState(false);
   const [expandedMobileCategory, setExpandedMobileCategory] = useState<string | null>(null);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
@@ -458,15 +462,46 @@ export function SiteHeader() {
                   </span>
                 </Link>
 
-                {/* Account / Login & Sign Up */}
-                <div className="flex items-center gap-2 pl-3 border-l border-zinc-200">
-                  <User className="h-5 w-5 text-zinc-600 shrink-0" />
-                  <div className="flex items-center gap-1.5 text-xs text-zinc-700">
-                    <Link to="/login" className="font-semibold hover:text-primary transition-colors">Login</Link>
+                {/* Account / User Profile / Login */}
+                {user ? (
+                  <div className="flex items-center gap-2 pl-3 border-l border-zinc-200">
+                    <Link
+                      to="/account"
+                      className="flex items-center gap-1.5 text-xs text-zinc-800 hover:text-primary transition-colors font-bold"
+                    >
+                      <div className="h-6 w-6 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-[11px]">
+                        {user.name.charAt(0).toUpperCase()}
+                      </div>
+                      <span className="max-w-[120px] truncate">Hi, {user.name.split(" ")[0]}</span>
+                    </Link>
+                    {isAdmin && (
+                      <Link
+                        to="/admin"
+                        className="px-1.5 py-0.5 rounded bg-primary text-white text-[10px] font-bold hover:bg-primary/90"
+                      >
+                        Admin
+                      </Link>
+                    )}
                     <span className="text-zinc-300 font-light">|</span>
-                    <Link to="/register" className="font-semibold hover:text-primary transition-colors">Sign Up</Link>
+                    <button
+                      type="button"
+                      onClick={() => logout()}
+                      className="text-xs text-zinc-500 hover:text-red-600 transition-colors font-semibold cursor-pointer"
+                    >
+                      Sign out
+                    </button>
                   </div>
-                </div>
+                ) : (
+                  <div className="flex items-center gap-2 pl-3 border-l border-zinc-200">
+                    <User className="h-5 w-5 text-zinc-600 shrink-0" />
+                    <div className="flex items-center gap-1.5 text-xs text-zinc-700">
+                      <Link to="/login" className="font-semibold hover:text-primary transition-colors">Login</Link>
+                      <span className="text-zinc-300 font-light">|</span>
+                      <Link to="/register" className="font-semibold hover:text-primary transition-colors">Sign Up</Link>
+                    </div>
+                  </div>
+                )}
+
 
                 {/* Language / Currency Selector */}
                 <div className="flex items-center gap-1 pl-3 border-l border-zinc-200 text-xs text-zinc-700">

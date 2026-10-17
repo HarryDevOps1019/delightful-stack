@@ -15,7 +15,9 @@ import { MotionConfig } from "motion/react";
 import appCss from "../styles.css?url";
 import { CartProvider } from "@/context/cart";
 import { SettingsProvider, useSettings } from "@/context/settings";
+import { AuthProvider } from "@/context/auth";
 import { SiteHeader } from "@/components/site/SiteHeader";
+
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { Toaster } from "@/components/ui/sonner";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -136,21 +138,25 @@ function RootComponent() {
   if (isAdmin) {
     return (
       <QueryClientProvider client={queryClient}>
-        <SettingsProvider>
-          <CartProvider>
-            <Outlet />
-            <Toaster position="bottom-right" />
-          </CartProvider>
-        </SettingsProvider>
+        <AuthProvider>
+          <SettingsProvider>
+            <CartProvider>
+              <Outlet />
+              <Toaster position="bottom-right" />
+            </CartProvider>
+          </SettingsProvider>
+        </AuthProvider>
       </QueryClientProvider>
     );
   }
 
   return (
     <QueryClientProvider client={queryClient}>
-      <SettingsProvider>
-        <CartProvider>
-          <MotionConfig reducedMotion="user">
+      <AuthProvider>
+        <SettingsProvider>
+          <CartProvider>
+            <MotionConfig reducedMotion="user">
+
             <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-primary focus:p-3 focus:text-primary-foreground">
               Skip to content
             </a>
@@ -173,8 +179,10 @@ function RootComponent() {
           </MotionConfig>
         </CartProvider>
       </SettingsProvider>
-    </QueryClientProvider>
-  );
+    </AuthProvider>
+  </QueryClientProvider>
+);
+
 }
 
 function FloatingWhatsAppButton() {

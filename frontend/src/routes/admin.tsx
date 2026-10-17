@@ -8,6 +8,8 @@ import {
 import { toast } from "sonner";
 import { adminStyles } from "@/components/admin/shared";
 import logoImg from "@/assets/imgs/logopng.png";
+import { useAuth } from "@/context/auth";
+
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -45,15 +47,18 @@ const TITLES: Record<string, string> = {
 };
 
 function AdminLayout() {
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { logout } = useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const title = TITLES[pathname] ?? "Admin";
 
-  const handleLogout = () => {
-    toast.success("Signed out of Admin. Returning to customer store...");
-    navigate({ to: "/" });
+  const handleLogout = async () => {
+    await logout();
+    navigate({ to: "/login" });
   };
+
 
   return (
     <>
