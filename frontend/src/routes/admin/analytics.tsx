@@ -30,11 +30,10 @@ function AdminAnalytics() {
     void loadData();
   }, []);
 
-  const totalRevenueLKR = orders
-    .filter((o) => o.status !== "Cancelled")
-    .reduce((a, o) => a + (o.totalLKR || 0), 0);
+  const validOrders = orders.filter((o) => o.status !== "Cancelled");
+  const totalRevenueLKR = validOrders.reduce((a, o) => a + (Number(o.totalLKR) || 0), 0);
 
-  const avgOrderValueLKR = orders.length > 0 ? Math.round(totalRevenueLKR / orders.length) : 0;
+  const avgOrderValueLKR = validOrders.length > 0 ? Math.round(totalRevenueLKR / validOrders.length) : 0;
   const inStockCount = products.filter((p) => p.stock > 0).length;
   const lowStockCount = products.filter((p) => p.stock > 0 && p.stock <= 5).length;
   const outOfStockCount = products.filter((p) => p.stock === 0).length;
@@ -72,7 +71,12 @@ function AdminAnalytics() {
           </div>
           <p className="text-2xl font-black text-white mt-1">{formatLKR(totalRevenueLKR * 100)}</p>
           <div className="flex items-center gap-1 text-[11px] text-zinc-400 font-semibold mt-2">
-            <span>{orders.length} orders recorded in DB</span>
+            <span>
+              {validOrders.length} valid orders
+              {orders.filter((o) => o.status === "Cancelled").length > 0
+                ? ` (${orders.filter((o) => o.status === "Cancelled").length} cancelled excluded)`
+                : ""}
+            </span>
           </div>
         </div>
 

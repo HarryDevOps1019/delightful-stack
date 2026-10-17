@@ -67,10 +67,12 @@ export function Sparkline({ data, color = "#f97316" }: { data: number[]; color?:
 
 export function StatusBadge({ status }: { status: string }) {
   const cfg: Record<string, { cls: string; icon: React.ReactNode }> = {
-    Processing: { cls: "bg-amber-500/15 text-amber-400 border-amber-500/30", icon: <Clock className="h-3 w-3" /> },
-    Shipped:    { cls: "bg-blue-500/15 text-blue-400 border-blue-500/30",   icon: <Zap className="h-3 w-3" /> },
-    Delivered:  { cls: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30", icon: <CheckCircle2 className="h-3 w-3" /> },
-    Cancelled:  { cls: "bg-red-500/15 text-red-400 border-red-500/30",      icon: <XCircle className="h-3 w-3" /> },
+    Processing:            { cls: "bg-amber-500/15 text-amber-400 border-amber-500/30",   icon: <Clock className="h-3 w-3" /> },
+    Shipped:               { cls: "bg-blue-500/15 text-blue-400 border-blue-500/30",     icon: <Zap className="h-3 w-3" /> },
+    Delivered:             { cls: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30", icon: <CheckCircle2 className="h-3 w-3" /> },
+    Cancelled:             { cls: "bg-red-500/15 text-red-400 border-red-500/30",        icon: <XCircle className="h-3 w-3" /> },
+    "Quotation Requested": { cls: "bg-purple-500/15 text-purple-400 border-purple-500/30", icon: <Clock className="h-3 w-3" /> },
+    "Quotation Sent":      { cls: "bg-sky-500/15 text-sky-400 border-sky-500/30",       icon: <Zap className="h-3 w-3" /> },
   };
   const { cls, icon } = cfg[status] ?? { cls: "bg-zinc-700 text-zinc-300 border-zinc-600", icon: null };
   return (
@@ -92,7 +94,13 @@ export function StockBadge({ stock }: { stock: number }) {
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
 
-export type OrderStatus = "Processing" | "Shipped" | "Delivered" | "Cancelled";
+export type OrderStatus =
+  | "Processing"
+  | "Shipped"
+  | "Delivered"
+  | "Cancelled"
+  | "Quotation Requested"
+  | "Quotation Sent";
 
 export interface OrderLineItem {
   name: string;

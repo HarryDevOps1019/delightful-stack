@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { DollarSign, ShoppingCart, Package, AlertTriangle, Layers, ShoppingBag, ArrowUpRight, CheckCircle2 } from "lucide-react";
 import { useCatalog } from "@/services/catalog";
-import { formatLKR } from "@/lib/format";
+import { formatLKR, formatRupees } from "@/lib/format";
 import { StatusBadge, StockBadge } from "@/components/admin/shared";
 import { fetchOrdersApi, type ApiOrder } from "@/services/api";
 
@@ -30,25 +30,27 @@ function OverviewPage() {
   const outOfStock = products.filter((p) => p.stock === 0);
   const inStock = products.filter((p) => p.stock > 0);
 
-  const totalRevenueLKR = orders
-    .filter((o) => o.status !== "Cancelled")
-    .reduce((a, o) => a + (o.totalLKR || 0), 0);
+  const validOrders = orders.filter((o) => o.status !== "Cancelled");
+  const totalRevenueLKR = validOrders.reduce((a, o) => a + (Number(o.totalLKR) || 0), 0);
 
-  const processingOrders = orders.filter((o) => o.status === "Processing").length;
+  const processingOrders = orders.filter(
+    (o) => o.status === "Processing" || o.status === "Quotation Requested" || o.status === "Quotation Sent"
+  ).length;
   const deliveredOrders = orders.filter((o) => o.status === "Delivered").length;
+  const cancelledOrders = orders.filter((o) => o.status === "Cancelled").length;
 
   const kpis = [
     {
       label: "Total Revenue",
-      value: formatLKR(totalRevenueLKR * 100),
-      sub: `${deliveredOrders} delivered orders`,
+      value: formatRupees(totalRevenueLKR),
+      sub: `${deliveredOrders} delivered (${validOrders.length} valid sales)`,
       icon: <DollarSign className="h-5 w-5" />,
       color: "from-orange-500 to-pink-600",
     },
     {
       label: "Total Orders",
       value: String(orders.length),
-      sub: `${processingOrders} processing now`,
+      sub: `${processingOrders} processing · ${cancelledOrders} cancelled`,
       icon: <ShoppingCart className="h-5 w-5" />,
       color: "from-violet-500 to-indigo-600",
     },
