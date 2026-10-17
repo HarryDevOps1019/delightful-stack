@@ -18,6 +18,7 @@ import {
   X,
   Package,
   Layers,
+  Tag,
   Check,
   AlertTriangle,
   ExternalLink,
@@ -42,6 +43,9 @@ function ProductsPage() {
     products,
     categories,
     brands,
+    brandLogos,
+    saveBrandLogo,
+    deleteBrandLogo,
     createProduct,
     updateProduct,
     deleteProduct,
@@ -68,6 +72,7 @@ function ProductsPage() {
   const [productModalOpen, setProductModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
+  const [brandModalOpen, setBrandModalOpen] = useState(false);
   const [csvModalOpen, setCsvModalOpen] = useState(false);
 
   // Filtered & sorted products
@@ -245,6 +250,15 @@ function ProductsPage() {
           >
             <Layers className="h-3.5 w-3.5 text-orange-400" />
             Categories ({categories.length})
+          </button>
+
+          <button
+            onClick={() => setBrandModalOpen(true)}
+            className="admin-btn-ghost flex items-center gap-1.5 text-xs font-bold"
+            title="Manage brand logos and brands"
+          >
+            <Tag className="h-3.5 w-3.5 text-orange-400" />
+            Brands & Logos ({brands.length})
           </button>
 
           <button
@@ -470,9 +484,24 @@ function ProductsPage() {
                           <p className="text-xs font-semibold text-white truncate max-w-[220px]" title={p.name}>
                             {p.name}
                           </p>
-                          <p className="text-[10px] text-zinc-500">
-                            {p.brand} {p.model && `· ${p.model}`}
-                          </p>
+                          <div className="flex items-center gap-1.5 text-[10px] text-zinc-400 mt-0.5">
+                            {brandLogos[p.brand] ? (
+                              <img
+                                src={brandLogos[p.brand]}
+                                alt={p.brand}
+                                className="h-3.5 w-3.5 object-contain rounded bg-white/10 shrink-0"
+                                onError={(e) => {
+                                  (e.target as HTMLElement).style.display = "none";
+                                }}
+                              />
+                            ) : (
+                              <span className="h-3.5 w-3.5 rounded bg-zinc-800 text-[8px] font-bold text-zinc-400 inline-flex items-center justify-center shrink-0">
+                                {p.brand?.charAt(0) || "B"}
+                              </span>
+                            )}
+                            <span className="font-semibold text-zinc-300">{p.brand}</span>
+                            {p.model && <span className="text-zinc-500">· {p.model}</span>}
+                          </div>
                         </div>
                       </div>
                     </td>
@@ -694,6 +723,7 @@ function ProductsPage() {
           editingProduct={editingProduct}
           categories={categories}
           brands={brands}
+          brandLogos={brandLogos}
           onSave={(data) => {
             if (editingProduct) {
               updateProduct(editingProduct.id, data);
@@ -705,6 +735,7 @@ function ProductsPage() {
             setProductModalOpen(false);
           }}
           onOpenCategories={() => setCategoryModalOpen(true)}
+          onOpenBrands={() => setBrandModalOpen(true)}
         />
       )}
 
@@ -730,6 +761,25 @@ function ProductsPage() {
             }
             deleteCategory(slug);
             toast.success("Category deleted.");
+          }}
+        />
+      )}
+
+      {/* ─── Brand & Logo Manager Modal ─── */}
+      {brandModalOpen && (
+        <BrandManagerModal
+          isOpen={brandModalOpen}
+          onClose={() => setBrandModalOpen(false)}
+          brands={brands}
+          brandLogos={brandLogos}
+          products={products}
+          onSaveLogo={(brandName, logoUrl) => {
+            saveBrandLogo(brandName, logoUrl);
+            toast.success(`Brand logo saved for "${brandName}"!`);
+          }}
+          onDeleteLogo={(brandName) => {
+            deleteBrandLogo(brandName);
+            toast.success(`Logo removed for "${brandName}".`);
           }}
         />
       )}
@@ -765,16 +815,20 @@ function ProductFormModal({
   editingProduct,
   categories,
   brands,
+  brandLogos,
   onSave,
   onOpenCategories,
+  onOpenBrands,
 }: {
   isOpen: boolean;
   onClose: () => void;
   editingProduct: Product | null;
   categories: Category[];
   brands: string[];
+  brandLogos?: Record<string, string>;
   onSave: (data: Partial<CreateProductInput> & { name: string; sku: string; category: string; priceLKR: number; stock: number }) => void;
   onOpenCategories: () => void;
+  onOpenBrands?: () => void;
 }) {
   const isEditing = !!editingProduct;
 
@@ -1081,7 +1135,33 @@ function ProductFormModal({
           {/* Row 3: Brand & Model */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block font-bold text-zinc-300 mb-1">Brand Name</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block font-bold text-zinc-300">Brand Name</label>
+                <div className="flex items-center gap-2">
+                  {brand && brandLogos?.[brand.trim()] && (
+                    <span className="flex items-center gap-1 text-[11px] text-emerald-400">
+                      <img
+                        src={brandLogos[brand.trim()]}
+                        alt={brand}
+                        className="h-3.5 w-3.5 object-contain rounded bg-white/10"
+                        onError={(e) => {
+                          (e.target as HTMLElement).style.display = "none";
+                        }}
+                      />
+                      <span className="text-[10px]">Logo active</span>
+                    </span>
+                  )}
+                  {onOpenBrands && (
+                    <button
+                      type="button"
+                      onClick={onOpenBrands}
+                      className="text-[10px] text-orange-400 hover:text-orange-300 hover:underline flex items-center gap-0.5"
+                    >
+                      Manage Logos
+                    </button>
+                  )}
+                </div>
+              </div>
               <input
                 value={brand}
                 onChange={(e) => setBrand(e.target.value)}
@@ -1958,6 +2038,243 @@ function CategoryManagerModal({
             Total {categories.length} departments registered in catalog
           </p>
           <button onClick={onClose} className="admin-btn-ghost text-xs">
+            Done
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ─── Modal 2B: Brand & Logo Manager Modal ────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+
+function BrandManagerModal({
+  isOpen,
+  onClose,
+  brands,
+  brandLogos,
+  products,
+  onSaveLogo,
+  onDeleteLogo,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  brands: string[];
+  brandLogos: Record<string, string>;
+  products: Product[];
+  onSaveLogo: (brand: string, logoUrl: string) => void;
+  onDeleteLogo: (brand: string) => void;
+}) {
+  const [search, setSearch] = useState("");
+  const [editingBrand, setEditingBrand] = useState<string | null>(null);
+  const [logoInput, setLogoInput] = useState("");
+  const [newBrandName, setNewBrandName] = useState("");
+  const [newBrandLogo, setNewBrandLogo] = useState("");
+
+  if (!isOpen) return null;
+
+  // Filtered brands
+  const filteredBrands = brands.filter((b) =>
+    b.toLowerCase().includes(search.trim().toLowerCase())
+  );
+
+  const handleStartEdit = (b: string) => {
+    setEditingBrand(b);
+    setLogoInput(brandLogos[b] || "");
+  };
+
+  const handleSaveEdit = (b: string) => {
+    onSaveLogo(b, logoInput);
+    setEditingBrand(null);
+  };
+
+  const handleCreateNewBrand = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newBrandName.trim()) return;
+    onSaveLogo(newBrandName.trim(), newBrandLogo.trim());
+    setNewBrandName("");
+    setNewBrandLogo("");
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-200"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div className="relative w-full max-w-2xl max-h-[90vh] flex flex-col rounded-xl border border-zinc-800 bg-zinc-950 text-white shadow-2xl overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between p-5 border-b border-zinc-800">
+          <div>
+            <h3 className="text-base font-extrabold text-white flex items-center gap-2">
+              <Tag className="h-4 w-4 text-orange-400" />
+              Manage Brands & Logos
+            </h3>
+            <p className="text-xs text-zinc-400 mt-0.5">
+              Configure brand logos for products in your store. Logos will be displayed in the storefront Brand Showcase, Shop Filters, and Admin catalog.
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Content body */}
+        <div className="flex-1 overflow-y-auto p-5 space-y-5">
+          {/* Quick Add Brand Logo */}
+          <form
+            onSubmit={handleCreateNewBrand}
+            className="p-3.5 rounded-lg border border-zinc-800 bg-zinc-900/50 space-y-3"
+          >
+            <p className="text-xs font-bold text-zinc-200 uppercase tracking-wider flex items-center gap-1.5">
+              <Plus className="h-3.5 w-3.5 text-orange-400" /> Add or Update Brand Logo
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div>
+                <label className="block text-[11px] text-zinc-400 font-semibold mb-1">Brand Name *</label>
+                <input
+                  required
+                  value={newBrandName}
+                  onChange={(e) => setNewBrandName(e.target.value)}
+                  placeholder="e.g. Sony, Samsung, Apple"
+                  className="admin-input w-full text-xs"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] text-zinc-400 font-semibold mb-1">Brand Logo Image URL</label>
+                <input
+                  value={newBrandLogo}
+                  onChange={(e) => setNewBrandLogo(e.target.value)}
+                  placeholder="https://... or /assets/imgs/..."
+                  className="admin-input w-full text-xs"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end pt-1">
+              <button
+                type="submit"
+                className="admin-btn-primary text-xs font-bold px-3 py-1.5"
+              >
+                Save Brand & Logo
+              </button>
+            </div>
+          </form>
+
+          {/* Search bar */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-500" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search existing brands..."
+              className="admin-input w-full pl-9 text-xs"
+            />
+          </div>
+
+          {/* Existing Brands List */}
+          <div className="space-y-2">
+            <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
+              Brands Detected in Store Catalog ({filteredBrands.length})
+            </p>
+
+            {filteredBrands.length === 0 ? (
+              <div className="p-8 text-center border border-zinc-800 rounded-lg bg-zinc-900/30 text-xs text-zinc-500">
+                No brands found matching your search.
+              </div>
+            ) : (
+              <div className="divide-y divide-zinc-800/80 border border-zinc-800 rounded-lg overflow-hidden bg-zinc-900/40">
+                {filteredBrands.map((b) => {
+                  const count = products.filter((p) => p.brand === b).length;
+                  const logo = brandLogos[b];
+                  const isEditingThis = editingBrand === b;
+
+                  return (
+                    <div key={b} className="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs hover:bg-zinc-800/30 transition-colors">
+                      <div className="flex items-center gap-3 min-w-0">
+                        {logo ? (
+                          <div className="h-9 w-9 rounded-md bg-white/10 p-1 flex items-center justify-center shrink-0 border border-zinc-700/50">
+                            <img
+                              src={logo}
+                              alt={b}
+                              className="h-full w-full object-contain"
+                              onError={(e) => { (e.target as HTMLElement).style.display = "none"; }}
+                            />
+                          </div>
+                        ) : (
+                          <div className="h-9 w-9 rounded-md bg-zinc-800 flex items-center justify-center font-bold text-zinc-400 shrink-0 border border-zinc-700/30">
+                            {b.slice(0, 2).toUpperCase()}
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <p className="font-bold text-white truncate">{b}</p>
+                          <p className="text-[11px] text-zinc-500">
+                            {count} {count === 1 ? "product in store" : "products in store"} · {logo ? "Custom logo active" : "No logo set"}
+                          </p>
+                        </div>
+                      </div>
+
+                      {isEditingThis ? (
+                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                          <input
+                            type="text"
+                            value={logoInput}
+                            onChange={(e) => setLogoInput(e.target.value)}
+                            placeholder="Paste logo image URL..."
+                            className="admin-input flex-1 sm:w-60 text-xs py-1"
+                            autoFocus
+                          />
+                          <button
+                            onClick={() => handleSaveEdit(b)}
+                            className="px-2.5 py-1 rounded bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs"
+                          >
+                            Save
+                          </button>
+                          <button
+                            onClick={() => setEditingBrand(null)}
+                            className="px-2 py-1 rounded border border-zinc-700 text-zinc-400 hover:text-white text-xs"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 self-end sm:self-center">
+                          <button
+                            onClick={() => handleStartEdit(b)}
+                            className="px-2.5 py-1 rounded border border-zinc-700 text-zinc-300 hover:bg-zinc-800 text-xs flex items-center gap-1 font-semibold"
+                          >
+                            <Edit2 className="h-3 w-3" />
+                            {logo ? "Change Logo" : "Add Logo"}
+                          </button>
+                          {logo && (
+                            <button
+                              onClick={() => onDeleteLogo(b)}
+                              className="px-2 py-1 rounded border border-red-500/30 text-red-400 hover:bg-red-500/10 text-xs flex items-center gap-1"
+                              title="Remove brand logo"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="p-4 border-t border-zinc-800 bg-zinc-900/60 flex items-center justify-between text-xs text-zinc-400">
+          <span>{brands.length} unique brands registered</span>
+          <button
+            onClick={onClose}
+            className="px-4 py-1.5 rounded-md border border-zinc-700 bg-zinc-800 text-white hover:bg-zinc-700 font-bold"
+          >
             Done
           </button>
         </div>

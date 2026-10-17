@@ -67,7 +67,7 @@ export const Route = createFileRoute("/shop")({
 function ShopPage() {
   const search = Route.useSearch();
   const navigate = useNavigate({ from: "/shop" });
-  const { categories, brands } = useCatalog();
+  const { categories, brands, brandLogos } = useCatalog();
   const brandList = search.brands?.split(",").filter(Boolean) ?? [];
   const query = { ...search, brands: brandList, page: search.page ?? 1 };
   const { data, isLoading, isError, isFetching, refetch } = useQuery({ ...productsQuery(query), placeholderData: keepPreviousData });
@@ -96,6 +96,7 @@ function ShopPage() {
       activeCount={activeCount}
       categories={categories}
       brands={brands}
+      brandLogos={brandLogos}
     />
   );
 
@@ -189,6 +190,7 @@ function Filters({
   activeCount,
   categories,
   brands,
+  brandLogos,
 }: {
   search: ShopSearch;
   brandList: string[];
@@ -197,6 +199,7 @@ function Filters({
   activeCount: number;
   categories: Category[];
   brands: string[];
+  brandLogos?: Record<string, string>;
 }) {
   const [min, setMin] = useState(search.min?.toString() ?? "");
   const [max, setMax] = useState(search.max?.toString() ?? "");
@@ -254,12 +257,30 @@ function Filters({
         </form>
       </FilterGroup>
       <FilterGroup title="Brand">
-        <div className="max-h-64 space-y-1 overflow-y-auto pr-1">
-          {brands.map((b) => (
-            <label key={b} className="flex cursor-pointer items-center gap-2 py-1">
-              <Checkbox checked={brandList.includes(b)} onCheckedChange={() => toggleBrand(b)} /> {b}
-            </label>
-          ))}
+        <div className="max-h-64 space-y-1.5 overflow-y-auto pr-1">
+          {brands.map((b) => {
+            const logo = brandLogos?.[b];
+            return (
+              <label key={b} className="flex cursor-pointer items-center gap-2 py-1 hover:text-primary transition-colors text-xs">
+                <Checkbox checked={brandList.includes(b)} onCheckedChange={() => toggleBrand(b)} />
+                {logo ? (
+                  <img
+                    src={logo}
+                    alt={b}
+                    className="h-4 w-4 object-contain rounded shrink-0"
+                    onError={(e) => {
+                      (e.target as HTMLElement).style.display = "none";
+                    }}
+                  />
+                ) : (
+                  <span className="h-4 w-4 rounded-full bg-muted flex items-center justify-center text-[9px] font-bold text-muted-foreground shrink-0">
+                    {b.charAt(0).toUpperCase()}
+                  </span>
+                )}
+                <span>{b}</span>
+              </label>
+            );
+          })}
         </div>
       </FilterGroup>
     </div>
