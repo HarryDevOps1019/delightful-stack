@@ -274,6 +274,34 @@ export async function updateOrderStatusApi(id: string, status: string): Promise<
   }
 }
 
+export async function updateOrderDetailsApi(
+  id: string,
+  details: {
+    customerName?: string;
+    phone?: string;
+    email?: string;
+    address?: string;
+    city?: string;
+    notes?: string;
+  }
+): Promise<{ success: boolean; data?: ApiOrder; error?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/orders/${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(details),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      return { success: false, error: json.error || `Failed to update order (HTTP ${res.status})` };
+    }
+    return { success: true, data: json.data };
+  } catch (err: any) {
+    console.warn("Backend API updateOrderDetails error:", err);
+    return { success: false, error: err.message || "Network error" };
+  }
+}
+
 // ─── Analytics API ─────────────────────────────────────────
 
 export async function fetchAnalyticsApi(): Promise<ApiAnalytics | null> {

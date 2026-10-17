@@ -1,5 +1,5 @@
 import express from "express";
-import { readOrders, insertOrder, updateOrderStatus } from "../data/db.js";
+import { readOrders, insertOrder, updateOrderStatus, updateOrder } from "../data/db.js";
 
 const router = express.Router();
 
@@ -50,6 +50,54 @@ router.post("/", async (req, res) => {
       success: true,
       data: saved,
       message: "Quotation request saved successfully",
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// PATCH /api/orders/:id (Update Customer Details & Delivery Destination until status is "Shipped")
+router.patch("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const orders = await readOrders();
+    const existing = orders.find((o) => o.id === id);
+
+    if (!existing) {
+      return res.status(404).json({ success: false, error: "Order not found" });
+    }
+
+    const currentStatus = (existing.status || "").trim().toLowerCase();
+    const lockedStatuses = ["shipped", "delivered", "cancelled"];
+
+    if (lockedStatuses.includes(currentStatus)) {
+      return res.status(400).json({
+        success: false,
+        error: `Order details cannot be edited once status is "${existing.status}". Please contact Asia Electronics support directly.`,
+      });
+    }
+
+    const { customerName, phone, email, address, city, notes } = req.body;
+    if (customerName !== undefined && !String(customerName).trim()) {
+      return res.status(400).json({ success: false, error: "Customer name cannot be empty" });
+    }
+    if (phone !== undefined && !String(phone).trim()) {
+      return res.status(400).json({ success: false, error: "Phone number cannot be empty" });
+    }
+
+    const updated = await updateOrder(id, {
+      customerName,
+      phone,
+      email,
+      address,
+      city,
+      notes,
+    });
+
+    res.json({
+      success: true,
+      data: updated,
+      message: "Order details updated successfully",
     });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });

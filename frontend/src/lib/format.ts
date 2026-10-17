@@ -5,6 +5,12 @@ export function formatLKR(cents: number) {
   return `Rs. ${fmt.format(Math.round(cents / 100))}`;
 }
 
+/** Format direct LKR Rupee amount as "Rs. 12,500" */
+export function formatRupees(rupees: number) {
+  if (rupees === undefined || rupees === null || isNaN(rupees)) return "Rs. 0";
+  return `Rs. ${fmt.format(Math.round(rupees))}`;
+}
+
 export const lkr = (rupees: number) => Math.round(rupees * 100);
 
 export function stockLabel(stock: number) {
