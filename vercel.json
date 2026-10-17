@@ -1,5 +1,5 @@
 {
-  "buildCommand": "cd frontend && npm install && npm run build && cp -r .vercel/output ../.vercel/output",
+  "buildCommand": "node build-combined.mjs",
   "installCommand": "echo skip",
   "framework": null,
   "build": {
