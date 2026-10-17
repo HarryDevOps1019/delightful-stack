@@ -5,7 +5,10 @@ import { supabase } from "./supabase.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const SETTINGS_FILE = path.join(__dirname, "../../data/settings.json");
+const SETTINGS_FILE = process.env.VERCEL
+  ? path.join("/tmp", "settings.json")
+  : path.join(__dirname, "../../data/settings.json");
+
 
 // ─── Column mapping helpers ────────────────────────────────
 // JS camelCase ↔ Postgres snake_case

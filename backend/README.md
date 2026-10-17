@@ -35,6 +35,18 @@ The server will start at **`http://localhost:5000`**.
 
 ---
 
+## Deploy to Vercel
+
+Deploy the backend as a separate Vercel project from the frontend:
+
+1. Import this repository as a new Vercel project and set **Root Directory** to `backend`.
+2. Set the project framework preset to **Other**. Vercel will install dependencies from `package.json` and deploy the catch-all function in `api/`.
+3. Add `SUPABASE_URL` and `SUPABASE_SERVICE_KEY` as Vercel environment variables for the environments you deploy. Apply `src/data/migration.sql` to the Supabase project before using the API.
+4. Deploy and verify `https://<backend-project>.vercel.app/api/health`.
+5. In the frontend Vercel project, set `VITE_API_URL` to `https://<backend-project>.vercel.app/api`, then redeploy the frontend.
+
+The backend continues to listen on `PORT` when run locally; on Vercel, the exported Express app is handled by the serverless function.
+
 ## 📡 API Endpoints
 
 ### Health & Info
