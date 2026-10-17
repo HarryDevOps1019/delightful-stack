@@ -7,8 +7,10 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
-    "seed": "node src/scripts/seed-supabase.js"
+    "seed": "node src/scripts/seed-supabase.js",
+    "seed:admin": "node src/scripts/seed-admin.js"
   },
+
   "keywords": [
     "express",
     "api",

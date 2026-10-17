@@ -30,7 +30,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
 
   const fillAdmin = () => {
     setValue("email", "admin@gmail.com");
-    setValue("password", "12345");
+    setValue("password", "123456");
     toast.info("Admin credentials auto-filled!");
   };
 
@@ -56,15 +56,15 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
     }
   };
 
-
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="mx-auto max-w-md space-y-4 border border-border p-6 sm:p-8">
       <div className="bg-amber-500/10 border border-amber-500/30 p-3 rounded text-xs text-amber-200">
         {mode === "login" ? (
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
             <span>
-              <strong>Admin Access:</strong> <code className="bg-black/40 px-1.5 py-0.5 rounded font-mono">admin@gmail.com</code> / <code className="bg-black/40 px-1.5 py-0.5 rounded font-mono">12345</code>
+              <strong>Admin Access:</strong> <code className="bg-black/40 px-1.5 py-0.5 rounded font-mono">admin@gmail.com</code> / <code className="bg-black/40 px-1.5 py-0.5 rounded font-mono">123456</code>
             </span>
+
             <button
               type="button"
               onClick={fillAdmin}
