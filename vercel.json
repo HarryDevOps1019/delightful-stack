@@ -1,0 +1,10 @@
+{
+  "buildCommand": "node build-combined.mjs",
+  "installCommand": "echo skip",
+  "framework": null,
+  "build": {
+    "env": {
+      "NITRO_PRESET": "vercel"
+    }
+  }
+}

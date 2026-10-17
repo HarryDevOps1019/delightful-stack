@@ -1,0 +1,16 @@
+{
+  "id": "default",
+  "storeName": "Asia Electronics & Cellular",
+  "whatsappNumber": "+94755682153",
+  "officeEmail": "aecpvt60@gmail.com",
+  "phone": "+94 74 106 6017",
+  "currency": "LKR (Rs.)",
+  "taxRate": "0%",
+  "address": "Sri Lanka",
+  "notifications": {
+    "lowStock": true,
+    "newOrders": true,
+    "weeklyReport": false
+  },
+  "updatedAt": "2026-10-16T04:19:13.188+00:00"
+}

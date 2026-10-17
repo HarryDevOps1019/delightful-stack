@@ -1,0 +1,59 @@
+[
+  {
+    "id": "ORD-9401",
+    "customerName": "Kasun Perera",
+    "email": "kasun.p@gmail.com",
+    "phone": "0771234567",
+    "totalLKR": 129900,
+    "status": "Processing",
+    "items": [
+      {
+        "sku": "AE-TV-001",
+        "name": "43\" 4K UHD Smart TV Board",
+        "qty": 1,
+        "priceLKR": 129900
+      }
+    ],
+    "createdAt": "2026-10-13T07:44:19.060Z"
+  },
+  {
+    "id": "ORD-9402",
+    "customerName": "Nimali Silva",
+    "email": "nimali.s@hotmail.com",
+    "phone": "0718899221",
+    "totalLKR": 38500,
+    "status": "Shipped",
+    "items": [
+      {
+        "sku": "AE-AUD-004",
+        "name": "Portable Bluetooth Speaker 20W",
+        "qty": 1,
+        "priceLKR": 38500
+      }
+    ],
+    "createdAt": "2026-10-12T07:44:19.060Z"
+  },
+  {
+    "id": "ORD-9403",
+    "customerName": "Amal Fernando",
+    "email": "amal.f@yahoo.com",
+    "phone": "0755543210",
+    "totalLKR": 56350,
+    "status": "Delivered",
+    "items": [
+      {
+        "sku": "AE-CAP-005",
+        "name": "Capacitor 100uF Kit",
+        "qty": 10,
+        "priceLKR": 2500
+      },
+      {
+        "sku": "AE-RES-012",
+        "name": "Metal Film Resistor Pack",
+        "qty": 5,
+        "priceLKR": 1500
+      }
+    ],
+    "createdAt": "2026-10-11T07:44:19.060Z"
+  }
+]

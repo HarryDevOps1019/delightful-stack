@@ -1,0 +1,37 @@
+[
+  {
+    "slug": "components",
+    "name": "Electronic Components & Repair Parts",
+    "short": "Components",
+    "image": "/assets/imgs/electronic-components.png",
+    "filterKey": "Component Type"
+  },
+  {
+    "slug": "audio",
+    "name": "Audio & Speakers",
+    "short": "Audio",
+    "image": "/assets/cat-audio.jpg",
+    "filterKey": "Connectivity"
+  },
+  {
+    "slug": "lighting",
+    "name": "Lighting",
+    "short": "Lighting",
+    "image": "/assets/cat-lighting.jpg",
+    "filterKey": "Power"
+  },
+  {
+    "slug": "mobile",
+    "name": "Mobile Parts & Accessories",
+    "short": "Mobile Parts",
+    "image": "/assets/cat-mobile.jpg",
+    "filterKey": "Compatibility"
+  },
+  {
+    "slug": "tv",
+    "name": "TVs & Projectors",
+    "short": "TVs",
+    "image": "/assets/cat-tv.jpg",
+    "filterKey": "Screen Size"
+  }
+]
