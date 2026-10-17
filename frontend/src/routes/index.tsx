@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import { ArrowRight } from "lucide-react";
-import { brands, images } from "@/data/catalog";
+import { images } from "@/data/catalog";
 import { useCatalog } from "@/services/catalog";
+import { useMemo } from "react";
 import { SpecialOfferBanner } from "@/components/site/SpecialOfferBanner";
 import { CategoryProductSection } from "@/components/site/CategoryProductSection";
 
@@ -21,7 +22,31 @@ export const Route = createFileRoute("/")({
 const fade = { initial: { y: 12 }, animate: { y: 0 } };
 
 function Index() {
-  const { categories, products: allProducts } = useCatalog();
+  const { categories, products: allProducts, brandLogos } = useCatalog();
+
+  // Derive ONLY brands that actually exist in the current store products
+  const existingBrands = useMemo(() => {
+    const map = new Map<string, { name: string; count: number; logo?: string }>();
+    allProducts.forEach((p) => {
+      const b = (p.brand || "").trim();
+      if (!b || b.toLowerCase() === "generic") return;
+      if (!map.has(b)) {
+        map.set(b, {
+          name: b,
+          count: 1,
+          logo: brandLogos?.[b] || (p.attributes as any)?.brandLogo || "",
+        });
+      } else {
+        const item = map.get(b)!;
+        item.count += 1;
+        if (!item.logo && (p.attributes as any)?.brandLogo) {
+          item.logo = (p.attributes as any).brandLogo;
+        }
+      }
+    });
+
+    return Array.from(map.values()).sort((a, b) => b.count - a.count);
+  }, [allProducts, brandLogos]);
 
   return (
     <>
@@ -77,17 +102,45 @@ function Index() {
         </div>
       </section>
 
-      {/* Brands */}
-      <section className="container-shop mt-16">
-        <SectionHead title="Shop by Brand" to="/shop" cta="All brands" />
-        <div className="mt-6 grid grid-cols-2 gap-px border border-border bg-border sm:grid-cols-3 lg:grid-cols-6">
-          {brands.slice(0, 12).map((b) => (
-            <Link key={b} to="/shop" search={{ brands: b }} className="flex h-20 items-center justify-center bg-background px-3 text-center font-display text-sm font-extrabold uppercase text-muted-foreground transition-colors hover:text-primary">
-              {b}
-            </Link>
-          ))}
-        </div>
-      </section>
+      {/* Brands — Only Show Existing Brands with Logos */}
+      {existingBrands.length > 0 && (
+        <section className="container-shop mt-16">
+          <SectionHead title="Shop by Brand" to="/shop" cta="All brands" />
+          <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+            {existingBrands.slice(0, 12).map((b) => (
+              <Link
+                key={b.name}
+                to="/shop"
+                search={{ brands: b.name }}
+                className="group relative flex flex-col items-center justify-center p-4 rounded border border-border bg-card hover:border-primary/50 hover:bg-tile transition-all duration-200 text-center shadow-2xs"
+              >
+                {b.logo ? (
+                  <div className="h-12 w-full flex items-center justify-center mb-2 overflow-hidden px-2">
+                    <img
+                      src={b.logo}
+                      alt={b.name}
+                      className="max-h-10 max-w-full object-contain filter group-hover:scale-105 transition-transform"
+                      onError={(e) => {
+                        (e.target as HTMLElement).style.display = "none";
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black text-sm mb-2 group-hover:bg-primary group-hover:text-white transition-colors">
+                    {b.name.slice(0, 2).toUpperCase()}
+                  </div>
+                )}
+                <span className="font-display text-xs font-extrabold uppercase text-foreground group-hover:text-primary transition-colors truncate max-w-full">
+                  {b.name}
+                </span>
+                <span className="text-[10px] text-muted-foreground mt-0.5">
+                  {b.count} {b.count === 1 ? "product" : "products"}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Categories */}
       <section className="container-shop mt-16">
@@ -148,7 +201,7 @@ function Index() {
           </Link>
         </div>
         <div className="grid grid-cols-3 gap-px bg-border">
-          {[["5", "Product categories"], [String(brands.length), "Sample brands"], ["LKR", "Local pricing"]].map(([n, l]) => (
+          {[["5", "Product categories"], [String(existingBrands.length || 0), "Brands in stock"], ["LKR", "Local pricing"]].map(([n, l]) => (
             <div key={l} className="flex flex-col justify-center bg-tile p-6">
               <span className="font-display text-3xl font-black text-primary">{n}</span>
               <span className="mt-1 text-xs font-semibold uppercase text-muted-foreground">{l}</span>

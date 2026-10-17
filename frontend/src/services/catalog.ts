@@ -200,9 +200,43 @@ export function getStoredBrands(): string[] {
   const prods = getStoredProducts();
   const set = new Set<string>();
   prods.forEach((p) => {
-    if (p.brand) set.add(p.brand);
+    if (p.brand && p.brand.trim()) set.add(p.brand.trim());
   });
   return Array.from(set).sort();
+}
+
+const BRAND_LOGOS_STORAGE_KEY = "ae_brand_logos_v2";
+
+export function getStoredBrandLogos(): Record<string, string> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = localStorage.getItem(BRAND_LOGOS_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+export function saveBrandLogo(brand: string, logoUrl: string) {
+  if (typeof window === "undefined") return;
+  try {
+    const current = getStoredBrandLogos();
+    const cleanBrand = brand.trim();
+    if (!cleanBrand) return;
+    if (logoUrl && logoUrl.trim()) {
+      current[cleanBrand] = logoUrl.trim();
+    } else {
+      delete current[cleanBrand];
+    }
+    localStorage.setItem(BRAND_LOGOS_STORAGE_KEY, JSON.stringify(current));
+    window.dispatchEvent(new CustomEvent(CATALOG_UPDATED_EVENT));
+  } catch (e) {
+    console.error("Failed to save brand logo", e);
+  }
+}
+
+export function deleteBrandLogo(brand: string) {
+  saveBrandLogo(brand, "");
 }
 
 // ─── Product CRUD Operations ──────────────────────────────────────────────────
@@ -647,13 +681,15 @@ export function attributeOptions(category: string) {
 export function useCatalog() {
   const [products, setProducts] = useState<Product[]>(() => getStoredProducts());
   const [categories, setCategories] = useState<Category[]>(defaultCategories);
-  const [brands, setBrands] = useState<string[]>(defaultBrands);
+  const [brands, setBrands] = useState<string[]>(() => getStoredBrands());
+  const [brandLogos, setBrandLogos] = useState<Record<string, string>>(() => getStoredBrandLogos());
 
   useEffect(() => {
     const handleUpdate = () => {
       setProducts(getStoredProducts());
       setCategories(getStoredCategories());
       setBrands(getStoredBrands());
+      setBrandLogos(getStoredBrandLogos());
     };
 
     window.addEventListener(CATALOG_UPDATED_EVENT, handleUpdate);
@@ -674,6 +710,9 @@ export function useCatalog() {
     products,
     categories,
     brands,
+    brandLogos,
+    saveBrandLogo,
+    deleteBrandLogo,
     createProduct,
     updateProduct,
     deleteProduct,
