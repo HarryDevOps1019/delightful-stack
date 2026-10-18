@@ -36,9 +36,9 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
 
   const onSubmit = async (data: Values) => {
     if (mode === "login") {
-      const ok = await login({ email: data.email, password: data.password });
-      if (ok) {
-        if (data.email.toLowerCase().trim() === "admin@gmail.com") {
+      const signedIn = await login({ email: data.email, password: data.password });
+      if (signedIn) {
+        if (signedIn.role === "admin") {
           navigate({ to: "/admin" });
         } else {
           navigate({ to: "/account" });

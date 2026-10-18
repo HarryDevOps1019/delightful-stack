@@ -38,7 +38,8 @@ const num = (v: unknown) => {
 export const Route = createFileRoute("/shop")({
   validateSearch: (s: Record<string, unknown>): ShopSearch => ({
     q: typeof s.q === "string" && s.q ? s.q : undefined,
-    category: typeof s.category === "string" && s.category ? (s.category as CategorySlug) : undefined,
+    category:
+      typeof s.category === "string" && s.category ? (s.category as CategorySlug) : undefined,
     brands: typeof s.brands === "string" && s.brands ? s.brands : undefined,
     min: num(s.min),
     max: num(s.max),
@@ -50,9 +51,16 @@ export const Route = createFileRoute("/shop")({
   head: () => ({
     meta: [
       { title: "Shop Electronics & Parts — Asia Electronics (Demo)" },
-      { name: "description", content: "Browse and filter sample electronics: components, audio, lighting, mobile parts and TVs, priced in LKR." },
+      {
+        name: "description",
+        content:
+          "Browse and filter sample electronics: components, audio, lighting, mobile parts and TVs, priced in LKR.",
+      },
       { property: "og:title", content: "Shop — Asia Electronics (Demo)" },
-      { property: "og:description", content: "Filter sample electronics by category, brand, price and stock." },
+      {
+        property: "og:description",
+        content: "Filter sample electronics by category, brand, price and stock.",
+      },
     ],
   }),
   component: ShopPage,
@@ -70,7 +78,10 @@ function ShopPage() {
   const { categories, brands, brandLogos } = useCatalog();
   const brandList = search.brands?.split(",").filter(Boolean) ?? [];
   const query = { ...search, brands: brandList, page: search.page ?? 1 };
-  const { data, isLoading, isError, isFetching, refetch } = useQuery({ ...productsQuery(query), placeholderData: keepPreviousData });
+  const { data, isLoading, isError, isFetching, refetch } = useQuery({
+    ...productsQuery(query),
+    placeholderData: keepPreviousData,
+  });
 
   useEffect(() => {
     const handleUpdate = () => {
@@ -85,7 +96,14 @@ function ShopPage() {
   const update = (patch: Partial<ShopSearch>) =>
     navigate({ search: (prev) => ({ ...prev, ...patch, page: patch.page ?? undefined }) });
   const clearAll = () => navigate({ search: search.q ? { q: search.q } : {} });
-  const activeCount = [search.category, search.brands, search.min, search.max, search.inStock, search.attr].filter((v) => v !== undefined).length;
+  const activeCount = [
+    search.category,
+    search.brands,
+    search.min,
+    search.max,
+    search.inStock,
+    search.attr,
+  ].filter((v) => v !== undefined).length;
 
   const filters = (
     <Filters
@@ -102,23 +120,47 @@ function ShopPage() {
 
   return (
     <>
-      <PageHeading title={cat?.name ?? (search.q ? `Results for “${search.q}”` : "All Products")} crumb={cat?.short ?? "Shop"}>
-        <p className="mt-2 text-sm text-muted-foreground" aria-live="polite">
-          {data ? `${data.total} product${data.total === 1 ? "" : "s"}` : "Loading…"}
-        </p>
+      <PageHeading
+        title={cat?.name ?? (search.q ? `Results for “${search.q}”` : "All Products")}
+        crumb={cat?.short ?? "Shop"}
+      >
+        <div className="mt-2 flex items-end justify-between gap-4">
+          <p className="text-sm text-muted-foreground" aria-live="polite">
+            {data ? `${data.total} product${data.total === 1 ? "" : "s"}` : "Loading…"}
+          </p>
+          <label className="hidden items-center gap-2 text-sm lg:flex">
+            <span className="text-muted-foreground">Sort by</span>
+            <select
+              value={search.sort ?? "featured"}
+              onChange={(e) => update({ sort: e.target.value as SortKey })}
+              className="h-10 border border-input bg-background px-3 text-sm"
+            >
+              {SORTS.map((s) => (
+                <option key={s.value} value={s.value}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
       </PageHeading>
       <div className="container-shop grid gap-8 lg:grid-cols-[240px_minmax(0,1fr)]">
-        <aside className="hidden lg:block" aria-label="Filters">{filters}</aside>
+        <aside className="hidden lg:block" aria-label="Filters">
+          {filters}
+        </aside>
         <div className="min-w-0">
-          <div className="mb-5 flex items-center justify-between gap-3">
+          <div className="mb-5 flex items-center justify-between gap-3 lg:hidden">
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="outline" className="rounded-none lg:hidden">
-                  <SlidersHorizontal className="h-4 w-4" /> Filters{activeCount ? ` (${activeCount})` : ""}
+                  <SlidersHorizontal className="h-4 w-4" /> Filters
+                  {activeCount ? ` (${activeCount})` : ""}
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-[85vw] max-w-sm overflow-y-auto">
-                <SheetHeader><SheetTitle className="text-left font-display">Filters</SheetTitle></SheetHeader>
+                <SheetHeader>
+                  <SheetTitle className="text-left font-display">Filters</SheetTitle>
+                </SheetHeader>
                 <div className="px-4 pb-6">{filters}</div>
               </SheetContent>
             </Sheet>
@@ -129,7 +171,11 @@ function ShopPage() {
                 onChange={(e) => update({ sort: e.target.value as SortKey })}
                 className="h-10 border border-input bg-background px-3 text-sm"
               >
-                {SORTS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+                {SORTS.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
+                  </option>
+                ))}
               </select>
             </label>
           </div>
@@ -139,24 +185,52 @@ function ShopPage() {
           ) : isError ? (
             <div className="border border-border p-10 text-center">
               <p className="font-semibold">Something went wrong loading products.</p>
-              <Button className="mt-4 rounded-none" onClick={() => refetch()}>Try again</Button>
+              <Button className="mt-4 rounded-none" onClick={() => refetch()}>
+                Try again
+              </Button>
             </div>
           ) : data && data.items.length === 0 ? (
             <div className="border border-border p-10 text-center">
               <p className="font-display text-lg font-extrabold">No products match</p>
-              <p className="mt-2 text-sm text-muted-foreground">Try removing a filter or searching for a different term.</p>
-              <Button className="mt-5 rounded-none" onClick={() => navigate({ search: {} })}>Clear search & filters</Button>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Try removing a filter or searching for a different term.
+              </p>
+              <Button className="mt-5 rounded-none" onClick={() => navigate({ search: {} })}>
+                Clear search & filters
+              </Button>
             </div>
           ) : data ? (
             <div className={isFetching ? "opacity-60 transition-opacity" : ""}>
               <ProductGrid products={data.items} />
               {data.pages > 1 && (
-                <nav className="mt-8 flex items-center justify-center gap-1" aria-label="Pagination">
-                  <PageBtn disabled={data.page <= 1} onClick={() => update({ page: data.page - 1 })} label="Previous page"><ChevronLeft className="h-4 w-4" /></PageBtn>
+                <nav
+                  className="mt-8 flex items-center justify-center gap-1"
+                  aria-label="Pagination"
+                >
+                  <PageBtn
+                    disabled={data.page <= 1}
+                    onClick={() => update({ page: data.page - 1 })}
+                    label="Previous page"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </PageBtn>
                   {Array.from({ length: data.pages }, (_, i) => i + 1).map((n) => (
-                    <PageBtn key={n} active={n === data.page} onClick={() => update({ page: n })} label={`Page ${n}`}>{n}</PageBtn>
+                    <PageBtn
+                      key={n}
+                      active={n === data.page}
+                      onClick={() => update({ page: n })}
+                      label={`Page ${n}`}
+                    >
+                      {n}
+                    </PageBtn>
                   ))}
-                  <PageBtn disabled={data.page >= data.pages} onClick={() => update({ page: data.page + 1 })} label="Next page"><ChevronRight className="h-4 w-4" /></PageBtn>
+                  <PageBtn
+                    disabled={data.page >= data.pages}
+                    onClick={() => update({ page: data.page + 1 })}
+                    label="Next page"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </PageBtn>
                 </nav>
               )}
             </div>
@@ -167,7 +241,19 @@ function ShopPage() {
   );
 }
 
-function PageBtn({ children, onClick, disabled, active, label }: { children: React.ReactNode; onClick: () => void; disabled?: boolean; active?: boolean; label: string }) {
+function PageBtn({
+  children,
+  onClick,
+  disabled,
+  active,
+  label,
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+  disabled?: boolean;
+  active?: boolean;
+  label: string;
+}) {
   return (
     <button
       type="button"
@@ -203,7 +289,10 @@ function Filters({
 }) {
   const [min, setMin] = useState(search.min?.toString() ?? "");
   const [max, setMax] = useState(search.max?.toString() ?? "");
-  useEffect(() => { setMin(search.min?.toString() ?? ""); setMax(search.max?.toString() ?? ""); }, [search.min, search.max]);
+  useEffect(() => {
+    setMin(search.min?.toString() ?? "");
+    setMax(search.max?.toString() ?? "");
+  }, [search.min, search.max]);
   const attrs = search.category ? attributeOptions(search.category) : null;
 
   const toggleBrand = (b: string) => {
@@ -214,16 +303,34 @@ function Filters({
   return (
     <div className="space-y-7 text-sm">
       {activeCount > 0 && (
-        <button type="button" onClick={clearAll} className="flex items-center gap-1 text-xs font-bold uppercase text-primary hover:underline">
+        <button
+          type="button"
+          onClick={clearAll}
+          className="flex items-center gap-1 text-xs font-bold uppercase text-primary hover:underline"
+        >
           <X className="h-3.5 w-3.5" /> Clear all filters
         </button>
       )}
       <FilterGroup title="Category">
         <ul className="space-y-1">
-          <li><Link to="/shop" search={(p) => ({ ...p, category: undefined, attr: undefined, page: undefined })} className={!search.category ? "font-bold text-primary" : "hover:text-primary"}>All categories</Link></li>
+          <li>
+            <Link
+              to="/shop"
+              search={(p) => ({ ...p, category: undefined, attr: undefined, page: undefined })}
+              className={!search.category ? "font-bold text-primary" : "hover:text-primary"}
+            >
+              All categories
+            </Link>
+          </li>
           {categories.map((c) => (
             <li key={c.slug}>
-              <Link to="/shop" search={(p) => ({ ...p, category: c.slug, attr: undefined, page: undefined })} className={search.category === c.slug ? "font-bold text-primary" : "hover:text-primary"}>
+              <Link
+                to="/shop"
+                search={(p) => ({ ...p, category: c.slug, attr: undefined, page: undefined })}
+                className={
+                  search.category === c.slug ? "font-bold text-primary" : "hover:text-primary"
+                }
+              >
                 {c.name}
               </Link>
             </li>
@@ -234,26 +341,67 @@ function Filters({
         <FilterGroup title={attrs.key}>
           {attrs.options.map((o) => (
             <label key={o} className="flex cursor-pointer items-center gap-2 py-1">
-              <input type="radio" name="attr" checked={search.attr === o} onChange={() => update({ attr: o })} className="accent-primary" /> {o}
+              <input
+                type="radio"
+                name="attr"
+                checked={search.attr === o}
+                onChange={() => update({ attr: o })}
+                className="accent-primary"
+              />{" "}
+              {o}
             </label>
           ))}
-          {search.attr && <button type="button" onClick={() => update({ attr: undefined })} className="mt-1 text-xs text-primary hover:underline">Any {attrs.key.toLowerCase()}</button>}
+          {search.attr && (
+            <button
+              type="button"
+              onClick={() => update({ attr: undefined })}
+              className="mt-1 text-xs text-primary hover:underline"
+            >
+              Any {attrs.key.toLowerCase()}
+            </button>
+          )}
         </FilterGroup>
       )}
       <FilterGroup title="Availability">
         <label className="flex cursor-pointer items-center gap-2">
-          <Checkbox checked={!!search.inStock} onCheckedChange={(v) => update({ inStock: v ? true : undefined })} /> In stock only
+          <Checkbox
+            checked={!!search.inStock}
+            onCheckedChange={(v) => update({ inStock: v ? true : undefined })}
+          />{" "}
+          In stock only
         </label>
       </FilterGroup>
       <FilterGroup title="Price (LKR)">
         <form
           className="flex items-center gap-2"
-          onSubmit={(e) => { e.preventDefault(); update({ min: num(min), max: num(max) }); }}
+          onSubmit={(e) => {
+            e.preventDefault();
+            update({ min: num(min), max: num(max) });
+          }}
         >
-          <input aria-label="Minimum price" inputMode="numeric" value={min} onChange={(e) => setMin(e.target.value.replace(/\D/g, ""))} placeholder="Min" className="h-9 w-full min-w-0 border border-input px-2" />
+          <input
+            aria-label="Minimum price"
+            inputMode="numeric"
+            value={min}
+            onChange={(e) => setMin(e.target.value.replace(/\D/g, ""))}
+            placeholder="Min"
+            className="h-9 w-full min-w-0 border border-input px-2"
+          />
           <span aria-hidden>–</span>
-          <input aria-label="Maximum price" inputMode="numeric" value={max} onChange={(e) => setMax(e.target.value.replace(/\D/g, ""))} placeholder="Max" className="h-9 w-full min-w-0 border border-input px-2" />
-          <button type="submit" className="h-9 shrink-0 bg-ink px-3 text-xs font-bold text-ink-foreground">Go</button>
+          <input
+            aria-label="Maximum price"
+            inputMode="numeric"
+            value={max}
+            onChange={(e) => setMax(e.target.value.replace(/\D/g, ""))}
+            placeholder="Max"
+            className="h-9 w-full min-w-0 border border-input px-2"
+          />
+          <button
+            type="submit"
+            className="h-9 shrink-0 bg-ink px-3 text-xs font-bold text-ink-foreground"
+          >
+            Go
+          </button>
         </form>
       </FilterGroup>
       <FilterGroup title="Brand">
@@ -261,7 +409,10 @@ function Filters({
           {brands.map((b) => {
             const logo = brandLogos?.[b];
             return (
-              <label key={b} className="flex cursor-pointer items-center gap-2 py-1 hover:text-primary transition-colors text-xs">
+              <label
+                key={b}
+                className="flex cursor-pointer items-center gap-2 py-1 hover:text-primary transition-colors text-xs"
+              >
                 <Checkbox checked={brandList.includes(b)} onCheckedChange={() => toggleBrand(b)} />
                 {logo ? (
                   <img
@@ -290,7 +441,9 @@ function Filters({
 function FilterGroup({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <fieldset>
-      <legend className="mb-3 font-display text-xs font-extrabold uppercase tracking-wider">{title}</legend>
+      <legend className="mb-3 font-display text-xs font-extrabold uppercase tracking-wider">
+        {title}
+      </legend>
       {children}
     </fieldset>
   );

@@ -3,7 +3,6 @@ import { Link } from "@tanstack/react-router";
 import { Minus, Plus, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
 import { useCart } from "@/context/cart";
-import { BUSINESS_WHATSAPP_NUMBER } from "@/lib/config";
 import { formatLKR } from "@/lib/format";
 import type { Product } from "@/lib/types";
 
@@ -55,16 +54,14 @@ export function CategoryProductCard({ product }: CategoryProductCardProps) {
   const showPrice = product.showPrice !== false;
 
   return (
-    <article
-      className="group relative flex h-full flex-col bg-card p-3 sm:p-4 transition-all hover:bg-tile/20 hover:shadow-sm"
-    >
+    <article className="group relative flex h-full flex-col bg-card p-2.5 transition-all hover:bg-tile/20 hover:shadow-sm sm:p-4">
       {/* ─── Image Area with Circular Discount Badge ─── */}
       <Link
         to="/product/$slug"
         params={{ slug: product.slug }}
         className="block relative overflow-hidden focus:outline-none"
       >
-        <div className="relative aspect-square w-full flex items-center justify-center p-2 bg-white rounded-xs">
+        <div className="relative flex aspect-square w-full items-center justify-center rounded-xs bg-white p-1.5 sm:p-2">
           {imageError ? (
             <div className="flex h-full w-full items-center justify-center bg-tile text-muted-foreground text-xs font-semibold">
               No image
@@ -83,16 +80,16 @@ export function CategoryProductCard({ product }: CategoryProductCardProps) {
         {/* ─── Product Name ─── */}
         <h3
           title={product.name}
-          className="mt-2.5 line-clamp-2 min-h-[2.4rem] text-xs font-semibold leading-tight text-foreground transition-colors group-hover:text-primary"
+          className="mt-2 line-clamp-2 min-h-[2.25rem] text-[11px] font-semibold leading-[1.15rem] text-foreground transition-colors group-hover:text-primary sm:mt-2.5 sm:min-h-[2.4rem] sm:text-xs sm:leading-tight"
         >
           {product.name}
         </h3>
       </Link>
 
       {/* ─── Pricing Presentation ─── */}
-      <div className="mt-1 flex items-baseline leading-none min-h-[1.5rem]">
+      <div className="mt-1 flex min-h-6 items-baseline leading-none">
         {showPrice ? (
-          <span className="font-display text-sm sm:text-base font-extrabold text-foreground">
+          <span className="font-display text-[13px] font-extrabold text-foreground sm:text-base">
             {formatLKR(product.priceCents)}
           </span>
         ) : (
@@ -103,7 +100,7 @@ export function CategoryProductCard({ product }: CategoryProductCardProps) {
       </div>
 
       {/* ─── Product Labels / Badges ─── */}
-      <div className="mt-1.5 flex flex-wrap items-center gap-1 min-h-[1.25rem]">
+      <div className="mt-1 flex min-h-5 flex-wrap items-center gap-1 sm:mt-1.5">
         {product.isNew && (
           <span className="border border-cyan-600/80 text-cyan-700 bg-cyan-50/70 px-1 py-0.2 text-[9px] font-extrabold uppercase rounded-2xs">
             New
@@ -123,11 +120,15 @@ export function CategoryProductCard({ product }: CategoryProductCardProps) {
 
       {/* ─── Action Controls: Quantity, WhatsApp, Add to Cart ─── */}
       <div
-        className="mt-auto pt-2.5 flex items-center justify-between gap-1.5"
+        className="mt-auto hidden flex-wrap items-center justify-between gap-x-1 gap-y-1.5 pt-2 sm:flex sm:gap-1.5 sm:pt-2.5"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Compact Quantity Selector */}
-        <div className="flex items-center border border-border bg-white rounded-xs" role="group" aria-label="Quantity">
+        <div
+          className="flex items-center border border-border bg-white rounded-xs"
+          role="group"
+          aria-label="Quantity"
+        >
           <button
             type="button"
             disabled={quantity <= 1}
@@ -137,11 +138,11 @@ export function CategoryProductCard({ product }: CategoryProductCardProps) {
               setQuantity(Math.max(1, quantity - 1));
             }}
             aria-label="Decrease quantity"
-            className="grid h-6 w-5 place-items-center text-foreground hover:bg-tile disabled:text-muted-foreground cursor-pointer"
+            className="grid h-8 w-6 cursor-pointer place-items-center text-foreground hover:bg-tile disabled:text-muted-foreground sm:h-7"
           >
             <Minus className="h-2.5 w-2.5" />
           </button>
-          <span className="w-5 text-center text-[11px] font-bold text-foreground select-none">
+          <span className="w-6 select-none text-center text-[11px] font-bold text-foreground">
             {quantity}
           </span>
           <button
@@ -152,13 +153,13 @@ export function CategoryProductCard({ product }: CategoryProductCardProps) {
               setQuantity(quantity + 1);
             }}
             aria-label="Increase quantity"
-            className="grid h-6 w-5 place-items-center text-foreground hover:bg-tile cursor-pointer"
+            className="grid h-8 w-6 cursor-pointer place-items-center text-foreground hover:bg-tile sm:h-7"
           >
             <Plus className="h-2.5 w-2.5" />
           </button>
         </div>
 
-        <div className="flex items-center gap-1">
+        <div className="ml-auto flex items-center gap-1">
           {/* WhatsApp Action Button */}
           <a
             href={buildWhatsAppUrl(product.name, quantity, whatsappDigits)}
@@ -167,9 +168,9 @@ export function CategoryProductCard({ product }: CategoryProductCardProps) {
             title={`Request ${product.name} on WhatsApp`}
             aria-label={`Request ${product.name} on WhatsApp`}
             onClick={(e) => e.stopPropagation()}
-            className="grid h-6 w-6 place-items-center rounded-xs bg-[#25D366] text-white hover:bg-[#20ba5a] transition-colors cursor-pointer shadow-2xs"
+            className="grid h-8 w-8 cursor-pointer place-items-center rounded-xs bg-[#25D366] text-white shadow-2xs transition-colors hover:bg-[#20ba5a] sm:h-7 sm:w-7"
           >
-            <WhatsAppIcon className="h-3.5 w-3.5" />
+            <WhatsAppIcon className="h-4 w-4" />
           </a>
 
           {/* Add to Cart Button */}
@@ -179,9 +180,9 @@ export function CategoryProductCard({ product }: CategoryProductCardProps) {
             onClick={handleAddToCart}
             title={showAvail && isOutOfStock ? "Out of stock" : "Add to Cart"}
             aria-label={`Add ${product.name} to cart`}
-            className="grid h-6 w-6 place-items-center rounded-xs border border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors disabled:border-border disabled:text-muted-foreground disabled:hover:bg-transparent cursor-pointer"
+            className="grid h-8 w-8 cursor-pointer place-items-center rounded-xs border border-primary text-primary transition-colors hover:bg-primary hover:text-primary-foreground disabled:border-border disabled:text-muted-foreground disabled:hover:bg-transparent sm:h-7 sm:w-7"
           >
-            <ShoppingCart className="h-3 w-3" />
+            <ShoppingCart className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>
@@ -191,12 +192,12 @@ export function CategoryProductCard({ product }: CategoryProductCardProps) {
 
 export function CategoryProductCardSkeleton() {
   return (
-    <div className="flex h-full flex-col bg-card p-3 sm:p-4 border-r border-border animate-pulse">
+    <div className="flex h-full flex-col animate-pulse bg-card p-2.5 sm:p-4">
       <div className="aspect-square w-full rounded-xs bg-tile" />
       <div className="mt-2.5 h-3.5 w-3/4 rounded bg-tile" />
       <div className="mt-1 h-3.5 w-1/2 rounded bg-tile" />
       <div className="mt-2 h-4 w-1/3 rounded bg-tile" />
-      <div className="mt-auto pt-3 flex items-center justify-between">
+      <div className="mt-auto hidden items-center justify-between pt-3 sm:flex">
         <div className="h-6 w-14 rounded bg-tile" />
         <div className="h-6 w-14 rounded bg-tile" />
       </div>

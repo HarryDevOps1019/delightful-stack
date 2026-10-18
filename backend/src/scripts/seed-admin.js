@@ -1,7 +1,7 @@
 import { supabase } from "../data/supabase.js";
 
-const ADMIN_EMAIL = "admin@gmail.com";
-const ADMIN_PASSWORD = "123456";
+const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || "admin@gmail.com").trim().toLowerCase();
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "123456";
 const ADMIN_NAME = "Store Administrator";
 
 async function seedAdmin() {
@@ -26,6 +26,7 @@ async function seedAdmin() {
         {
           password: ADMIN_PASSWORD,
           email_confirm: true,
+          app_metadata: { ...(existingAdmin.app_metadata || {}), role: "admin" },
           user_metadata: {
             name: ADMIN_NAME,
             role: "admin",
@@ -50,6 +51,7 @@ async function seedAdmin() {
         email: ADMIN_EMAIL,
         password: ADMIN_PASSWORD,
         email_confirm: true,
+        app_metadata: { role: "admin" },
         user_metadata: {
           name: ADMIN_NAME,
           role: "admin",

@@ -1,4 +1,4 @@
-import type { Product, Category } from "@/lib/types";
+import type { Product, Category, Brand } from "@/lib/types";
 import { toast } from "sonner";
 
 export function getApiBaseUrl(): string {
@@ -17,7 +17,12 @@ export function getApiBaseUrl(): string {
   }
 
   const envUrl = (import.meta.env.VITE_API_URL || "").trim();
-  if (envUrl && typeof window !== "undefined" && !envUrl.includes("localhost") && !envUrl.includes("127.0.0.1")) {
+  if (
+    envUrl &&
+    typeof window !== "undefined" &&
+    !envUrl.includes("localhost") &&
+    !envUrl.includes("127.0.0.1")
+  ) {
     return envUrl;
   }
   return envUrl || "http://localhost:5000/api";
@@ -33,7 +38,8 @@ export interface ApiOrder {
   address: string;
   city: string;
   totalLKR: number;
-  status: "Quotation Requested" | "Quotation Sent" | "Processing" | "Shipped" | "Delivered" | "Cancelled";
+  status:
+    "Quotation Requested" | "Quotation Sent" | "Processing" | "Shipped" | "Delivered" | "Cancelled";
   items: Array<{
     sku: string;
     name: string;
@@ -76,14 +82,17 @@ export async function fetchProductsApi(params?: {
 }): Promise<{ products: Product[]; total: number; pages: number } | null> {
   try {
     const base = getApiBaseUrl();
-    const fallbackOrigin = typeof window !== "undefined" ? window.location.origin : "http://localhost:5000";
-    const fullPath = base.startsWith("http://") || base.startsWith("https://")
-      ? `${base}/products`
-      : `${fallbackOrigin}${base.startsWith("/") ? "" : "/"}${base}/products`;
+    const fallbackOrigin =
+      typeof window !== "undefined" ? window.location.origin : "http://localhost:5000";
+    const fullPath =
+      base.startsWith("http://") || base.startsWith("https://")
+        ? `${base}/products`
+        : `${fallbackOrigin}${base.startsWith("/") ? "" : "/"}${base}/products`;
     const url = new URL(fullPath);
     if (params) {
       if (params.search) url.searchParams.set("search", params.search);
-      if (params.category && params.category !== "all") url.searchParams.set("category", params.category);
+      if (params.category && params.category !== "all")
+        url.searchParams.set("category", params.category);
       if (params.brand && params.brand !== "all") url.searchParams.set("brand", params.brand);
       if (params.minPrice != null) url.searchParams.set("minPrice", String(params.minPrice));
       if (params.maxPrice != null) url.searchParams.set("maxPrice", String(params.maxPrice));
@@ -109,7 +118,9 @@ export async function fetchProductsApi(params?: {
   }
 }
 
-export async function createProductApi(data: Partial<Product> & { priceLKR?: number }): Promise<Product | null> {
+export async function createProductApi(
+  data: Partial<Product> & { priceLKR?: number },
+): Promise<Product | null> {
   try {
     const res = await fetch(`${API_BASE}/products`, {
       method: "POST",
@@ -128,14 +139,17 @@ export async function createProductApi(data: Partial<Product> & { priceLKR?: num
     }
     const json = await res.json();
     return json.data || null;
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.warn("Backend API createProduct network error:", err);
     toast.error("Network error: Could not reach backend server to save product");
     return null;
   }
 }
 
-export async function updateProductApi(id: string, updates: Partial<Product> & { priceLKR?: number }): Promise<Product | null> {
+export async function updateProductApi(
+  id: string,
+  updates: Partial<Product> & { priceLKR?: number },
+): Promise<Product | null> {
   try {
     const res = await fetch(`${API_BASE}/products/${encodeURIComponent(id)}`, {
       method: "PUT",
@@ -151,7 +165,7 @@ export async function updateProductApi(id: string, updates: Partial<Product> & {
     }
     const json = await res.json();
     return json.data || null;
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.warn("Backend API updateProduct network error:", err);
     toast.error("Network error: Could not reach backend server to update product");
     return null;
@@ -212,7 +226,10 @@ export async function createCategoryApi(category: Partial<Category>): Promise<Ca
   }
 }
 
-export async function updateCategoryApi(slug: string, updates: Partial<Category>): Promise<Category | null> {
+export async function updateCategoryApi(
+  slug: string,
+  updates: Partial<Category>,
+): Promise<Category | null> {
   try {
     const res = await fetch(`${API_BASE}/categories/${encodeURIComponent(slug)}`, {
       method: "PUT",
@@ -236,6 +253,53 @@ export async function deleteCategoryApi(slug: string): Promise<boolean> {
     return res.ok;
   } catch (err) {
     console.warn("Backend API deleteCategory error:", err);
+    return false;
+  }
+}
+
+// ─── Brands API ────────────────────────────────────────────
+
+export async function fetchBrandsApi(): Promise<Brand[] | null> {
+  try {
+    const res = await fetch(`${API_BASE}/brands`);
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json.data || [];
+  } catch (err) {
+    console.warn("Backend API fetchBrands error:", err);
+    return null;
+  }
+}
+
+export async function upsertBrandApi(input: {
+  name: string;
+  imageUrl?: string;
+  imageData?: string;
+  removeImage?: boolean;
+}): Promise<Brand | null> {
+  try {
+    const res = await fetch(`${API_BASE}/brands`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(json.error || `Failed to save brand (HTTP ${res.status})`);
+    return json.data || null;
+  } catch (err) {
+    console.warn("Backend API upsertBrand error:", err);
+    throw err;
+  }
+}
+
+export async function deleteBrandApi(slug: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_BASE}/brands/${encodeURIComponent(slug)}`, {
+      method: "DELETE",
+    });
+    return res.ok;
+  } catch (err) {
+    console.warn("Backend API deleteBrand error:", err);
     return false;
   }
 }
@@ -306,7 +370,7 @@ export async function updateOrderDetailsApi(
     address?: string;
     city?: string;
     notes?: string;
-  }
+  },
 ): Promise<{ success: boolean; data?: ApiOrder; error?: string }> {
   try {
     const res = await fetch(`${API_BASE}/orders/${encodeURIComponent(id)}`, {
@@ -319,9 +383,9 @@ export async function updateOrderDetailsApi(
       return { success: false, error: json.error || `Failed to update order (HTTP ${res.status})` };
     }
     return { success: true, data: json.data };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.warn("Backend API updateOrderDetails error:", err);
-    return { success: false, error: err.message || "Network error" };
+    return { success: false, error: err instanceof Error ? err.message : "Network error" };
   }
 }
 
@@ -365,7 +429,7 @@ export const DEFAULT_SETTINGS: ApiSettings = {
   phone: "+94 74 106 6017",
   currency: "LKR (Rs.)",
   taxRate: "0%",
-  address: "Sri Lanka",
+  address: "29, 2nd Rohini Lane, Colombo 01100, Sri Lanka",
   notifications: {
     newOrders: true,
     lowStock: true,
@@ -385,7 +449,9 @@ export async function fetchSettingsApi(): Promise<ApiSettings> {
   }
 }
 
-export async function updateSettingsApi(settings: Partial<ApiSettings>): Promise<ApiSettings | null> {
+export async function updateSettingsApi(
+  settings: Partial<ApiSettings>,
+): Promise<ApiSettings | null> {
   try {
     const res = await fetch(`${API_BASE}/settings`, {
       method: "PUT",
@@ -419,7 +485,10 @@ export interface AuthResponse {
   error?: string;
 }
 
-export async function loginApi(credentials: { email: string; password: string }): Promise<AuthResponse> {
+export async function loginApi(credentials: {
+  email: string;
+  password: string;
+}): Promise<AuthResponse> {
   try {
     const res = await fetch(`${API_BASE}/auth/login`, {
       method: "POST",
@@ -432,13 +501,17 @@ export async function loginApi(credentials: { email: string; password: string })
       throw new Error(json.error || "Failed to sign in");
     }
     return json;
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("loginApi error:", err);
     throw err;
   }
 }
 
-export async function registerApi(data: { name: string; email: string; password: string }): Promise<AuthResponse> {
+export async function registerApi(data: {
+  name: string;
+  email: string;
+  password: string;
+}): Promise<AuthResponse> {
   try {
     const res = await fetch(`${API_BASE}/auth/register`, {
       method: "POST",
@@ -451,7 +524,7 @@ export async function registerApi(data: { name: string; email: string; password:
       throw new Error(json.error || "Failed to create account");
     }
     return json;
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("registerApi error:", err);
     throw err;
   }
@@ -488,4 +561,22 @@ export async function logoutApi(token?: string | null): Promise<void> {
   }
 }
 
+export async function updateAdminCredentialsApi(
+  token: string,
+  payload: { currentPassword: string; newEmail?: string; newPassword?: string },
+): Promise<AuthResponse> {
+  const res = await fetch(`${API_BASE}/auth/admin/credentials`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
 
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok || !json.success) {
+    throw new Error(json.error || "Failed to update admin credentials");
+  }
+  return json;
+}

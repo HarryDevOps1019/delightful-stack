@@ -57,26 +57,29 @@ export function CategoryProductSection({
   }
 
   return (
-    <section className="container-shop py-6 sm:py-8" aria-labelledby={`cat-heading-${category.slug}`}>
+    <section
+      className="container-shop py-4 sm:py-8"
+      aria-labelledby={`cat-heading-${category.slug}`}
+    >
       {/* ─── Section Header: Title on Left, VIEW ALL on Right ─── */}
-      <div className="flex items-baseline justify-between gap-4">
+      <div className="flex min-h-7 items-center justify-between gap-3">
         <h2
           id={`cat-heading-${category.slug}`}
-          className="font-display text-base sm:text-lg lg:text-xl font-bold tracking-tight text-foreground"
+          className="min-w-0 truncate font-display text-base font-bold tracking-tight text-foreground sm:text-lg lg:text-xl"
         >
           {category.name}
         </h2>
         <Link
           to="/shop"
           search={{ category: category.slug }}
-          className="shrink-0 text-xs font-bold uppercase tracking-wider text-primary hover:underline transition-colors"
+          className="shrink-0 text-[11px] font-bold uppercase tracking-wider text-primary transition-colors hover:underline sm:text-xs"
         >
           VIEW ALL
         </Link>
       </div>
 
       {/* Thin horizontal divider beneath heading */}
-      <div className="border-b border-border/80 mt-2 mb-4" />
+      <div className="mb-3 mt-1.5 border-b border-border/80 sm:mb-4 sm:mt-2" />
 
       {/* ─── Product Carousel Row with Prev/Next Controls ─── */}
       <div className="group/row relative">
@@ -105,13 +108,17 @@ export function CategoryProductSection({
         )}
 
         {/* Carousel Viewport */}
-        <div className="overflow-hidden border border-border/80 rounded-xs bg-card" ref={emblaRef}>
-          <div className="flex touch-pan-y">
+        <div className="overflow-hidden" ref={emblaRef}>
+          <div
+            className={`flex touch-pan-y gap-2 sm:gap-0 ${
+              !isLoading && products.length === 1 ? "justify-center sm:justify-start" : ""
+            }`}
+          >
             {isLoading
               ? Array.from({ length: 6 }).map((_, idx) => (
                   <div
                     key={idx}
-                    className="min-w-0 flex-[0_0_65%] sm:flex-[0_0_45%] md:flex-[0_0_30%] lg:flex-[0_0_22%] xl:flex-[0_0_16.666%] border-r border-border last:border-r-0"
+                    className="min-w-0 basis-[calc(50%_-_0.25rem)] shrink-0 grow-0 border border-border sm:basis-[45%] sm:border-r-0 md:basis-[30%] lg:basis-[22%] xl:basis-1/6"
                   >
                     <CategoryProductCardSkeleton />
                   </div>
@@ -119,7 +126,7 @@ export function CategoryProductSection({
               : products.map((product) => (
                   <div
                     key={product.id}
-                    className="min-w-0 flex-[0_0_65%] sm:flex-[0_0_45%] md:flex-[0_0_30%] lg:flex-[0_0_22%] xl:flex-[0_0_16.666%] border-r border-border last:border-r-0"
+                    className="min-w-0 basis-[calc(50%_-_0.25rem)] shrink-0 grow-0 border border-border sm:basis-[45%] sm:border-r-0 md:basis-[30%] lg:basis-[22%] xl:basis-1/6"
                   >
                     <CategoryProductCard product={product} />
                   </div>
