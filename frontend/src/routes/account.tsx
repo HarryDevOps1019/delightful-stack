@@ -450,7 +450,7 @@ function OrderDetailsModal({
 
 // ─── Main Account Component ───────────────────────────────────────────────────────
 function Account() {
-  const { user, logout, isAdmin } = useAuth();
+  const { user, logout, isAdmin, isLoading: authLoading } = useAuth();
   const { whatsappDigits } = useSettings();
   const navigate = useNavigate();
 
@@ -460,8 +460,13 @@ function Account() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showAllStoreOrders, setShowAllStoreOrders] = useState(false);
 
-  // Load orders from backend
+  // Load orders from backend ONLY if user is logged in
   const loadOrders = async () => {
+    if (!user) {
+      setOrders([]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const data = await fetchOrdersApi();
@@ -479,8 +484,13 @@ function Account() {
   };
 
   useEffect(() => {
-    loadOrders();
-  }, []);
+    if (user) {
+      loadOrders();
+    } else {
+      setLoading(false);
+      setOrders([]);
+    }
+  }, [user]);
 
   const handleOrderUpdated = (updatedOrder: ApiOrder) => {
     setOrders((prev) => prev.map((o) => (o.id === updatedOrder.id ? updatedOrder : o)));
@@ -491,13 +501,16 @@ function Account() {
 
   // Filter orders according to user context
   const filteredOrders = useMemo(() => {
+    if (!user) return [];
     let result = orders;
 
     // If user is regular customer and not toggling all orders
-    if (user && !isAdmin && !showAllStoreOrders) {
+    if (!isAdmin || !showAllStoreOrders) {
       const userEmail = (user.email || "").trim().toLowerCase();
       result = result.filter(
-        (o) => (o.email && o.email.trim().toLowerCase() === userEmail) || (o.customerName && o.customerName.toLowerCase() === user.name?.toLowerCase())
+        (o) =>
+          (o.email && o.email.trim().toLowerCase() === userEmail) ||
+          (o.customerName && o.customerName.toLowerCase() === user.name?.toLowerCase()),
       );
     }
 
@@ -511,12 +524,69 @@ function Account() {
           o.customerName?.toLowerCase().includes(q) ||
           o.email?.toLowerCase().includes(q) ||
           o.city?.toLowerCase().includes(q) ||
-          o.items?.some((it) => it.name?.toLowerCase().includes(q) || it.sku?.toLowerCase().includes(q))
+          o.items?.some((it) => it.name?.toLowerCase().includes(q) || it.sku?.toLowerCase().includes(q)),
       );
     }
 
     return result;
   }, [orders, user, isAdmin, showAllStoreOrders, searchQuery]);
+
+  // 1. Loading state while authentication session is restored
+  if (authLoading) {
+    return (
+      <>
+        <PageHeading title="My Account & Order History" />
+        <div className="container-shop py-20 text-center space-y-3">
+          <RefreshCw className="h-8 w-8 text-primary animate-spin mx-auto" />
+          <p className="text-xs font-semibold text-muted-foreground">Checking authentication session...</p>
+        </div>
+      </>
+    );
+  }
+
+  // 2. Gated state: User is NOT logged in
+  if (!user) {
+    return (
+      <>
+        <PageHeading title="My Account & Orders" />
+        <div className="container-shop max-w-lg py-12">
+          <div className="border border-border bg-card p-6 sm:p-8 rounded-lg shadow-sm text-center space-y-5">
+            <div className="h-16 w-16 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto">
+              <Lock className="h-8 w-8" />
+            </div>
+            <div className="space-y-1.5">
+              <h2 className="text-xl font-bold text-foreground">Sign In to View Your Orders</h2>
+              <p className="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">
+                Your order history, quotation status, and delivery details are private. Please sign in to your account to view your past and active orders.
+              </p>
+            </div>
+            <div className="pt-2 space-y-2.5 max-w-xs mx-auto">
+              <Button asChild className="w-full rounded-none bg-primary hover:bg-primary/90 text-white font-bold text-xs py-2.5">
+                <Link to="/login">Sign In to Your Account</Link>
+              </Button>
+              <Button asChild variant="outline" className="w-full rounded-none text-xs py-2.5 font-semibold">
+                <Link to="/register">Create a New Account</Link>
+              </Button>
+            </div>
+
+            <div className="pt-4 border-t border-border text-xs text-muted-foreground">
+              <p className="text-[11px]">
+                Need immediate help with a quotation?{" "}
+                <a
+                  href={`https://wa.me/${whatsappDigits}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline font-semibold"
+                >
+                  Contact support on WhatsApp
+                </a>
+              </p>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -525,70 +595,50 @@ function Account() {
         <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
           {/* User Profile Card */}
           <div className="h-fit border border-border bg-tile p-6 rounded shadow-xs space-y-4">
-            {user ? (
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-lg">
-                    {user.name.charAt(0).toUpperCase()}
-                  </div>
-                  <div>
-                    <p className="font-display font-extrabold text-foreground leading-tight">{user.name}</p>
-                    <p className="text-xs text-muted-foreground">{user.email}</p>
-                  </div>
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-lg">
+                  {user.name.charAt(0).toUpperCase()}
                 </div>
-
-                <div className="pt-2 border-t border-border flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">Account Role:</span>
-                  <span className="font-semibold uppercase tracking-wider text-primary">
-                    {user.role || "Customer"}
-                  </span>
+                <div>
+                  <p className="font-display font-extrabold text-foreground leading-tight">{user.name}</p>
+                  <p className="text-xs text-muted-foreground">{user.email}</p>
                 </div>
+              </div>
 
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">Total Orders:</span>
-                  <span className="font-bold text-foreground">{filteredOrders.length}</span>
-                </div>
+              <div className="pt-2 border-t border-border flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">Account Role:</span>
+                <span className="font-semibold uppercase tracking-wider text-primary">
+                  {user.role || "Customer"}
+                </span>
+              </div>
 
-                {isAdmin && (
-                  <Button asChild className="w-full bg-primary hover:bg-primary/90 text-white rounded-none font-bold text-xs">
-                    <Link to="/admin" className="flex items-center justify-center gap-1.5">
-                      <ShieldCheck className="h-4 w-4" />
-                      Open Admin Portal
-                    </Link>
-                  </Button>
-                )}
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">Total Orders:</span>
+                <span className="font-bold text-foreground">{filteredOrders.length}</span>
+              </div>
 
-                <Button
-                  variant="outline"
-                  onClick={async () => {
-                    await logout();
-                    navigate({ to: "/login" });
-                  }}
-                  className="w-full rounded-none text-xs font-semibold hover:text-destructive hover:border-destructive flex items-center justify-center gap-1.5"
-                >
-                  <LogOut className="h-3.5 w-3.5" />
-                  Sign Out
+              {isAdmin && (
+                <Button asChild className="w-full bg-primary hover:bg-primary/90 text-white rounded-none font-bold text-xs">
+                  <Link to="/admin" className="flex items-center justify-center gap-1.5">
+                    <ShieldCheck className="h-4 w-4" />
+                    Open Admin Portal
+                  </Link>
                 </Button>
-              </div>
-            ) : (
-              <div className="space-y-3 text-center">
-                <div className="h-12 w-12 rounded-full bg-muted text-muted-foreground mx-auto flex items-center justify-center">
-                  <User className="h-6 w-6" />
-                </div>
-                <p className="font-display font-bold">You are not signed in</p>
-                <p className="text-xs text-muted-foreground">
-                  Sign in or create an account to view your live orders and saved profile.
-                </p>
-                <div className="pt-2 space-y-2">
-                  <Button asChild className="w-full rounded-none">
-                    <Link to="/login">Sign In</Link>
-                  </Button>
-                  <Button asChild variant="outline" className="w-full rounded-none">
-                    <Link to="/register">Create Account</Link>
-                  </Button>
-                </div>
-              </div>
-            )}
+              )}
+
+              <Button
+                variant="outline"
+                onClick={async () => {
+                  await logout();
+                  navigate({ to: "/login" });
+                }}
+                className="w-full rounded-none text-xs font-semibold hover:text-destructive hover:border-destructive flex items-center justify-center gap-1.5"
+              >
+                <LogOut className="h-3.5 w-3.5" />
+                Sign Out
+              </Button>
+            </div>
 
             {/* Quick Support Card */}
             <div className="pt-4 border-t border-border text-xs text-muted-foreground space-y-2">
