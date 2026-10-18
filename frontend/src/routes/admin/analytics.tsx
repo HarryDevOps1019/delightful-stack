@@ -1,181 +1,210 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { TrendingUp, Users, ShoppingBag, DollarSign, Award, Layers, Package, AlertTriangle } from "lucide-react";
+﻿import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
+import {
+  AlertTriangle,
+  BarChart3,
+  DollarSign,
+  PackageCheck,
+  PieChart as PieChartIcon,
+  ShoppingBag,
+} from "lucide-react";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Legend,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { formatLKR } from "@/lib/format";
 import { useCatalog } from "@/services/catalog";
-import { fetchOrdersApi, fetchAnalyticsApi, type ApiOrder, type ApiAnalytics } from "@/services/api";
+import { fetchOrdersApi, type ApiOrder } from "@/services/api";
 
 export const Route = createFileRoute("/admin/analytics")({
-  head: () => ({ meta: [{ title: "Analytics — Admin" }] }),
+  head: () => ({ meta: [{ title: "Analytics - Admin" }] }),
   component: AdminAnalytics,
 });
+
+const STATUS_COLORS = ["#f59e0b", "#38bdf8", "#8b5cf6", "#ec4899", "#22c55e", "#ef4444"];
+const CATEGORY_COLOR = "#f97316";
 
 function AdminAnalytics() {
   const { products, categories } = useCatalog();
   const [orders, setOrders] = useState<ApiOrder[]>([]);
-  const [analytics, setAnalytics] = useState<ApiAnalytics | null>(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function loadData() {
-      setLoading(true);
-      const [ords, anl] = await Promise.all([
-        fetchOrdersApi(),
-        fetchAnalyticsApi(),
-      ]);
-      if (ords) setOrders(ords);
-      if (anl) setAnalytics(anl);
-      setLoading(false);
-    }
-    void loadData();
+    void fetchOrdersApi().then((data) => {
+      if (data) setOrders(data);
+    });
   }, []);
 
-  const validOrders = orders.filter((o) => o.status !== "Cancelled");
-  const totalRevenueLKR = validOrders.reduce((a, o) => a + (Number(o.totalLKR) || 0), 0);
+  const validOrders = useMemo(
+    () => orders.filter((order) => order.status !== "Cancelled"),
+    [orders],
+  );
+  const totalRevenueLKR = validOrders.reduce(
+    (sum, order) => sum + (Number(order.totalLKR) || 0),
+    0,
+  );
+  const lowStockCount = products.filter(
+    (product) => product.stock > 0 && product.stock <= 5,
+  ).length;
 
-  const avgOrderValueLKR = validOrders.length > 0 ? Math.round(totalRevenueLKR / validOrders.length) : 0;
-  const inStockCount = products.filter((p) => p.stock > 0).length;
-  const lowStockCount = products.filter((p) => p.stock > 0 && p.stock <= 5).length;
-  const outOfStockCount = products.filter((p) => p.stock === 0).length;
+  const statusData = useMemo(() => {
+    const counts = orders.reduce<Record<string, number>>((result, order) => {
+      result[order.status] = (result[order.status] || 0) + 1;
+      return result;
+    }, {});
 
-  const totalInventoryValueLKR = products.reduce((sum, p) => sum + (p.priceCents * p.stock) / 100, 0);
+    return Object.entries(counts).map(([name, value]) => ({ name, value }));
+  }, [orders]);
 
-  // Category shares from real DB products
-  const categoryStats = categories.map((cat) => {
-    const prods = products.filter((p) => p.category === cat.slug);
-    const count = prods.length;
-    const pct = products.length > 0 ? Math.round((count / products.length) * 100) : 0;
-    const invValue = prods.reduce((sum, p) => sum + (p.priceCents * p.stock) / 100, 0);
-    return {
-      name: cat.name,
-      slug: cat.slug,
-      count,
-      pct,
-      invValueLKR: Math.round(invValue),
-    };
-  });
-
-  // Top products from actual database catalog
-  const featuredOrHighValueProducts = products
-    .filter((p) => p.featured || p.stock > 0)
-    .slice(0, 6);
+  const categoryData = useMemo(
+    () =>
+      categories
+        .map((category) => ({
+          name: category.name,
+          products: products.filter((product) => product.category === category.slug).length,
+        }))
+        .filter((category) => category.products > 0)
+        .sort((a, b) => b.products - a.products),
+    [categories, products],
+  );
 
   return (
     <div className="space-y-6">
-      {/* Overview Analytics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="admin-card">
-          <div className="flex items-center justify-between">
-            <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Total Sales Revenue</p>
-            <DollarSign className="h-4 w-4 text-orange-400" />
-          </div>
-          <p className="text-2xl font-black text-white mt-1">{formatLKR(totalRevenueLKR * 100)}</p>
-          <div className="flex items-center gap-1 text-[11px] text-zinc-400 font-semibold mt-2">
-            <span>
-              {validOrders.length} valid orders
-              {orders.filter((o) => o.status === "Cancelled").length > 0
-                ? ` (${orders.filter((o) => o.status === "Cancelled").length} cancelled excluded)`
-                : ""}
-            </span>
-          </div>
-        </div>
-
-        <div className="admin-card">
-          <div className="flex items-center justify-between">
-            <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Avg Order Value</p>
-            <TrendingUp className="h-4 w-4 text-emerald-400" />
-          </div>
-          <p className="text-2xl font-black text-white mt-1">{formatLKR(avgOrderValueLKR * 100)}</p>
-          <div className="flex items-center gap-1 text-[11px] text-zinc-400 font-semibold mt-2">
-            <span>Calculated from live orders</span>
-          </div>
-        </div>
-
-        <div className="admin-card">
-          <div className="flex items-center justify-between">
-            <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Total Inventory Value</p>
-            <Package className="h-4 w-4 text-blue-400" />
-          </div>
-          <p className="text-2xl font-black text-white mt-1">{formatLKR(totalInventoryValueLKR * 100)}</p>
-          <div className="flex items-center gap-1 text-[11px] text-blue-400 font-semibold mt-2">
-            <span>{products.length} live SKUs in catalog</span>
-          </div>
-        </div>
-
-        <div className="admin-card">
-          <div className="flex items-center justify-between">
-            <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Stock Availability Rate</p>
-            <ShoppingBag className="h-4 w-4 text-purple-400" />
-          </div>
-          <p className="text-2xl font-black text-white mt-1">
-            {products.length > 0 ? ((inStockCount / products.length) * 100).toFixed(1) : "0"}%
-          </p>
-          <div className="flex items-center gap-1 text-[11px] text-zinc-400 font-semibold mt-2">
-            <span>{inStockCount} of {products.length} items in stock</span>
-          </div>
-        </div>
+      <div className="grid gap-4 sm:grid-cols-3">
+        <MetricCard
+          label="Sales revenue"
+          value={formatLKR(totalRevenueLKR * 100)}
+          note="Cancelled orders excluded"
+          icon={<DollarSign className="h-4 w-4 text-orange-400" />}
+        />
+        <MetricCard
+          label="Valid orders"
+          value={String(validOrders.length)}
+          note={`${orders.length} total orders`}
+          icon={<ShoppingBag className="h-4 w-4 text-sky-400" />}
+        />
+        <MetricCard
+          label="Low-stock alerts"
+          value={String(lowStockCount)}
+          note={`${products.length} products in catalog`}
+          icon={<AlertTriangle className="h-4 w-4 text-amber-400" />}
+        />
       </div>
 
-      {/* Real Category Distribution */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="admin-card space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-              <Layers className="h-4 w-4 text-orange-400" /> Category Breakdown in Supabase
-            </h2>
-            <span className="text-xs font-mono text-zinc-500">{categories.length} categories</span>
-          </div>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <section className="admin-card">
+          <ChartHeading
+            icon={<PieChartIcon className="h-4 w-4 text-orange-400" />}
+            title="Order status"
+            description="Current distribution of all orders"
+          />
+          {statusData.length ? (
+            <div className="mt-5 h-[280px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={statusData}
+                    dataKey="value"
+                    nameKey="name"
+                    innerRadius={62}
+                    outerRadius={98}
+                    paddingAngle={3}
+                  >
+                    {statusData.map((entry, index) => (
+                      <Cell key={entry.name} fill={STATUS_COLORS[index % STATUS_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={tooltipStyle} itemStyle={{ color: "#18181b" }} />
+                  <Legend wrapperStyle={{ color: "#a1a1aa", fontSize: 12 }} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <EmptyChart message="Order data will appear here once you receive orders." />
+          )}
+        </section>
 
-          <div className="space-y-4 pt-2">
-            {categoryStats.map((cat) => (
-              <div key={cat.slug} className="space-y-1.5">
-                <div className="flex justify-between text-xs font-bold">
-                  <span className="text-white">{cat.name}</span>
-                  <span className="text-orange-400">{cat.count} items ({cat.pct}%)</span>
-                </div>
-                <div className="w-full bg-zinc-800 h-2 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-orange-500 to-amber-500 rounded-full"
-                    style={{ width: `${cat.pct}%` }}
+        <section className="admin-card">
+          <ChartHeading
+            icon={<BarChart3 className="h-4 w-4 text-orange-400" />}
+            title="Products by category"
+            description="Catalog size for each active category"
+          />
+          {categoryData.length ? (
+            <div className="mt-5 h-[280px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={categoryData} margin={{ top: 8, right: 8, left: -18, bottom: 42 }}>
+                  <CartesianGrid stroke="#27272a" vertical={false} />
+                  <XAxis
+                    dataKey="name"
+                    angle={-32}
+                    textAnchor="end"
+                    interval={0}
+                    tick={{ fill: "#a1a1aa", fontSize: 11 }}
+                    tickLine={false}
+                    axisLine={false}
                   />
-                </div>
-                <div className="flex justify-between text-[10px] text-zinc-500">
-                  <span>Stock value: {formatLKR(cat.invValueLKR * 100)}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+                  <YAxis allowDecimals={false} tick={{ fill: "#a1a1aa", fontSize: 11 }} tickLine={false} axisLine={false} />
+                  <Tooltip contentStyle={tooltipStyle} itemStyle={{ color: "#18181b" }} cursor={{ fill: "#27272a" }} />
+                  <Bar dataKey="products" name="Products" fill={CATEGORY_COLOR} radius={[5, 5, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <EmptyChart message="Add products to see category data." />
+          )}
+        </section>
+      </div>
+    </div>
+  );
+}
 
-        {/* Catalog Highlights */}
-        <div className="admin-card space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-              <Award className="h-4 w-4 text-amber-400" /> Key Catalog SKUs
-            </h2>
-            <span className="text-xs text-zinc-500 font-mono">Live Products</span>
-          </div>
+const tooltipStyle = {
+  borderRadius: 8,
+  border: "1px solid #d4d4d8",
+  background: "#ffffff",
+  fontSize: 12,
+};
 
-          <div className="space-y-2.5">
-            {featuredOrHighValueProducts.map((p, idx) => (
-              <div key={p.id} className="flex items-center justify-between p-2.5 rounded-lg bg-zinc-900/50 border border-zinc-800/80">
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className="h-6 w-6 rounded bg-zinc-800 flex items-center justify-center text-xs font-bold text-amber-400 shrink-0">
-                    #{idx + 1}
-                  </span>
-                  <div className="min-w-0">
-                    <p className="text-xs font-bold text-white truncate">{p.name}</p>
-                    <p className="text-[10px] text-zinc-500 font-mono">{p.sku} • {p.brand}</p>
-                  </div>
-                </div>
-                <div className="text-right shrink-0 ml-3">
-                  <p className="text-xs font-bold text-emerald-400">{formatLKR(p.priceCents)}</p>
-                  <p className="text-[10px] text-zinc-500">{p.stock} units in stock</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+function MetricCard({ label, value, note, icon }: { label: string; value: string; note: string; icon: React.ReactNode }) {
+  return (
+    <div className="admin-card">
+      <div className="flex items-center justify-between">
+        <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">{label}</p>
+        {icon}
+      </div>
+      <p className="mt-1 text-2xl font-black text-white">{value}</p>
+      <p className="mt-2 text-[11px] font-semibold text-zinc-400">{note}</p>
+    </div>
+  );
+}
+
+function ChartHeading({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
+  return (
+    <div className="flex items-start gap-2">
+      <span className="mt-0.5">{icon}</span>
+      <div>
+        <h2 className="text-sm font-bold uppercase tracking-wider text-white">{title}</h2>
+        <p className="mt-0.5 text-xs text-zinc-500">{description}</p>
+      </div>
+    </div>
+  );
+}
+
+function EmptyChart({ message }: { message: string }) {
+  return (
+    <div className="mt-5 grid h-[280px] place-items-center rounded-lg border border-dashed border-zinc-700 text-center text-sm text-zinc-500">
+      <div>
+        <PackageCheck className="mx-auto mb-2 h-5 w-5" />
+        {message}
       </div>
     </div>
   );

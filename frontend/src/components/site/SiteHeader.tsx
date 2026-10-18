@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo, type FormEvent } from "react";
+﻿import { useState, useRef, useEffect, useMemo, type FormEvent } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   ChevronDown,
@@ -16,6 +16,7 @@ import logoImg from "@/assets/imgs/logopng.png";
 import { useCatalog } from "@/services/catalog";
 import { useCart } from "@/context/cart";
 import { useAuth } from "@/context/auth";
+import type { Product } from "@/lib/types";
 import { CategoryMegaMenu, CATEGORY_ICONS } from "./CategoryMegaMenu";
 
 import { BrandsMegaMenu } from "./BrandsMegaMenu";
@@ -39,40 +40,45 @@ export function Logo({ className = "" }: { className?: string }) {
   );
 }
 
+function ProductSuggestions({ products, query, onSelect }: { products: Product[]; query: string; onSelect?: () => void }) {
+  const suggestions = useMemo(() => {
+    const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    if (!terms.length) return [];
+    return products.filter((product) => {
+      const searchable = `${product.name} ${product.sku} ${product.brand} ${product.model} ${product.category}`.toLowerCase();
+      return terms.every((term) => searchable.includes(term));
+    }).slice(0, 6);
+  }, [products, query]);
+
+  if (!query.trim()) return null;
+  return (
+    <div className="absolute left-0 right-0 top-[calc(100%+0.4rem)] z-50 overflow-hidden rounded-md border border-zinc-200 bg-white shadow-xl">
+      {suggestions.length > 0 ? <>
+        <p className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-zinc-500">Product suggestions</p>
+        {suggestions.map((product) => <Link key={product.id} to="/product/$slug" params={{ slug: product.slug }} onClick={onSelect} className="flex items-center gap-3 border-t border-zinc-100 px-3 py-2.5 hover:bg-zinc-50">
+          <img src={product.images[0] || "/assets/imgs/electronic-components.png"} alt="" className="h-10 w-10 shrink-0 rounded border border-zinc-100 object-cover" />
+          <span className="min-w-0 flex-1"><span className="block truncate text-xs font-semibold text-zinc-900">{product.name}</span><span className="block truncate text-[11px] text-zinc-500">{product.brand} · {product.sku}</span></span>
+        </Link>)}
+        <Link to="/shop" search={{ q: query.trim() }} onClick={onSelect} className="block border-t border-zinc-100 px-3 py-2.5 text-xs font-bold text-primary hover:bg-primary/5">View all results for “{query.trim()}”</Link>
+      </> : <Link to="/shop" search={{ q: query.trim() }} onClick={onSelect} className="block px-3 py-3 text-xs text-zinc-600 hover:bg-zinc-50">No matching products. Search the full catalogue for “{query.trim()}”.</Link>}
+    </div>
+  );
+}
+
 function SearchForm({ className = "", onClose }: { className?: string; onClose?: () => void }) {
   const navigate = useNavigate();
   const [q, setQ] = useState("");
-
-  const submit = (e: FormEvent) => {
-    e.preventDefault();
-    if (onClose) onClose();
-    navigate({ to: "/shop", search: { q: q.trim() || undefined } });
-  };
-
+  const { products } = useCatalog();
+  const submit = (e: FormEvent) => { e.preventDefault(); if (onClose) onClose(); navigate({ to: "/shop", search: { q: q.trim() || undefined } }); };
   return (
-    <form
-      onSubmit={submit}
-      role="search"
-      className={`flex items-center h-10 sm:h-11 border border-zinc-300 rounded overflow-hidden shadow-xs focus-within:border-primary focus-within:ring-1 focus-within:ring-primary bg-white transition-all ${className}`}
-    >
-      <label htmlFor="site-search" className="sr-only">
-        Search products
-      </label>
-      <input
-        id="site-search"
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-        placeholder="Search for products, categories and more"
-        className="min-w-0 flex-1 bg-transparent px-3.5 sm:px-4 text-xs sm:text-sm text-zinc-900 outline-none placeholder:text-zinc-400"
-      />
-      <button
-        type="submit"
-        aria-label="Search"
-        className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 sm:px-5 h-full flex items-center justify-center transition-colors shrink-0 cursor-pointer"
-      >
-        <Search className="h-4 w-4" />
-      </button>
-    </form>
+    <div className={`relative ${className}`}>
+      <form onSubmit={submit} role="search" className="flex h-10 items-center overflow-hidden rounded border border-zinc-300 bg-white shadow-xs transition-all focus-within:border-primary focus-within:ring-1 focus-within:ring-primary sm:h-11">
+        <label htmlFor="site-search" className="sr-only">Search products</label>
+        <input id="site-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search for products, categories and more" className="min-w-0 flex-1 bg-transparent px-3.5 text-xs text-zinc-900 outline-none placeholder:text-zinc-400 sm:px-4 sm:text-sm" />
+        <button type="submit" aria-label="Search" className="flex h-full shrink-0 cursor-pointer items-center justify-center bg-primary px-4 text-primary-foreground transition-colors hover:bg-primary/90 sm:px-5"><Search className="h-4 w-4" /></button>
+      </form>
+      <ProductSuggestions products={products} query={q} onSelect={onClose} />
+    </div>
   );
 }
 
@@ -80,6 +86,7 @@ function SearchForm({ className = "", onClose }: { className?: string; onClose?:
 function MobileSearchOverlay({ onClose }: { onClose: () => void }) {
   const navigate = useNavigate();
   const [q, setQ] = useState("");
+  const { products } = useCatalog();
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -108,7 +115,7 @@ function MobileSearchOverlay({ onClose }: { onClose: () => void }) {
       }}
     >
       <div className="bg-white px-4 pt-3 pb-4 shadow-xl">
-        <div className="flex items-center gap-2">
+        <div className="relative flex items-center gap-2">
           <form
             onSubmit={submit}
             role="search"
@@ -133,6 +140,7 @@ function MobileSearchOverlay({ onClose }: { onClose: () => void }) {
               <Search className="h-4 w-4" />
             </button>
           </form>
+          <ProductSuggestions products={products} query={q} onSelect={onClose} />
           <button
             type="button"
             onClick={onClose}
@@ -304,20 +312,20 @@ export function SiteHeader() {
 
   return (
     <>
-      {/* ─── Mobile search overlay ─── */}
+      {/* â”€â”€â”€ Mobile search overlay â”€â”€â”€ */}
       {mobileSearchOpen && <MobileSearchOverlay onClose={() => setMobileSearchOpen(false)} />}
 
-      {/* ─── Brands drawer (triggered from bottom nav) ─── */}
+      {/* â”€â”€â”€ Brands drawer (triggered from bottom nav) â”€â”€â”€ */}
       {BrandsDrawer}
 
       <header ref={headerRef} className="relative z-40 bg-white border-b border-zinc-200">
-        {/* ════════════════════════════════════════════════════════════════
+        {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
             MOBILE TOP HEADER  (hidden on lg+)
             Hamburger | Logo | Search icon | Cart | Account | Lang
-        ════════════════════════════════════════════════════════════════ */}
+        â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
         <div className="lg:hidden bg-white">
           <div className="flex h-14 items-center gap-1 px-2.5 sm:gap-2 sm:px-3">
-            {/* Hamburger → opens categories drawer */}
+            {/* Hamburger â†’ opens categories drawer */}
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>
                 <button
@@ -329,7 +337,7 @@ export function SiteHeader() {
                 </button>
               </SheetTrigger>
 
-              {/* ─── Left Slide-in Drawer ─── */}
+              {/* â”€â”€â”€ Left Slide-in Drawer â”€â”€â”€ */}
               <SheetContent
                 side="left"
                 className="w-[85vw] max-w-sm overflow-y-auto p-0 flex flex-col"
@@ -376,7 +384,7 @@ export function SiteHeader() {
                                 onClick={() => setMobileOpen(false)}
                                 className="block py-1 text-xs font-bold text-primary hover:underline"
                               >
-                                View all {c.short} →
+                                View all {c.short} â†’
                               </Link>
                               <Link
                                 to="/shop"
@@ -496,7 +504,7 @@ export function SiteHeader() {
               </SheetContent>
             </Sheet>
 
-            {/* Logo — aligned to the left side */}
+            {/* Logo â€” aligned to the left side */}
             <div className="flex min-w-0 flex-1 items-center justify-start">
               <Logo className="max-w-[86px] sm:max-w-none" />
             </div>
@@ -547,10 +555,10 @@ export function SiteHeader() {
           </div>
         </div>
 
-        {/* ════════════════════════════════════════════════════════════════
+        {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
             DESKTOP TOP ROW  (hidden on mobile)
             Logo | Search | Account/Cart Controls
-        ════════════════════════════════════════════════════════════════ */}
+        â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
         <div className="hidden lg:block">
           <div className="w-full max-w-[1920px] mx-auto px-6 xl:px-8 py-3.5">
             <div className="flex items-center justify-between gap-4 xl:gap-6">
@@ -643,9 +651,9 @@ export function SiteHeader() {
           </div>
         </div>
 
-        {/* ════════════════════════════════════════════════════════════════
+        {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
             DESKTOP SECOND ROW: Black Nav Bar  (hidden on mobile)
-        ════════════════════════════════════════════════════════════════ */}
+        â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
         <nav
           className="hidden lg:block bg-ink text-ink-foreground border-t border-zinc-800 shadow-md"
           aria-label="Main Store Navigation"
@@ -753,7 +761,7 @@ export function SiteHeader() {
               </div>
             </div>
 
-            {/* ─── Mega Menus Overlay ─── */}
+            {/* â”€â”€â”€ Mega Menus Overlay â”€â”€â”€ */}
             {activeMenu === "categories" && (
               <div
                 className="absolute left-6 xl:left-8 top-full z-50 pt-0 max-w-[calc(100vw-3rem)]"
@@ -781,9 +789,9 @@ export function SiteHeader() {
         </nav>
       </header>
 
-      {/* ════════════════════════════════════════════════════════════════
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
           MOBILE BOTTOM NAVIGATION BAR
-      ════════════════════════════════════════════════════════════════ */}
+      â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <MobileBottomNav
         onCategoryDrawerOpen={() => setMobileOpen(true)}
         onBrandsDrawerOpen={() => setBrandsDrawerOpen(true)}

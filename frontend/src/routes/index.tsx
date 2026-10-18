@@ -1,26 +1,27 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+﻿import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import { images } from "@/data/catalog";
 import { useCatalog } from "@/services/catalog";
 import { useMemo, useState } from "react";
-import { SpecialOfferBanner } from "@/components/site/SpecialOfferBanner";
 import { CategoryProductSection } from "@/components/site/CategoryProductSection";
 import { ProductCard } from "@/components/site/ProductCard";
+import { HeroVideoScroller } from "@/components/site/HeroVideoScroller";
+import { SpecialOfferBanner } from "@/components/site/SpecialOfferBanner";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Asia Electronics & Cellular — Electronics, Parts & Accessories (Demo)" },
+      { title: "Asia Electronics & Cellular â€” Electronics, Parts & Accessories (Demo)" },
       {
         name: "description",
         content:
           "Shop electronic components, audio, lighting, mobile parts and TVs in Sri Lanka. Demo storefront with sample LKR prices.",
       },
-      { property: "og:title", content: "Asia Electronics & Cellular — Demo Store" },
+      { property: "og:title", content: "Asia Electronics & Cellular â€” Demo Store" },
       {
         property: "og:description",
-        content: "Electronic components, audio, lighting, mobile parts and TVs — demo storefront.",
+        content: "Electronic components, audio, lighting, mobile parts and TVs â€” demo storefront.",
       },
     ],
   }),
@@ -65,8 +66,8 @@ function Index() {
 
   return (
     <>
-      {/* Special Offer Banners — shown at top when active */}
       <SpecialOfferBanner />
+      <HeroVideoScroller />
 
       {/* Promo grid */}
       <section className="container-shop pt-6 lg:pt-8">
@@ -175,7 +176,7 @@ function Index() {
         </div>
       </section>
 
-      {/* Brands — Only Show Existing Brands with Logos */}
+      {/* Brands â€” Only Show Existing Brands with Logos */}
       {existingBrands.length > 0 && (
         <section className="container-shop mt-16">
           <div className="flex items-center justify-between gap-4">
@@ -308,7 +309,7 @@ function Index() {
         </div>
       </section>
 
-      {/* ─── Category Product Carousel Sections (Matching Reference Screenshots) ─── */}
+      {/* â”€â”€â”€ Category Product Carousel Sections (Matching Reference Screenshots) â”€â”€â”€ */}
       <div className="mt-10 sm:mt-12">
         {categories.map((cat) => {
           const catProducts = allProducts.filter((p) => p.category === cat.slug);
@@ -325,7 +326,7 @@ function Index() {
           </p>
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
             Asia Electronics and Cellular Pvt Ltd supplies components, audio, lighting, mobile parts
-            and displays. This is a demonstration website — company history, certifications and
+            and displays. This is a demonstration website â€” company history, certifications and
             contact details will be added once confirmed by the client.
           </p>
           <Link

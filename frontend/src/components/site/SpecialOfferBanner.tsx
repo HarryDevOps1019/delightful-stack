@@ -1,12 +1,12 @@
-import { useQuery } from "@tanstack/react-query";
+﻿import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "motion/react";
-import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { activeBannersQuery } from "@/services/banners";
 import type { Banner } from "@/lib/bannerTypes";
 
-// ─── Single banner slide ──────────────────────────────────────────────────────
+// â”€â”€â”€ Single banner slide â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function BannerSlide({ banner }: { banner: Banner }) {
   const hasCta = banner.ctaText && banner.ctaLink;
@@ -90,7 +90,7 @@ function BannerSlide({ banner }: { banner: Banner }) {
   return <div className="block w-full" style={{ minHeight: 220 }}>{inner}</div>;
 }
 
-// ─── Carousel wrapper ─────────────────────────────────────────────────────────
+// â”€â”€â”€ Carousel wrapper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function BannerCarousel({ banners }: { banners: Banner[] }) {
   const [idx, setIdx] = useState(0);
@@ -134,7 +134,7 @@ function BannerCarousel({ banners }: { banners: Banner[] }) {
         </motion.div>
       </AnimatePresence>
 
-      {/* Prev / Next arrows — only if >1 banners */}
+      {/* Prev / Next arrows â€” only if >1 banners */}
       {banners.length > 1 && (
         <>
           <button
@@ -174,24 +174,58 @@ function BannerCarousel({ banners }: { banners: Banner[] }) {
   );
 }
 
-// ─── Public component ─────────────────────────────────────────────────────────
+// â”€â”€â”€ Public component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /**
- * Renders active special offer banners at the top of the homepage.
- * Fetches from banners service; hides itself when no active banners exist.
+ * Shows active offers in a dismissible popup. Closing it only hides it for
+ * the current visit, so it appears again after a page refresh.
  */
 export function SpecialOfferBanner() {
   const { data: banners } = useQuery({
     ...activeBannersQuery,
-    // Don't throw — just return empty on error
     throwOnError: false,
   });
+  const [isOpen, setIsOpen] = useState(false);
 
-  if (!banners || banners.length === 0) return null;
+  useEffect(() => {
+    if (!banners?.length) return;
+    setIsOpen(true);
+  }, [banners]);
+
+  const close = () => {
+    setIsOpen(false);
+  };
+
+  if (!banners?.length) return null;
 
   return (
-    <section aria-label="Special offers" className="w-full">
-      <BannerCarousel banners={banners} />
-    </section>
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/65 p-4 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Special offers"
+          onClick={(event) => { if (event.target === event.currentTarget) close(); }}
+        >
+          <motion.section
+            initial={{ opacity: 0, y: 24, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 16, scale: 0.97 }}
+            transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+            className="relative w-full max-w-4xl overflow-hidden rounded-xl bg-black shadow-2xl"
+          >
+            <button type="button" onClick={close} aria-label="Close special offers" className="absolute right-3 top-3 z-30 grid h-9 w-9 place-items-center rounded-full bg-black/65 text-white backdrop-blur-sm transition-colors hover:bg-primary">
+              <X className="h-4 w-4" />
+            </button>
+            <BannerCarousel banners={banners} />
+            <button type="button" onClick={close} className="absolute bottom-3 right-4 z-30 text-[11px] font-semibold text-white/80 underline-offset-2 hover:text-white hover:underline">No thanks</button>
+          </motion.section>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

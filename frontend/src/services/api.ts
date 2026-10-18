@@ -1,4 +1,4 @@
-import type { Product, Category, Brand } from "@/lib/types";
+﻿import type { Product, Category, Brand } from "@/lib/types";
 import { toast } from "sonner";
 
 export function getApiBaseUrl(): string {
@@ -67,7 +67,7 @@ export interface ApiAnalytics {
   }>;
 }
 
-// ─── Products API ──────────────────────────────────────────
+// â”€â”€â”€ Products API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export async function fetchProductsApi(params?: {
   search?: string;
@@ -196,7 +196,7 @@ export async function clearAllProductsApi(): Promise<boolean> {
   }
 }
 
-// ─── Categories API ────────────────────────────────────────
+// â”€â”€â”€ Categories API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export async function fetchCategoriesApi(): Promise<Category[] | null> {
   try {
@@ -257,7 +257,7 @@ export async function deleteCategoryApi(slug: string): Promise<boolean> {
   }
 }
 
-// ─── Brands API ────────────────────────────────────────────
+// â”€â”€â”€ Brands API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export async function fetchBrandsApi(): Promise<Brand[] | null> {
   try {
@@ -304,7 +304,7 @@ export async function deleteBrandApi(slug: string): Promise<boolean> {
   }
 }
 
-// ─── Orders API ────────────────────────────────────────────
+// â”€â”€â”€ Orders API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export async function fetchOrdersApi(): Promise<ApiOrder[] | null> {
   try {
@@ -345,7 +345,24 @@ export async function createOrderApi(order: {
   }
 }
 
-export async function updateOrderStatusApi(id: string, status: string): Promise<ApiOrder | null> {
+export async function fetchOrderStatusApi(id: string): Promise<ApiOrder["status"] | null> {
+  try {
+    const res = await fetch(`${API_BASE}/orders/${encodeURIComponent(id)}/status`);
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json.data?.status || null;
+  } catch (err) {
+    console.warn("Backend API fetchOrderStatus error:", err);
+    return null;
+  }
+}
+export interface OrderStatusUpdateResult {
+  order: ApiOrder | null;
+  emailSent: boolean;
+  emailReason?: string;
+}
+
+export async function updateOrderStatusApi(id: string, status: string): Promise<OrderStatusUpdateResult | null> {
   try {
     const res = await fetch(`${API_BASE}/orders/${encodeURIComponent(id)}/status`, {
       method: "PATCH",
@@ -354,7 +371,11 @@ export async function updateOrderStatusApi(id: string, status: string): Promise<
     });
     if (!res.ok) return null;
     const json = await res.json();
-    return json.data || null;
+    return {
+      order: json.data || null,
+      emailSent: Boolean(json.notification?.sent),
+      emailReason: json.notification?.reason,
+    };
   } catch (err) {
     console.warn("Backend API updateOrderStatus error:", err);
     return null;
@@ -389,7 +410,7 @@ export async function updateOrderDetailsApi(
   }
 }
 
-// ─── Analytics API ─────────────────────────────────────────
+// â”€â”€â”€ Analytics API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export async function fetchAnalyticsApi(): Promise<ApiAnalytics | null> {
   try {
@@ -403,7 +424,7 @@ export async function fetchAnalyticsApi(): Promise<ApiAnalytics | null> {
   }
 }
 
-// ─── Settings API ──────────────────────────────────────────
+// â”€â”€â”€ Settings API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface ApiSettings {
   id?: string;
@@ -467,7 +488,7 @@ export async function updateSettingsApi(
   }
 }
 
-// ─── Authentication API (Supabase Auth) ───────────────────
+// â”€â”€â”€ Authentication API (Supabase Auth) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface AuthUser {
   id: string;

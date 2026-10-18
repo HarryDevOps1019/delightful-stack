@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+﻿import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, useMemo } from "react";
 import { formatRupees } from "@/lib/format";
 import { PageHeading } from "@/components/site/PageHeading";
@@ -34,9 +34,9 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/account")({
   head: () => ({
     meta: [
-      { title: "My Account & Orders — Asia Electronics" },
+      { title: "My Account & Orders â€” Asia Electronics" },
       { name: "description", content: "Customer account, profile details, and live order history." },
-      { property: "og:title", content: "My Account & Orders — Asia Electronics" },
+      { property: "og:title", content: "My Account & Orders â€” Asia Electronics" },
       { property: "og:description", content: "Customer account, profile details, and live order history." },
     ],
   }),
@@ -71,7 +71,7 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-// ─── Order Details Modal (With Editing & Accurate LKR Prices) ─────────────────────
+// â”€â”€â”€ Order Details Modal (With Editing & Accurate LKR Prices) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function OrderDetailsModal({
   order: initialOrder,
   onClose,
@@ -154,7 +154,7 @@ function OrderDetailsModal({
         hour: "2-digit",
         minute: "2-digit",
       })
-    : "—";
+    : "â€”";
 
   // Build WhatsApp inquiry link
   const waMessage = encodeURIComponent(
@@ -448,7 +448,7 @@ function OrderDetailsModal({
   );
 }
 
-// ─── Main Account Component ───────────────────────────────────────────────────────
+// â”€â”€â”€ Main Account Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function Account() {
   const { user, logout, isAdmin, isLoading: authLoading } = useAuth();
   const { whatsappDigits } = useSettings();
@@ -459,6 +459,14 @@ function Account() {
   const [selectedOrder, setSelectedOrder] = useState<ApiOrder | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [showAllStoreOrders, setShowAllStoreOrders] = useState(false);
+  const copyOrderId = async (id: string) => {
+    try {
+      await navigator.clipboard.writeText(id);
+      toast.success("Order ID copied to clipboard");
+    } catch {
+      toast.error("Could not copy the Order ID");
+    }
+  };
 
   // Load orders from backend ONLY if user is logged in
   const loadOrders = async () => {
@@ -659,7 +667,7 @@ function Account() {
             </div>
           </div>
 
-          {/* ── Order History Section ── */}
+          {/* â”€â”€ Order History Section â”€â”€ */}
           <div className="min-w-0 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
@@ -767,15 +775,20 @@ function Account() {
                               day: "numeric",
                               year: "numeric",
                             })
-                          : "—";
+                          : "â€”";
 
                         const itemsCount = o.items ? o.items.reduce((s, it) => s + (it.qty || 1), 0) : 0;
                         const firstItemName = o.items?.[0]?.name || "Component Item";
 
                         return (
                           <tr key={o.id} className="hover:bg-muted/30 transition-colors">
-                            <td className="px-4 py-3 font-mono font-bold text-primary">
-                              #{o.id}
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-1.5 font-mono font-bold text-primary">
+                                <span>#{o.id}</span>
+                                <button type="button" onClick={() => void copyOrderId(o.id)} title="Copy Order ID" aria-label={`Copy order ID ${o.id}`} className="rounded p-1 text-primary hover:bg-primary/10">
+                                  <Copy className="h-3.5 w-3.5" />
+                                </button>
+                              </div>
                             </td>
                             <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
                               {dateStr}
