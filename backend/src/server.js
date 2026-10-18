@@ -99,10 +99,11 @@ app.use((err, req, res, next) => {
 });
 
 if (!process.env.VERCEL) {
-  app.listen(PORT, () => {
+  app.listen(PORT, "0.0.0.0", () => {
     console.log(`===============================================`);
     console.log(` Asia Electronics Express API is running!`);
     console.log(` Local URL: http://localhost:${PORT}`);
+    console.log(` Network:   http://0.0.0.0:${PORT}`);
     console.log(` Health:    http://localhost:${PORT}/api/health`);
     console.log(` Products:  http://localhost:${PORT}/api/products`);
     console.log(`===============================================`);

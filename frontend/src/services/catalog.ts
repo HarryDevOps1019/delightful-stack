@@ -89,7 +89,7 @@ export async function syncCatalogWithBackend() {
         fetchCategoriesApi(),
       ]);
 
-      if (prodRes && Array.isArray(prodRes.products)) {
+      if (prodRes && Array.isArray(prodRes.products) && prodRes.products.length > 0) {
         const sanitizedProds = prodRes.products.map((p) => ({
           ...p,
           images: Array.isArray(p.images) && p.images.length > 0
@@ -131,12 +131,12 @@ function slugify(s: string) {
 // ─── Storage Accessors ────────────────────────────────────────────────────────
 
 export function getStoredProducts(): Product[] {
-  if (typeof window === "undefined") return [];
+  if (typeof window === "undefined") return defaultProducts;
   try {
     const raw = localStorage.getItem(PRODUCTS_STORAGE_KEY);
-    if (raw === null) return [];
+    if (raw === null) return defaultProducts;
     const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) {
+    if (Array.isArray(parsed) && parsed.length > 0) {
       return parsed.map((p: Product) => ({
         ...p,
         images: Array.isArray(p.images) && p.images.length > 0
@@ -144,9 +144,9 @@ export function getStoredProducts(): Product[] {
           : ["/assets/imgs/electronic-components.png"],
       }));
     }
-    return [];
+    return defaultProducts;
   } catch {
-    return [];
+    return defaultProducts;
   }
 }
 

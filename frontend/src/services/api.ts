@@ -1,11 +1,29 @@
 import type { Product, Category } from "@/lib/types";
 import { toast } from "sonner";
 
-const API_BASE =
-  import.meta.env.VITE_API_URL ||
-  (typeof window !== "undefined" && window.location.hostname !== "localhost" && !window.location.hostname.includes("127.0.0.1")
-    ? "/api"
-    : "http://localhost:5000/api");
+export function getApiBaseUrl(): string {
+  if (typeof window !== "undefined") {
+    const { hostname, origin } = window.location;
+    const isLocalhost = hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
+
+    if (!isLocalhost) {
+      // Local IP (e.g. testing mobile on Wi-Fi at 192.168.x.x)
+      if (/^(\d{1,3}\.){3}\d{1,3}$/.test(hostname)) {
+        return `http://${hostname}:5000/api`;
+      }
+      // Production domain / Vercel (Mobile data, cellular network, or public domain)
+      return `${origin}/api`;
+    }
+  }
+
+  const envUrl = (import.meta.env.VITE_API_URL || "").trim();
+  if (envUrl && typeof window !== "undefined" && !envUrl.includes("localhost") && !envUrl.includes("127.0.0.1")) {
+    return envUrl;
+  }
+  return envUrl || "http://localhost:5000/api";
+}
+
+const API_BASE = getApiBaseUrl();
 
 export interface ApiOrder {
   id: string;
@@ -57,7 +75,12 @@ export async function fetchProductsApi(params?: {
   limit?: number;
 }): Promise<{ products: Product[]; total: number; pages: number } | null> {
   try {
-    const url = new URL(`${API_BASE}/products`);
+    const base = getApiBaseUrl();
+    const fallbackOrigin = typeof window !== "undefined" ? window.location.origin : "http://localhost:5000";
+    const fullPath = base.startsWith("http://") || base.startsWith("https://")
+      ? `${base}/products`
+      : `${fallbackOrigin}${base.startsWith("/") ? "" : "/"}${base}/products`;
+    const url = new URL(fullPath);
     if (params) {
       if (params.search) url.searchParams.set("search", params.search);
       if (params.category && params.category !== "all") url.searchParams.set("category", params.category);

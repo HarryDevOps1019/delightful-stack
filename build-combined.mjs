@@ -3,7 +3,11 @@ import path from "path";
 import { execSync } from "child_process";
 
 console.log("=== [1/4] Building Frontend (TanStack Start + Nitro Vercel Preset) ===");
-execSync("npm install", { cwd: "frontend", stdio: "inherit" });
+execSync("npm install --include=dev", {
+  cwd: "frontend",
+  stdio: "inherit",
+  env: { ...process.env, NODE_ENV: "development" },
+});
 execSync("npm run build", {
   cwd: "frontend",
   stdio: "inherit",
