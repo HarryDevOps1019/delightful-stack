@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+﻿import React, { createContext, useContext, useEffect, useState } from "react";
 import { AuthUser, loginApi, registerApi, fetchCurrentUserApi, logoutApi, updateAdminCredentialsApi } from "@/services/api";
 import { toast } from "sonner";
 
@@ -19,47 +19,36 @@ const TOKEN_KEY = "ae_auth_token_v1";
 const USER_KEY = "ae_auth_user_v1";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [token, setToken] = useState<string | null>(() => {
-    if (typeof window === "undefined") return null;
-    return localStorage.getItem(TOKEN_KEY);
-  });
-
-  const [user, setUser] = useState<AuthUser | null>(() => {
-    if (typeof window === "undefined") return null;
-    const stored = localStorage.getItem(USER_KEY);
-    if (!stored) return null;
-    try {
-      return JSON.parse(stored);
-    } catch {
-      return null;
-    }
-  });
+  // Start with a server-safe anonymous state. Browser storage is restored only
+  // after hydration, so the server and first client render use the same markup.
+  const [token, setToken] = useState<string | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Sync / refresh session from backend on mount if token is present
+  // Restore and verify the saved browser session after React has hydrated.
   useEffect(() => {
     let isMounted = true;
 
-    async function verifySession() {
-      if (!token) {
-        setIsLoading(false);
+    async function restoreSession() {
+      const storedToken = localStorage.getItem(TOKEN_KEY);
+      if (!storedToken) {
+        if (isMounted) setIsLoading(false);
         return;
       }
 
+      if (isMounted) setToken(storedToken);
       try {
-        const freshUser = await fetchCurrentUserApi(token);
-        if (isMounted) {
-          if (freshUser) {
-            setUser(freshUser);
-            localStorage.setItem(USER_KEY, JSON.stringify(freshUser));
-          } else {
-            // Token expired or invalid
-            setUser(null);
-            setToken(null);
-            localStorage.removeItem(TOKEN_KEY);
-            localStorage.removeItem(USER_KEY);
-          }
+        const freshUser = await fetchCurrentUserApi(storedToken);
+        if (!isMounted) return;
+        if (freshUser) {
+          setUser(freshUser);
+          localStorage.setItem(USER_KEY, JSON.stringify(freshUser));
+        } else {
+          setUser(null);
+          setToken(null);
+          localStorage.removeItem(TOKEN_KEY);
+          localStorage.removeItem(USER_KEY);
         }
       } catch (err) {
         console.warn("Session verification warning:", err);
@@ -68,12 +57,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    verifySession();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [token]);
+    void restoreSession();
+    return () => { isMounted = false; };
+  }, []);
 
   const login = async (credentials: { email: string; password: string }): Promise<AuthUser | null> => {
     setIsLoading(true);

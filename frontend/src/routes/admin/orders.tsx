@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+﻿import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
 import {
   Search, Download, Filter, Eye, Clock, CheckCircle2, Zap,
@@ -14,7 +14,7 @@ export const Route = createFileRoute("/admin/orders")({
   component: AdminOrders,
 });
 
-// ── Order Detail Modal ────────────────────────────────────────────────────────
+// â”€â”€ Order Detail Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const STATUS_OPTIONS: OrderStatus[] = [
   "Processing",
@@ -41,17 +41,29 @@ function OrderDetailModal({
 }: {
   order: MockOrder;
   onClose: () => void;
-  onStatusChange: (id: string, status: OrderStatus) => void;
+  onStatusChange: (id: string, status: OrderStatus) => Promise<{ updated: boolean; emailSent: boolean; emailReason?: string }>;
 }) {
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus>(order.status);
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 600));
-    onStatusChange(order.id, selectedStatus);
-    toast.success(`Order ${order.id} status updated to "${selectedStatus}"`);
+    const result = await onStatusChange(order.id, selectedStatus);
     setSaving(false);
+
+    if (!result.updated) {
+      toast.error("Could not update the order status. Please try again.");
+      return;
+    }
+
+    toast.success(
+      result.emailSent
+        ? `Order ${order.id} updated and customer email sent.`
+        : `Order ${order.id} status updated to "${selectedStatus}".`,
+    );
+    if (!result.emailSent) {
+      toast.info(result.emailReason || "Customer email was not sent.");
+    }
     onClose();
   };
 
@@ -99,7 +111,7 @@ function OrderDetailModal({
 
         <div className="p-6 space-y-5">
 
-          {/* ── Status Changer ── */}
+          {/* â”€â”€ Status Changer â”€â”€ */}
           <div
             className="rounded-xl p-4 space-y-3"
             style={{ background: "oklch(0.15 0.004 270)", border: "1px solid oklch(0.25 0.004 270)" }}
@@ -125,12 +137,12 @@ function OrderDetailModal({
             </div>
             {selectedStatus !== order.status && (
               <p className="text-[11px] text-orange-400 font-semibold">
-                ⚠ Status will change from <strong>{order.status}</strong> → <strong>{selectedStatus}</strong>
+                âš  Status will change from <strong>{order.status}</strong> â†’ <strong>{selectedStatus}</strong>
               </p>
             )}
           </div>
 
-          {/* ── Customer Details ── */}
+          {/* â”€â”€ Customer Details â”€â”€ */}
           <div
             className="rounded-xl p-4 space-y-3"
             style={{ background: "oklch(0.15 0.004 270)", border: "1px solid oklch(0.25 0.004 270)" }}
@@ -161,7 +173,7 @@ function OrderDetailModal({
             </div>
           </div>
 
-          {/* ── Order Line Items ── */}
+          {/* â”€â”€ Order Line Items â”€â”€ */}
           <div
             className="rounded-xl overflow-hidden"
             style={{ border: "1px solid oklch(0.25 0.004 270)" }}
@@ -185,7 +197,7 @@ function OrderDetailModal({
                       className="h-6 w-6 rounded flex items-center justify-center shrink-0 text-[10px] font-black text-orange-400"
                       style={{ background: "oklch(0.18 0.004 270)", border: "1px solid oklch(0.25 0.004 270)" }}
                     >
-                      {item.qty}×
+                      {item.qty}Ã—
                     </div>
                     <div className="min-w-0">
                       <p className="font-semibold text-white truncate">{item.name}</p>
@@ -229,7 +241,7 @@ function OrderDetailModal({
             </div>
           </div>
 
-          {/* ── Notes ── */}
+          {/* â”€â”€ Notes â”€â”€ */}
           {order.notes && (
             <div
               className="rounded-xl p-4 flex gap-3"
@@ -303,11 +315,11 @@ function InfoRow({
   );
 }
 
-// ── Main Orders Page ──────────────────────────────────────────────────────────
+// â”€â”€ Main Orders Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function AdminOrders() {
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("All");
+  const [statusFilter, setStatusFilter] = useState<string>("Active");
   const [orders, setOrders] = useState<MockOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<MockOrder | null>(null);
@@ -322,27 +334,27 @@ function AdminOrders() {
           const items = Array.isArray(o.items) ? o.items : [];
           const itemCount = items.reduce((s, it) => s + (Number(it.qty) || 1), 0);
           const productSummary = items.length > 0
-            ? items.map((it) => `${it.qty > 1 ? `${it.qty}× ` : ""}${it.name}`).join(", ")
-            : "—";
+            ? items.map((it) => `${it.qty > 1 ? `${it.qty}Ã— ` : ""}${it.name}`).join(", ")
+            : "â€”";
 
           return {
             id: o.id,
             customer: o.customerName,
-            email: o.email || "—",
-            phone: o.phone || "—",
+            email: o.email || "â€”",
+            phone: o.phone || "â€”",
             product: productSummary,
             items: itemCount,
             total: Number(o.totalLKR) || 0,
             status: (o.status as MockOrder["status"]) || "Processing",
             date: new Date(o.createdAt).toLocaleDateString("en-GB"),
             paymentMethod: "Direct / WhatsApp",
-            address: o.address || "—",
-            city: o.city || "—",
-            district: o.city || "—",           // DB has no separate district; use city
+            address: o.address || "â€”",
+            city: o.city || "â€”",
+            district: o.city || "â€”",           // DB has no separate district; use city
             notes: o.notes || undefined,
             lineItems: items.map((it) => ({
               name: it.name || "Unknown Item",
-              sku: it.sku || "—",
+              sku: it.sku || "â€”",
               qty: Number(it.qty) || 1,
               unitPrice: Number(it.priceLKR) || 0,
             })),
@@ -382,17 +394,25 @@ function AdminOrders() {
         o.id.toLowerCase().includes(search.toLowerCase()) ||
         o.customer.toLowerCase().includes(search.toLowerCase()) ||
         o.product.toLowerCase().includes(search.toLowerCase());
+      const isPastOrder = o.status === "Delivered" || o.status === "Cancelled";
       const matchStatus =
-        statusFilter === "All" ||
+        (statusFilter === "Active" && !isPastOrder) ||
+        (statusFilter === "Past Orders" && isPastOrder) ||
         o.status === statusFilter ||
         (statusFilter === "Processing" && (o.status === "Quotation Requested" || o.status === "Quotation Sent"));
       return matchSearch && matchStatus;
     });
   }, [search, statusFilter, orders]);
 
-  const handleStatusChange = (id: string, status: OrderStatus) => {
-    setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
-    void updateOrderStatusApi(id, status);
+  const handleStatusChange = async (id: string, status: OrderStatus) => {
+    const result = await updateOrderStatusApi(id, status);
+    if (!result?.order) {
+      return { updated: false, emailSent: false };
+    }
+
+    setOrders((prev) => prev.map((order) => (order.id === id ? { ...order, status } : order)));
+    setSelectedOrder((current) => (current?.id === id ? { ...current, status } : current));
+    return { updated: true, emailSent: result.emailSent, emailReason: result.emailReason };
   };
 
   return (
@@ -462,11 +482,10 @@ function AdminOrders() {
             <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
               <Filter className="h-3.5 w-3.5 text-zinc-500 shrink-0" />
               {[
-                { id: "All", label: "All", count: orders.length },
+                { id: "Active", label: "Active", count: stats.processing + stats.shipped },
                 { id: "Processing", label: "Processing", count: stats.processing },
                 { id: "Shipped", label: "Shipped", count: stats.shipped },
-                { id: "Delivered", label: "Delivered", count: stats.delivered },
-                { id: "Cancelled", label: "Cancelled", count: stats.cancelled },
+                { id: "Past Orders", label: "Past Orders", count: stats.delivered + stats.cancelled },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -548,12 +567,12 @@ function AdminOrders() {
                             {o.lineItems.slice(0, 2).map((item, idx) => (
                               <div key={idx} className="flex items-center gap-1.5">
                                 <span className="rounded bg-orange-500/20 text-orange-400 text-[10px] font-bold px-1.5 py-0.5 shrink-0 leading-none">
-                                  {item.qty}×
+                                  {item.qty}Ã—
                                 </span>
                                 <span className="text-zinc-200 text-xs font-semibold truncate max-w-[180px]" title={item.name}>
                                   {item.name}
                                 </span>
-                                {item.sku && item.sku !== "—" && (
+                                {item.sku && item.sku !== "â€”" && (
                                   <span className="text-[9px] font-mono text-zinc-500 bg-zinc-800/80 px-1 py-0.5 rounded shrink-0">
                                     {item.sku}
                                   </span>

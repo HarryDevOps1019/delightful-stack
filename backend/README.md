@@ -1,10 +1,10 @@
-# Asia Electronics — Express.js Backend API
+﻿# Asia Electronics â€” Express.js Backend API
 
 Production-ready REST API built with Node.js and Express.js for **Asia Electronics & Cellular Pvt Ltd**.
 
 ---
 
-## 🚀 Features
+## ðŸš€ Features
 - **850+ Electronic Components & SKUs**: Pre-seeded realistic electronic components, ICs, passives, modules, tools, and accessories.
 - **RESTful Endpoints**: Full CRUD for products, categories, orders, and dashboard analytics.
 - **Fast Search & Pagination**: Indexed search across SKU, product title, brand, and model with customizable page limit.
@@ -14,7 +14,7 @@ Production-ready REST API built with Node.js and Express.js for **Asia Electroni
 
 ---
 
-## 🛠️ Quick Start
+## ðŸ› ï¸ Quick Start
 
 ### 1. Install Dependencies
 ```bash
@@ -47,7 +47,7 @@ Deploy the backend as a separate Vercel project from the frontend:
 
 The backend continues to listen on `PORT` when run locally; on Vercel, the exported Express app is handled by the serverless function.
 
-## 📡 API Endpoints
+## ðŸ“¡ API Endpoints
 
 ### Health & Info
 | Method | Endpoint | Description |
@@ -87,9 +87,28 @@ The backend continues to listen on `PORT` when run locally; on Vercel, the expor
 
 ---
 
-## ⚙️ Environment Variables (`.env`)
+## âš™ï¸ Environment Variables (`.env`)
 ```env
 PORT=5000
 NODE_ENV=development
 FRONTEND_URL=http://localhost:8080,http://localhost:5173,https://delightful-stack.vercel.app
 ```
+
+### Order-status email notifications (free Gmail SMTP)
+
+When an admin changes an order status, the backend can email the customer automatically. Use a free Gmail account with a Google App Password:
+
+1. Enable 2-Step Verification for the Gmail account.
+2. Create an App Password at https://myaccount.google.com/apppasswords.
+3. Add the following to the untracked `backend/.env` file. Do **not** commit the App Password or add it to this README.
+
+```env
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+SMTP_SECURE=true
+SMTP_USER=yourstore@gmail.com
+SMTP_PASS=your-16-character-google-app-password
+EMAIL_FROM=yourstore@gmail.com
+```
+
+On Vercel, add the same values through **Project Settings → Environment Variables** instead of committing them to the repository.

@@ -1,5 +1,6 @@
-import express from "express";
+﻿import express from "express";
 import { readOrders, insertOrder, updateOrderStatus, updateOrder } from "../data/db.js";
+import { sendOrderStatusEmail } from "../services/orderStatusEmail.js";
 
 const router = express.Router();
 
@@ -13,6 +14,19 @@ router.get("/", async (req, res) => {
   }
 });
 
+// GET /api/orders/:id/status
+// Returns only the tracking status, never customer or order-item details.
+router.get("/:id/status", async (req, res) => {
+  try {
+    const orders = await readOrders();
+    const order = orders.find((item) => item.id === req.params.id);
+    if (!order) return res.status(404).json({ success: false, error: "Order not found" });
+
+    res.json({ success: true, data: { id: order.id, status: order.status } });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
 // POST /api/orders  (Quotation request)
 router.post("/", async (req, res) => {
   try {
@@ -123,11 +137,19 @@ router.patch("/:id/status", async (req, res) => {
       });
     }
 
+    const orders = await readOrders();
+    const order = orders.find((item) => item.id === req.params.id);
+    if (!order) {
+      return res.status(404).json({ success: false, error: "Order not found" });
+    }
+
     const updated = await updateOrderStatus(req.params.id, status);
+    const notification = await sendOrderStatusEmail(updated || order, status);
 
     res.json({
       success: true,
       data: updated,
+      notification,
       message: `Order status updated to ${status}`,
     });
   } catch (err) {
