@@ -19,6 +19,7 @@ import { useAuth } from "@/context/auth";
 import { CategoryMegaMenu, CATEGORY_ICONS } from "./CategoryMegaMenu";
 
 import { BrandsMegaMenu } from "./BrandsMegaMenu";
+import { TOP_BRANDS } from "./brandLogos";
 import { MobileBottomNav } from "./MobileBottomNav";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
@@ -173,6 +174,16 @@ export function SiteHeader() {
   // Refs for the brands drawer (opened from bottom nav)
   const [brandsDrawerOpen, setBrandsDrawerOpen] = useState(false);
 
+  // Case-insensitive lookups for uploaded logo images and built-in SVG logos
+  const logoByName = useMemo(
+    () => new Map(Object.entries(brandLogos).map(([name, url]) => [name.toLowerCase(), url] as const)),
+    [brandLogos],
+  );
+  const svgByName = useMemo(
+    () => new Map(TOP_BRANDS.map((b) => [b.name.toLowerCase(), b.component] as const)),
+    [],
+  );
+
   const headerRef = useRef<HTMLElement>(null);
   const closeTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -248,19 +259,43 @@ export function SiteHeader() {
           </div>
         </SheetHeader>
         <div className="p-4 flex-1 space-y-4">
-          <p className="text-xs font-bold uppercase tracking-wider text-primary">All Brands</p>
-          <div className="flex flex-wrap gap-2">
-            {existingBrands.map((b) => (
-              <Link
-                key={b}
-                to="/shop"
-                search={{ brands: b }}
-                onClick={() => setBrandsDrawerOpen(false)}
-                className="rounded border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:border-primary hover:text-primary"
-              >
-                {b}
-              </Link>
-            ))}
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-bold uppercase tracking-wider text-primary">All Brands</p>
+            <span className="text-xs text-zinc-400 font-medium">
+              {existingBrands.length} {existingBrands.length === 1 ? "brand" : "brands"}
+            </span>
+          </div>
+          <div className="grid grid-cols-3 gap-2.5">
+            {existingBrands.map((b) => {
+              const logoUrl = logoByName.get(b.toLowerCase());
+              const SvgLogo = svgByName.get(b.toLowerCase());
+              return (
+                <Link
+                  key={b}
+                  to="/shop"
+                  search={{ brands: b }}
+                  onClick={() => setBrandsDrawerOpen(false)}
+                  title={b}
+                  aria-label={`Shop ${b}`}
+                  className="group relative flex aspect-square items-center justify-center overflow-hidden rounded-md border border-zinc-200 bg-white p-2 transition-all hover:border-primary hover:shadow-sm active:scale-95"
+                >
+                  {logoUrl ? (
+                    <img
+                      src={logoUrl}
+                      alt={b}
+                      loading="lazy"
+                      className="h-full w-full rounded object-contain transition-transform duration-200 group-hover:scale-105"
+                    />
+                  ) : SvgLogo ? (
+                    <SvgLogo className="h-auto w-full max-h-full object-contain transition-transform duration-200 group-hover:scale-105" />
+                  ) : (
+                    <span className="line-clamp-2 text-center text-[10px] font-extrabold uppercase leading-tight tracking-wide text-zinc-700 transition-colors group-hover:text-primary">
+                      {b}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
           </div>
         </div>
       </SheetContent>
@@ -371,18 +406,37 @@ export function SiteHeader() {
                     <p className="text-xs font-bold uppercase tracking-wider text-primary px-2">
                       Top Brands
                     </p>
-                    <div className="flex flex-wrap gap-1.5 px-2">
-                      {existingBrands.slice(0, 10).map((b) => (
-                        <Link
-                          key={b}
-                          to="/shop"
-                          search={{ brands: b }}
-                          onClick={() => setMobileOpen(false)}
-                          className="rounded border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-xs font-medium text-zinc-700 hover:border-primary hover:text-primary"
-                        >
-                          {b}
-                        </Link>
-                      ))}
+                    <div className="grid grid-cols-3 gap-2 px-2">
+                      {existingBrands.slice(0, 9).map((b) => {
+                        const logoUrl = logoByName.get(b.toLowerCase());
+                        const SvgLogo = svgByName.get(b.toLowerCase());
+                        return (
+                          <Link
+                            key={b}
+                            to="/shop"
+                            search={{ brands: b }}
+                            onClick={() => setMobileOpen(false)}
+                            title={b}
+                            aria-label={`Shop ${b}`}
+                            className="group relative flex aspect-square items-center justify-center overflow-hidden rounded-md border border-zinc-200 bg-white p-2 transition-all hover:border-primary hover:shadow-sm active:scale-95"
+                          >
+                            {logoUrl ? (
+                              <img
+                                src={logoUrl}
+                                alt={b}
+                                loading="lazy"
+                                className="h-full w-full rounded object-contain transition-transform duration-200 group-hover:scale-105"
+                              />
+                            ) : SvgLogo ? (
+                              <SvgLogo className="h-auto w-full max-h-full object-contain transition-transform duration-200 group-hover:scale-105" />
+                            ) : (
+                              <span className="line-clamp-2 text-center text-[10px] font-extrabold uppercase leading-tight tracking-wide text-zinc-700 transition-colors group-hover:text-primary">
+                                {b}
+                              </span>
+                            )}
+                          </Link>
+                        );
+                      })}
                     </div>
                   </div>
 
