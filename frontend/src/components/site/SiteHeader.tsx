@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, type FormEvent } from "react";
+import { useState, useRef, useEffect, useMemo, type FormEvent } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   ChevronDown,
@@ -24,7 +24,11 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 
 export function Logo({ className = "" }: { className?: string }) {
   return (
-    <Link to="/" className={`flex shrink-0 items-center ${className}`} aria-label="Asia Electronic & Cellular Home">
+    <Link
+      to="/"
+      className={`flex shrink-0 items-center ${className}`}
+      aria-label="Asia Electronic & Cellular Home"
+    >
       <img
         src={logoImg}
         alt="Asia Electronic & Cellular"
@@ -50,7 +54,9 @@ function SearchForm({ className = "", onClose }: { className?: string; onClose?:
       role="search"
       className={`flex items-center h-10 sm:h-11 border border-zinc-300 rounded overflow-hidden shadow-xs focus-within:border-primary focus-within:ring-1 focus-within:ring-primary bg-white transition-all ${className}`}
     >
-      <label htmlFor="site-search" className="sr-only">Search products</label>
+      <label htmlFor="site-search" className="sr-only">
+        Search products
+      </label>
       <input
         id="site-search"
         value={q}
@@ -77,7 +83,9 @@ function MobileSearchOverlay({ onClose }: { onClose: () => void }) {
 
   useEffect(() => {
     inputRef.current?.focus();
-    const handleKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
   }, [onClose]);
@@ -94,12 +102,20 @@ function MobileSearchOverlay({ onClose }: { onClose: () => void }) {
       role="dialog"
       aria-modal="true"
       aria-label="Search overlay"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
     >
       <div className="bg-white px-4 pt-3 pb-4 shadow-xl">
         <div className="flex items-center gap-2">
-          <form onSubmit={submit} role="search" className="flex flex-1 items-center h-11 border border-zinc-300 rounded overflow-hidden focus-within:border-primary focus-within:ring-1 focus-within:ring-primary bg-white">
-            <label htmlFor="mobile-overlay-search" className="sr-only">Search products</label>
+          <form
+            onSubmit={submit}
+            role="search"
+            className="flex flex-1 items-center h-11 border border-zinc-300 rounded overflow-hidden focus-within:border-primary focus-within:ring-1 focus-within:ring-primary bg-white"
+          >
+            <label htmlFor="mobile-overlay-search" className="sr-only">
+              Search products
+            </label>
             <input
               ref={inputRef}
               id="mobile-overlay-search"
@@ -108,7 +124,11 @@ function MobileSearchOverlay({ onClose }: { onClose: () => void }) {
               placeholder="Search for products, categories and more"
               className="min-w-0 flex-1 bg-transparent px-3.5 text-sm text-zinc-900 outline-none placeholder:text-zinc-400"
             />
-            <button type="submit" aria-label="Search" className="bg-primary text-primary-foreground px-4 h-full flex items-center justify-center shrink-0 cursor-pointer">
+            <button
+              type="submit"
+              aria-label="Search"
+              className="bg-primary text-primary-foreground px-4 h-full flex items-center justify-center shrink-0 cursor-pointer"
+            >
               <Search className="h-4 w-4" />
             </button>
           </form>
@@ -128,13 +148,27 @@ function MobileSearchOverlay({ onClose }: { onClose: () => void }) {
 
 export function SiteHeader() {
   const { count } = useCart();
-  const { categories, brands } = useCatalog();
+  const { categories, products, brandLogos } = useCatalog();
   const { user, logout, isAdmin } = useAuth();
   const [activeMenu, setActiveMenu] = useState<"categories" | "brands" | null>(null);
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [expandedMobileCategory, setExpandedMobileCategory] = useState<string | null>(null);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+
+  const existingBrands = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          products
+            .map((product) => product.brand?.trim())
+            .filter(
+              (brand): brand is string => Boolean(brand) && brand.toLowerCase() !== "generic",
+            ),
+        ),
+      ).sort((a, b) => a.localeCompare(b)),
+    [products],
+  );
 
   // Refs for the brands drawer (opened from bottom nav)
   const [brandsDrawerOpen, setBrandsDrawerOpen] = useState(false);
@@ -216,7 +250,7 @@ export function SiteHeader() {
         <div className="p-4 flex-1 space-y-4">
           <p className="text-xs font-bold uppercase tracking-wider text-primary">All Brands</p>
           <div className="flex flex-wrap gap-2">
-            {brands.map((b) => (
+            {existingBrands.map((b) => (
               <Link
                 key={b}
                 to="/shop"
@@ -236,9 +270,7 @@ export function SiteHeader() {
   return (
     <>
       {/* ─── Mobile search overlay ─── */}
-      {mobileSearchOpen && (
-        <MobileSearchOverlay onClose={() => setMobileSearchOpen(false)} />
-      )}
+      {mobileSearchOpen && <MobileSearchOverlay onClose={() => setMobileSearchOpen(false)} />}
 
       {/* ─── Brands drawer (triggered from bottom nav) ─── */}
       {BrandsDrawer}
@@ -249,7 +281,7 @@ export function SiteHeader() {
             Hamburger | Logo | Search icon | Cart | Account | Lang
         ════════════════════════════════════════════════════════════════ */}
         <div className="lg:hidden bg-white">
-          <div className="flex h-14 items-center px-3 gap-2">
+          <div className="flex h-14 items-center gap-1 px-2.5 sm:gap-2 sm:px-3">
             {/* Hamburger → opens categories drawer */}
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>
@@ -263,7 +295,10 @@ export function SiteHeader() {
               </SheetTrigger>
 
               {/* ─── Left Slide-in Drawer ─── */}
-              <SheetContent side="left" className="w-[85vw] max-w-sm overflow-y-auto p-0 flex flex-col">
+              <SheetContent
+                side="left"
+                className="w-[85vw] max-w-sm overflow-y-auto p-0 flex flex-col"
+              >
                 <SheetHeader className="p-4 border-b border-zinc-200 bg-white sticky top-0 z-10">
                   <div className="flex items-center justify-between">
                     <Logo className="max-w-[160px]" />
@@ -337,7 +372,7 @@ export function SiteHeader() {
                       Top Brands
                     </p>
                     <div className="flex flex-wrap gap-1.5 px-2">
-                      {brands.slice(0, 10).map((b) => (
+                      {existingBrands.slice(0, 10).map((b) => (
                         <Link
                           key={b}
                           to="/shop"
@@ -353,10 +388,34 @@ export function SiteHeader() {
 
                   {/* Navigation Links */}
                   <div className="space-y-1 border-t border-zinc-100 pt-3">
-                    <Link to="/shop" onClick={() => setMobileOpen(false)} className="block px-2 py-2 text-sm font-semibold text-zinc-800 hover:text-primary">All Products</Link>
-                    <Link to="/about" onClick={() => setMobileOpen(false)} className="block px-2 py-2 text-sm font-semibold text-zinc-800 hover:text-primary">About Us</Link>
-                    <Link to="/contact" onClick={() => setMobileOpen(false)} className="block px-2 py-2 text-sm font-semibold text-zinc-800 hover:text-primary">Contact</Link>
-                    <Link to="/account" onClick={() => setMobileOpen(false)} className="block px-2 py-2 text-sm font-semibold text-zinc-800 hover:text-primary">My Account / Orders</Link>
+                    <Link
+                      to="/shop"
+                      onClick={() => setMobileOpen(false)}
+                      className="block px-2 py-2 text-sm font-semibold text-zinc-800 hover:text-primary"
+                    >
+                      All Products
+                    </Link>
+                    <Link
+                      to="/about"
+                      onClick={() => setMobileOpen(false)}
+                      className="block px-2 py-2 text-sm font-semibold text-zinc-800 hover:text-primary"
+                    >
+                      About Us
+                    </Link>
+                    <Link
+                      to="/contact"
+                      onClick={() => setMobileOpen(false)}
+                      className="block px-2 py-2 text-sm font-semibold text-zinc-800 hover:text-primary"
+                    >
+                      Contact
+                    </Link>
+                    <Link
+                      to="/account"
+                      onClick={() => setMobileOpen(false)}
+                      className="block px-2 py-2 text-sm font-semibold text-zinc-800 hover:text-primary"
+                    >
+                      My Account / Orders
+                    </Link>
                   </div>
 
                   {/* Contact info */}
@@ -364,11 +423,17 @@ export function SiteHeader() {
                     <p className="font-bold text-zinc-800">Support & Orders</p>
                     <div className="flex items-center gap-1.5">
                       <Phone className="h-3.5 w-3.5 text-primary" />
-                      <a href="tel:+94112222888" className="hover:underline font-medium">+94 112 222 888</a>
+                      <a href="tel:+94112222888" className="hover:underline font-medium">
+                        +94 112 222 888
+                      </a>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <MapPin className="h-3.5 w-3.5 text-primary" />
-                      <Link to="/policy/$slug" params={{ slug: "delivery" }} onClick={() => setMobileOpen(false)}>
+                      <Link
+                        to="/policy/$slug"
+                        params={{ slug: "delivery" }}
+                        onClick={() => setMobileOpen(false)}
+                      >
                         Island-wide delivery
                       </Link>
                     </div>
@@ -378,8 +443,8 @@ export function SiteHeader() {
             </Sheet>
 
             {/* Logo — aligned to the left side */}
-            <div className="flex-1 flex items-center justify-start">
-              <Logo />
+            <div className="flex min-w-0 flex-1 items-center justify-start">
+              <Logo className="max-w-[86px] sm:max-w-none" />
             </div>
 
             {/* Right controls */}
@@ -416,7 +481,7 @@ export function SiteHeader() {
               </Link>
 
               {/* Language/Currency */}
-              <div className="flex items-center gap-0.5 pl-1 text-[10px] text-zinc-600 leading-none">
+              <div className="hidden items-center gap-0.5 pl-1 text-[10px] leading-none text-zinc-600 min-[420px]:flex">
                 <Globe className="h-3.5 w-3.5 text-zinc-500 shrink-0" />
                 <div className="flex flex-col leading-tight">
                   <span className="font-bold text-zinc-800">EN</span>
@@ -457,9 +522,7 @@ export function SiteHeader() {
                       {count}
                     </span>
                   </div>
-                  <span className="text-xs font-bold tracking-tight text-zinc-800 ml-1">
-                    Cart
-                  </span>
+                  <span className="text-xs font-bold tracking-tight text-zinc-800 ml-1">Cart</span>
                 </Link>
 
                 {/* Account / User Profile / Login */}
@@ -495,13 +558,22 @@ export function SiteHeader() {
                   <div className="flex items-center gap-2 pl-3 border-l border-zinc-200">
                     <User className="h-5 w-5 text-zinc-600 shrink-0" />
                     <div className="flex items-center gap-1.5 text-xs text-zinc-700">
-                      <Link to="/login" className="font-semibold hover:text-primary transition-colors">Login</Link>
+                      <Link
+                        to="/login"
+                        className="font-semibold hover:text-primary transition-colors"
+                      >
+                        Login
+                      </Link>
                       <span className="text-zinc-300 font-light">|</span>
-                      <Link to="/register" className="font-semibold hover:text-primary transition-colors">Sign Up</Link>
+                      <Link
+                        to="/register"
+                        className="font-semibold hover:text-primary transition-colors"
+                      >
+                        Sign Up
+                      </Link>
                     </div>
                   </div>
                 )}
-
 
                 {/* Language / Currency Selector */}
                 <div className="flex items-center gap-1 pl-3 border-l border-zinc-200 text-xs text-zinc-700">
@@ -644,7 +716,11 @@ export function SiteHeader() {
                 onMouseEnter={cancelClose}
                 onMouseLeave={scheduleClose}
               >
-                <BrandsMegaMenu allBrands={brands} onClose={() => setActiveMenu(null)} />
+                <BrandsMegaMenu
+                  allBrands={existingBrands}
+                  brandLogos={brandLogos}
+                  onClose={() => setActiveMenu(null)}
+                />
               </div>
             )}
           </div>

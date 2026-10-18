@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { AuthUser, loginApi, registerApi, fetchCurrentUserApi, logoutApi } from "@/services/api";
+import { AuthUser, loginApi, registerApi, fetchCurrentUserApi, logoutApi, updateAdminCredentialsApi } from "@/services/api";
 import { toast } from "sonner";
 
 interface AuthContextType {
@@ -7,9 +7,10 @@ interface AuthContextType {
   token: string | null;
   isLoading: boolean;
   isAdmin: boolean;
-  login: (credentials: { email: string; password: string }) => Promise<boolean>;
+  login: (credentials: { email: string; password: string }) => Promise<AuthUser | null>;
   register: (data: { name: string; email: string; password: string }) => Promise<boolean>;
   logout: () => Promise<void>;
+  updateAdminCredentials: (data: { currentPassword: string; newEmail?: string; newPassword?: string }) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -74,7 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [token]);
 
-  const login = async (credentials: { email: string; password: string }): Promise<boolean> => {
+  const login = async (credentials: { email: string; password: string }): Promise<AuthUser | null> => {
     setIsLoading(true);
     try {
       const res = await loginApi(credentials);
@@ -86,12 +87,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         localStorage.setItem(USER_KEY, JSON.stringify(res.user));
         toast.success(`Welcome back, ${res.user.name}!`);
-        return true;
+        return res.user;
       }
-      return false;
+      return null;
     } catch (err: any) {
       toast.error(err.message || "Invalid credentials");
-      return false;
+      return null;
     } finally {
       setIsLoading(false);
     }
@@ -132,7 +133,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const isAdmin = user?.role === "admin" || user?.email?.toLowerCase() === "admin@gmail.com";
+  const updateAdminCredentials = async (data: {
+    currentPassword: string;
+    newEmail?: string;
+    newPassword?: string;
+  }): Promise<boolean> => {
+    if (!token) {
+      toast.error("Your session has expired. Please sign in again.");
+      return false;
+    }
+    try {
+      const res = await updateAdminCredentialsApi(token, data);
+      setUser(res.user);
+      localStorage.setItem(USER_KEY, JSON.stringify(res.user));
+      if (res.token) {
+        setToken(res.token);
+        localStorage.setItem(TOKEN_KEY, res.token);
+      }
+      toast.success(res.message || "Admin credentials updated");
+      return true;
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update credentials");
+      return false;
+    }
+  };
+
+  const isAdmin = user?.role === "admin";
 
   return (
     <AuthContext.Provider
@@ -144,6 +170,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         login,
         register,
         logout,
+        updateAdminCredentials,
       }}
     >
       {children}

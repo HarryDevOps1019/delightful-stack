@@ -88,9 +88,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Asia Electronics & Cellular — Demo Store" },
-      { name: "description", content: "Demo storefront for Asia Electronics and Cellular Pvt Ltd, Sri Lanka." },
+      {
+        name: "description",
+        content: "Demo storefront for Asia Electronics and Cellular Pvt Ltd, Sri Lanka.",
+      },
       { property: "og:title", content: "Asia Electronics & Cellular — Demo Store" },
-      { property: "og:description", content: "Demo storefront for Asia Electronics and Cellular Pvt Ltd, Sri Lanka." },
+      {
+        property: "og:description",
+        content: "Demo storefront for Asia Electronics and Cellular Pvt Ltd, Sri Lanka.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -156,33 +162,31 @@ function RootComponent() {
         <SettingsProvider>
           <CartProvider>
             <MotionConfig reducedMotion="user">
-
-            <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-primary focus:p-3 focus:text-primary-foreground">
-              Skip to content
-            </a>
-            {/* Sticky top bar: announcement banner + site header */}
-            <div className="sticky top-0 z-40">
-              <div className="bg-ink py-1.5 text-center text-[11px] font-semibold text-ink-foreground">
-                Demo website — sample products and prices. No real orders or payments are processed.
+              <a
+                href="#main"
+                className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-primary focus:p-3 focus:text-primary-foreground"
+              >
+                Skip to content
+              </a>
+              {/* Sticky top bar: site header */}
+              <div className="sticky top-0 z-40">
+                <SiteHeader />
               </div>
-              <SiteHeader />
-            </div>
-            <main id="main">
-              {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-              <Outlet />
-            </main>
-            <SiteFooter />
+              <main id="main">
+                {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+                <Outlet />
+              </main>
+              <SiteFooter />
 
-            <FloatingWhatsAppButton />
+              <FloatingWhatsAppButton />
 
-            <Toaster position="bottom-right" />
-          </MotionConfig>
-        </CartProvider>
-      </SettingsProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
-
+              <Toaster position="bottom-right" />
+            </MotionConfig>
+          </CartProvider>
+        </SettingsProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
 }
 
 function FloatingWhatsAppButton() {

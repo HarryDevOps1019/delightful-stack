@@ -9,6 +9,15 @@ export interface Category {
   filterKey: string;
 }
 
+export interface Brand {
+  slug: string;
+  name: string;
+  imageUrl: string;
+  imagePath?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface Variant {
   name: string;
   options: string[];

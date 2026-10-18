@@ -1,5 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useMemo, useRef } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState, useMemo, useRef } from "react";
 import {
   Search,
   Plus,
@@ -9,7 +9,6 @@ import {
   Edit2,
   Trash2,
   Copy,
-  Sparkles,
   RotateCcw,
   ChevronLeft,
   ChevronRight,
@@ -24,21 +23,26 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
-import {
-  useCatalog,
-  type CreateProductInput,
-} from "@/services/catalog";
+import { useCatalog, type CreateProductInput } from "@/services/catalog";
 import { images } from "@/data/catalog";
 import { formatLKR } from "@/lib/format";
 import { StockBadge } from "@/components/admin/shared";
 import type { Category, Product } from "@/lib/types";
 
 export const Route = createFileRoute("/admin/products")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    action:
+      search.action === "add" || search.action === "brands"
+        ? (search.action as "add" | "brands")
+        : undefined,
+  }),
   head: () => ({ meta: [{ title: "Products & 800+ SKUs — Admin" }] }),
   component: ProductsPage,
 });
 
 function ProductsPage() {
+  const routeSearch = Route.useSearch();
+  const navigate = useNavigate();
   const {
     products,
     categories,
@@ -52,9 +56,7 @@ function ProductsPage() {
     createCategory,
     updateCategory,
     deleteCategory,
-    generate800SKUs,
     resetCatalogToDefault,
-    clearAllProducts,
   } = useCatalog();
 
   // Search, filter & sorting state
@@ -62,7 +64,9 @@ function ProductsPage() {
   const [catFilter, setCatFilter] = useState("all");
   const [stockFilter, setStockFilter] = useState<"all" | "in" | "low" | "out">("all");
   const [brandFilter, setBrandFilter] = useState("all");
-  const [sortBy, setSortBy] = useState<"sku-asc" | "sku-desc" | "name" | "price-asc" | "price-desc" | "stock" | "newest">("newest");
+  const [sortBy, setSortBy] = useState<
+    "sku-asc" | "sku-desc" | "name" | "price-asc" | "price-desc" | "stock" | "newest"
+  >("newest");
 
   // Pagination state (critical for 800+ SKUs)
   const [page, setPage] = useState(1);
@@ -74,10 +78,24 @@ function ProductsPage() {
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const [brandModalOpen, setBrandModalOpen] = useState(false);
   const [csvModalOpen, setCsvModalOpen] = useState(false);
+  const [selectedProductIds, setSelectedProductIds] = useState<Set<string>>(() => new Set());
+
+  useEffect(() => {
+    if (routeSearch.action === "add") {
+      setBrandModalOpen(false);
+      setEditingProduct(null);
+      setProductModalOpen(true);
+    } else if (routeSearch.action === "brands") {
+      setProductModalOpen(false);
+      setBrandModalOpen(true);
+    } else {
+      setBrandModalOpen(false);
+    }
+  }, [routeSearch.action]);
 
   // Filtered & sorted products
   const filtered = useMemo(() => {
-    let result = products.filter((p) => {
+    const result = products.filter((p) => {
       const matchCat = catFilter === "all" || p.category === catFilter;
       const matchBrand = brandFilter === "all" || p.brand === brandFilter;
 
@@ -129,11 +147,28 @@ function ProductsPage() {
     const start = (currentPage - 1) * pageSize;
     return filtered.slice(start, start + pageSize);
   }, [filtered, currentPage, pageSize]);
+  const allPageProductsSelected =
+    paginatedProducts.length > 0 &&
+    paginatedProducts.every((product) => selectedProductIds.has(product.id));
 
   // Handlers
   const handleOpenAdd = () => {
     setEditingProduct(null);
     setProductModalOpen(true);
+  };
+
+  const handleCloseProductModal = () => {
+    setProductModalOpen(false);
+    if (routeSearch.action === "add") {
+      void navigate({ to: "/admin/products", search: {}, replace: true });
+    }
+  };
+
+  const handleCloseBrandModal = () => {
+    setBrandModalOpen(false);
+    if (routeSearch.action === "brands") {
+      void navigate({ to: "/admin/products", search: {}, replace: true });
+    }
   };
 
   const handleOpenEdit = (p: Product) => {
@@ -165,14 +200,52 @@ function ProductsPage() {
   const handleDelete = (id: string, name: string) => {
     if (confirm(`Are you sure you want to delete "${name}"?`)) {
       deleteProduct(id);
+      setSelectedProductIds((current) => {
+        const next = new Set(current);
+        next.delete(id);
+        return next;
+      });
       toast.success(`Deleted "${name}"`);
     }
   };
 
-  const handleGenerate800 = () => {
-    const res = generate800SKUs();
+  const handleToggleProductSelection = (id: string) => {
+    setSelectedProductIds((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleTogglePageSelection = () => {
+    setSelectedProductIds((current) => {
+      const next = new Set(current);
+      paginatedProducts.forEach((product) => {
+        if (allPageProductsSelected) next.delete(product.id);
+        else next.add(product.id);
+      });
+      return next;
+    });
+  };
+
+  const handleRemoveSelectedProducts = () => {
+    const selectedCount = selectedProductIds.size;
+    if (
+      selectedCount === 0 ||
+      !confirm(
+        `Remove ${selectedCount} selected ${selectedCount === 1 ? "product" : "products"}? This cannot be undone.`,
+      )
+    ) {
+      return;
+    }
+
+    selectedProductIds.forEach((id) => deleteProduct(id));
+    setSelectedProductIds(new Set());
     setPage(1);
-    toast.success(`Catalog populated with ${res.total} total SKUs (${res.count} new items added)!`);
+    toast.success(
+      `${selectedCount} ${selectedCount === 1 ? "product" : "products"} removed successfully.`,
+    );
   };
 
   const handleResetCatalog = () => {
@@ -183,16 +256,21 @@ function ProductsPage() {
     }
   };
 
-  const handleClearAllProducts = async () => {
-    if (confirm("Are you sure you want to remove all dummy/existing products? This will completely clear your products table so you can add your actual products.")) {
-      await clearAllProducts();
-      setPage(1);
-      toast.success("All products cleared from database!");
-    }
-  };
-
   const handleExportCSV = () => {
-    const headers = ["ID", "SKU", "Name", "Brand", "Model", "Category", "PriceLKR", "CompareAtLKR", "Stock", "Featured", "IsNew", "Description"];
+    const headers = [
+      "ID",
+      "SKU",
+      "Name",
+      "Brand",
+      "Model",
+      "Category",
+      "PriceLKR",
+      "CompareAtLKR",
+      "Stock",
+      "Featured",
+      "IsNew",
+      "Description",
+    ];
     const rows = filtered.map((p) => [
       p.id,
       p.sku,
@@ -208,7 +286,9 @@ function ProductsPage() {
       `"${p.description.replace(/"/g, '""')}"`,
     ]);
 
-    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
@@ -230,7 +310,9 @@ function ProductsPage() {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-xl font-extrabold text-white tracking-tight">Product & SKU Management</h1>
+            <h1 className="text-xl font-extrabold text-white tracking-tight">
+              Product & SKU Management
+            </h1>
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-orange-500/15 text-orange-400 border border-orange-500/30">
               <Package className="h-3.5 w-3.5" />
               {products.length} {products.length >= 800 ? "800+ SKUs" : "SKUs"}
@@ -259,15 +341,6 @@ function ProductsPage() {
           >
             <Tag className="h-3.5 w-3.5 text-orange-400" />
             Brands & Logos ({brands.length})
-          </button>
-
-          <button
-            onClick={handleGenerate800}
-            className="admin-btn-ghost flex items-center gap-1.5 text-xs font-bold text-amber-400 border-amber-500/30 hover:bg-amber-500/10"
-            title="Populate catalog with 800+ realistic electronics and repair SKUs"
-          >
-            <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-            Generate 800+ SKUs
           </button>
 
           <button
@@ -301,7 +374,10 @@ function ProductsPage() {
       {/* Quick Stock Status Pills */}
       <div className="flex flex-wrap items-center gap-2 text-xs">
         <button
-          onClick={() => { setStockFilter("all"); setPage(1); }}
+          onClick={() => {
+            setStockFilter("all");
+            setPage(1);
+          }}
           className={`px-3 py-1 rounded-full font-bold transition-all ${
             stockFilter === "all"
               ? "bg-zinc-100 text-zinc-950 font-black shadow-sm"
@@ -311,7 +387,10 @@ function ProductsPage() {
           All Items ({products.length})
         </button>
         <button
-          onClick={() => { setStockFilter("in"); setPage(1); }}
+          onClick={() => {
+            setStockFilter("in");
+            setPage(1);
+          }}
           className={`px-3 py-1 rounded-full font-bold transition-all ${
             stockFilter === "in"
               ? "bg-emerald-500 text-white font-black shadow-sm"
@@ -321,7 +400,10 @@ function ProductsPage() {
           In Stock ({inStockCount})
         </button>
         <button
-          onClick={() => { setStockFilter("low"); setPage(1); }}
+          onClick={() => {
+            setStockFilter("low");
+            setPage(1);
+          }}
           className={`px-3 py-1 rounded-full font-bold transition-all ${
             stockFilter === "low"
               ? "bg-amber-500 text-white font-black shadow-sm"
@@ -331,7 +413,10 @@ function ProductsPage() {
           Low Stock ≤5 ({lowStockCount})
         </button>
         <button
-          onClick={() => { setStockFilter("out"); setPage(1); }}
+          onClick={() => {
+            setStockFilter("out");
+            setPage(1);
+          }}
           className={`px-3 py-1 rounded-full font-bold transition-all ${
             stockFilter === "out"
               ? "bg-red-500 text-white font-black shadow-sm"
@@ -341,15 +426,15 @@ function ProductsPage() {
           Out of Stock ({outOfStockCount})
         </button>
 
-        {products.length > 0 && (
-          <button
-            onClick={handleClearAllProducts}
-            className="ml-auto text-[11px] text-red-400 hover:text-red-300 flex items-center gap-1.5 transition-colors px-2.5 py-1 rounded-md border border-red-500/20 bg-red-500/10 hover:bg-red-500/20 font-bold"
-            title="Delete all products from database"
-          >
-            <Trash2 className="h-3 w-3" /> Clear All Products
-          </button>
-        )}
+        <button
+          type="button"
+          disabled={selectedProductIds.size === 0}
+          onClick={handleRemoveSelectedProducts}
+          className="ml-auto text-[11px] text-red-400 hover:text-red-300 flex items-center gap-1.5 transition-colors px-2.5 py-1 rounded-md border border-red-500/20 bg-red-500/10 hover:bg-red-500/20 font-bold disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-red-500/10"
+          title="Remove the selected products"
+        >
+          <Trash2 className="h-3 w-3" /> Remove Selected ({selectedProductIds.size})
+        </button>
       </div>
 
       {/* Filter and Search Bar */}
@@ -368,7 +453,10 @@ function ProductsPage() {
           />
           {search && (
             <button
-              onClick={() => { setSearch(""); setPage(1); }}
+              onClick={() => {
+                setSearch("");
+                setPage(1);
+              }}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white"
             >
               <X className="h-3.5 w-3.5" />
@@ -418,7 +506,7 @@ function ProductsPage() {
           {/* Sort selector */}
           <select
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
+            onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
             className="admin-input text-xs min-w-[140px]"
           >
             <option value="newest">Newest First</option>
@@ -453,20 +541,60 @@ function ProductsPage() {
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="border-b border-zinc-800 text-left bg-zinc-900/60">
-                <th className="px-5 py-3 text-[11px] font-bold text-zinc-400 uppercase tracking-wider">Product</th>
-                <th className="px-4 py-3 text-[11px] font-bold text-zinc-400 uppercase tracking-wider">SKU</th>
-                <th className="px-4 py-3 text-[11px] font-bold text-zinc-400 uppercase tracking-wider">Category</th>
-                <th className="px-4 py-3 text-[11px] font-bold text-zinc-400 uppercase tracking-wider">Price (LKR)</th>
-                <th className="px-4 py-3 text-[11px] font-bold text-zinc-400 uppercase tracking-wider">Stock</th>
-                <th className="px-4 py-3 text-[11px] font-bold text-zinc-400 uppercase tracking-wider">Store Visibility & Badges</th>
-                <th className="px-4 py-3 text-[11px] font-bold text-zinc-400 uppercase tracking-wider text-right">Actions</th>
+                <th className="w-10 px-4 py-3">
+                  <input
+                    type="checkbox"
+                    checked={allPageProductsSelected}
+                    onChange={handleTogglePageSelection}
+                    disabled={paginatedProducts.length === 0}
+                    aria-label="Select all products on this page"
+                    className="h-4 w-4 cursor-pointer accent-orange-500 disabled:cursor-not-allowed disabled:opacity-40"
+                  />
+                </th>
+                <th className="px-5 py-3 text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+                  Product
+                </th>
+                <th className="px-4 py-3 text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+                  SKU
+                </th>
+                <th className="px-4 py-3 text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+                  Category
+                </th>
+                <th className="px-4 py-3 text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+                  Price (LKR)
+                </th>
+                <th className="px-4 py-3 text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+                  Stock
+                </th>
+                <th className="px-4 py-3 text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+                  Store Visibility & Badges
+                </th>
+                <th className="px-4 py-3 text-[11px] font-bold text-zinc-400 uppercase tracking-wider text-right">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800/60">
               {paginatedProducts.map((p) => {
                 const cat = categories.find((c) => c.slug === p.category);
                 return (
-                  <tr key={p.id} className="group hover:bg-zinc-800/30 transition-colors">
+                  <tr
+                    key={p.id}
+                    className={`group transition-colors ${
+                      selectedProductIds.has(p.id)
+                        ? "bg-orange-500/5 hover:bg-orange-500/10"
+                        : "hover:bg-zinc-800/30"
+                    }`}
+                  >
+                    <td className="px-4 py-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedProductIds.has(p.id)}
+                        onChange={() => handleToggleProductSelection(p.id)}
+                        aria-label={`Select ${p.name}`}
+                        className="h-4 w-4 cursor-pointer accent-orange-500"
+                      />
+                    </td>
                     {/* Product Image & Name */}
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-3">
@@ -481,7 +609,10 @@ function ProductsPage() {
                           />
                         </div>
                         <div className="min-w-0">
-                          <p className="text-xs font-semibold text-white truncate max-w-[220px]" title={p.name}>
+                          <p
+                            className="text-xs font-semibold text-white truncate max-w-[220px]"
+                            title={p.name}
+                          >
                             {p.name}
                           </p>
                           <div className="flex items-center gap-1.5 text-[10px] text-zinc-400 mt-0.5">
@@ -547,28 +678,42 @@ function ProductsPage() {
                     <td className="px-4 py-3">
                       <div className="flex gap-1 flex-wrap items-center">
                         {p.showPrice === false && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/15 text-red-400 font-bold border border-red-500/30" title="Price is hidden from customers">
+                          <span
+                            className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/15 text-red-400 font-bold border border-red-500/30"
+                            title="Price is hidden from customers"
+                          >
                             Hidden Price
                           </span>
                         )}
                         {p.showQuantity === false && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 font-bold border border-amber-500/30" title="Quantity is hidden from customers">
+                          <span
+                            className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 font-bold border border-amber-500/30"
+                            title="Quantity is hidden from customers"
+                          >
                             Hidden Qty
                           </span>
                         )}
                         {p.showAvailability === false && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-400 font-bold border border-purple-500/30" title="Availability is hidden from customers">
+                          <span
+                            className="text-[10px] px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-400 font-bold border border-purple-500/30"
+                            title="Availability is hidden from customers"
+                          >
                             Hidden Avail
                           </span>
                         )}
-                        {p.showPrice !== false && p.showQuantity !== false && p.showAvailability !== false && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-bold border border-emerald-500/20" title="Price, Quantity, and Availability are visible">
-                            All Visible
-                          </span>
-                        )}
+                        {p.showPrice !== false &&
+                          p.showQuantity !== false &&
+                          p.showAvailability !== false && (
+                            <span
+                              className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-bold border border-emerald-500/20"
+                              title="Price, Quantity, and Availability are visible"
+                            >
+                              All Visible
+                            </span>
+                          )}
                         {p.featured && (
                           <span className="text-[10px] px-1.5 py-0.5 rounded bg-orange-500/15 text-orange-400 font-bold border border-orange-500/30">
-                            Featured
+                            Hot Selling
                           </span>
                         )}
                         {p.isNew && (
@@ -624,7 +769,9 @@ function ProductsPage() {
             <div className="py-16 text-center text-zinc-500 text-sm space-y-2">
               <Package className="h-8 w-8 mx-auto text-zinc-600" />
               <p className="font-semibold text-zinc-300">
-                {products.length === 0 ? "No Products in Database" : "No products match your filters"}
+                {products.length === 0
+                  ? "No Products in Database"
+                  : "No products match your filters"}
               </p>
               <p className="text-xs text-zinc-500">
                 {products.length === 0
@@ -719,7 +866,7 @@ function ProductsPage() {
       {productModalOpen && (
         <ProductFormModal
           isOpen={productModalOpen}
-          onClose={() => setProductModalOpen(false)}
+          onClose={handleCloseProductModal}
           editingProduct={editingProduct}
           categories={categories}
           brands={brands}
@@ -732,7 +879,7 @@ function ProductsPage() {
               createProduct(data as CreateProductInput);
               toast.success(`Created product "${data.name}" (${data.sku})!`);
             }
-            setProductModalOpen(false);
+            handleCloseProductModal();
           }}
           onOpenCategories={() => setCategoryModalOpen(true)}
           onOpenBrands={() => setBrandModalOpen(true)}
@@ -756,7 +903,10 @@ function ProductsPage() {
           }}
           onDelete={(slug) => {
             const count = products.filter((p) => p.category === slug).length;
-            if (count > 0 && !confirm(`Category "${slug}" has ${count} product(s) assigned. Delete anyway?`)) {
+            if (
+              count > 0 &&
+              !confirm(`Category "${slug}" has ${count} product(s) assigned. Delete anyway?`)
+            ) {
               return;
             }
             deleteCategory(slug);
@@ -769,17 +919,29 @@ function ProductsPage() {
       {brandModalOpen && (
         <BrandManagerModal
           isOpen={brandModalOpen}
-          onClose={() => setBrandModalOpen(false)}
+          onClose={handleCloseBrandModal}
           brands={brands}
           brandLogos={brandLogos}
           products={products}
-          onSaveLogo={(brandName, logoUrl) => {
-            saveBrandLogo(brandName, logoUrl);
-            toast.success(`Brand logo saved for "${brandName}"!`);
+          onSaveLogo={async (brandName, logoUrl, imageData) => {
+            try {
+              const saved = await saveBrandLogo(brandName, logoUrl, imageData);
+              if (saved) toast.success(`Brand "${brandName}" saved to Supabase!`);
+              return saved;
+            } catch (error) {
+              toast.error(error instanceof Error ? error.message : "Could not save brand.");
+              return false;
+            }
           }}
-          onDeleteLogo={(brandName) => {
-            deleteBrandLogo(brandName);
-            toast.success(`Logo removed for "${brandName}".`);
+          onDeleteLogo={async (brandName) => {
+            try {
+              const removed = await deleteBrandLogo(brandName);
+              if (removed) toast.success(`Logo removed for "${brandName}".`);
+              return removed;
+            } catch (error) {
+              toast.error(error instanceof Error ? error.message : "Could not remove brand logo.");
+              return false;
+            }
           }}
         />
       )}
@@ -826,7 +988,15 @@ function ProductFormModal({
   categories: Category[];
   brands: string[];
   brandLogos?: Record<string, string>;
-  onSave: (data: Partial<CreateProductInput> & { name: string; sku: string; category: string; priceLKR: number; stock: number }) => void;
+  onSave: (
+    data: Partial<CreateProductInput> & {
+      name: string;
+      sku: string;
+      category: string;
+      priceLKR: number;
+      stock: number;
+    },
+  ) => void;
   onOpenCategories: () => void;
   onOpenBrands?: () => void;
 }) {
@@ -836,13 +1006,23 @@ function ProductFormModal({
   const [sku, setSku] = useState(editingProduct?.sku || "");
   const [brand, setBrand] = useState(editingProduct?.brand || "");
   const [model, setModel] = useState(editingProduct?.model || "");
-  const [category, setCategory] = useState(editingProduct?.category || categories[0]?.slug || "lighting");
-  const [priceLKR, setPriceLKR] = useState(editingProduct ? String(editingProduct.priceCents / 100) : "2500");
-  const [compareAtLKR, setCompareAtLKR] = useState(editingProduct?.compareAtCents ? String(editingProduct.compareAtCents / 100) : "");
+  const [category, setCategory] = useState(
+    editingProduct?.category || categories[0]?.slug || "lighting",
+  );
+  const [priceLKR, setPriceLKR] = useState(
+    editingProduct ? String(editingProduct.priceCents / 100) : "2500",
+  );
+  const [compareAtLKR, setCompareAtLKR] = useState(
+    editingProduct?.compareAtCents ? String(editingProduct.compareAtCents / 100) : "",
+  );
   const [stock, setStock] = useState(editingProduct ? String(editingProduct.stock) : "25");
   const [description, setDescription] = useState(editingProduct?.description || "");
   const [imagesList, setImagesList] = useState<string[]>(() => {
-    if (editingProduct?.images && Array.isArray(editingProduct.images) && editingProduct.images.length > 0) {
+    if (
+      editingProduct?.images &&
+      Array.isArray(editingProduct.images) &&
+      editingProduct.images.length > 0
+    ) {
       return editingProduct.images.filter(Boolean);
     }
     return [];
@@ -853,7 +1033,12 @@ function ProductFormModal({
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const compressImageFile = (file: File, maxWidth = 1200, maxHeight = 1200, quality = 0.82): Promise<string> => {
+  const compressImageFile = (
+    file: File,
+    maxWidth = 1200,
+    maxHeight = 1200,
+    quality = 0.82,
+  ): Promise<string> => {
     return new Promise((resolve) => {
       if (file.type === "image/svg+xml" || file.size < 50 * 1024) {
         const reader = new FileReader();
@@ -987,10 +1172,14 @@ function ProductFormModal({
   };
 
   const [featured, setFeatured] = useState(!!editingProduct?.featured);
-  const [isNew, setIsNew] = useState(editingProduct?.isNew !== undefined ? editingProduct.isNew : true);
+  const [isNew, setIsNew] = useState(
+    editingProduct?.isNew !== undefined ? editingProduct.isNew : true,
+  );
   const [showPrice, setShowPrice] = useState(editingProduct?.showPrice !== false);
   const [showQuantity, setShowQuantity] = useState(editingProduct?.showQuantity !== false);
-  const [showAvailability, setShowAvailability] = useState(editingProduct?.showAvailability !== false);
+  const [showAvailability, setShowAvailability] = useState(
+    editingProduct?.showAvailability !== false,
+  );
 
   if (!isOpen) return null;
 
@@ -1053,7 +1242,9 @@ function ProductFormModal({
               {isEditing ? `Edit Product: ${editingProduct?.sku}` : "Add New Product / SKU"}
             </h2>
             <p className="text-xs text-zinc-400">
-              {isEditing ? "Update product specifications and live storefront inventory" : "Fill details below to publish to the store catalog immediately"}
+              {isEditing
+                ? "Update product specifications and live storefront inventory"
+                : "Fill details below to publish to the store catalog immediately"}
             </p>
           </div>
           <button
@@ -1206,7 +1397,9 @@ function ProductFormModal({
             </div>
 
             <div>
-              <label className="block font-bold text-zinc-300 mb-1">Original Price (Discount)</label>
+              <label className="block font-bold text-zinc-300 mb-1">
+                Original Price (Discount)
+              </label>
               <input
                 type="number"
                 min="0"
@@ -1303,7 +1496,8 @@ function ProductFormModal({
                     Click to browse or drag & drop multiple images
                   </p>
                   <p className="text-[10px] text-zinc-500 mt-0.5">
-                    Select multiple files at once · Supports PNG, JPG, JPEG, WEBP, SVG (max 5MB each)
+                    Select multiple files at once · Supports PNG, JPG, JPEG, WEBP, SVG (max 5MB
+                    each)
                   </p>
                 </div>
               </div>
@@ -1361,7 +1555,7 @@ function ProductFormModal({
                         type="button"
                         onClick={() =>
                           setActivePreviewIndex(
-                            (prev) => (prev - 1 + imagesList.length) % imagesList.length
+                            (prev) => (prev - 1 + imagesList.length) % imagesList.length,
                           )
                         }
                         className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-zinc-950/80 hover:bg-zinc-900 border border-zinc-700 text-zinc-200 flex items-center justify-center shadow-md transition-transform hover:scale-110"
@@ -1486,12 +1680,16 @@ function ProductFormModal({
             </div>
 
             <p className="text-[11px] text-zinc-400 leading-relaxed">
-              Price, quantity, and availability can be displayed or hidden independently. Even if all three are hidden, the product remains published and visible in the store for quotation requests.
+              Price, quantity, and availability can be displayed or hidden independently. Even if
+              all three are hidden, the product remains published and visible in the store for
+              quotation requests.
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
               {/* Show Price */}
-              <label className={`p-3 rounded-lg border transition-colors cursor-pointer flex flex-col justify-between ${showPrice ? "bg-zinc-900/80 border-orange-500/40" : "bg-zinc-900/30 border-zinc-800"}`}>
+              <label
+                className={`p-3 rounded-lg border transition-colors cursor-pointer flex flex-col justify-between ${showPrice ? "bg-zinc-900/80 border-orange-500/40" : "bg-zinc-900/30 border-zinc-800"}`}
+              >
                 <div className="flex items-center justify-between mb-1.5">
                   <span className="font-bold text-xs text-white">Show Price</span>
                   <input
@@ -1507,7 +1705,9 @@ function ProductFormModal({
               </label>
 
               {/* Show Quantity */}
-              <label className={`p-3 rounded-lg border transition-colors cursor-pointer flex flex-col justify-between ${showQuantity ? "bg-zinc-900/80 border-orange-500/40" : "bg-zinc-900/30 border-zinc-800"}`}>
+              <label
+                className={`p-3 rounded-lg border transition-colors cursor-pointer flex flex-col justify-between ${showQuantity ? "bg-zinc-900/80 border-orange-500/40" : "bg-zinc-900/30 border-zinc-800"}`}
+              >
                 <div className="flex items-center justify-between mb-1.5">
                   <span className="font-bold text-xs text-white">Show Quantity</span>
                   <input
@@ -1523,7 +1723,9 @@ function ProductFormModal({
               </label>
 
               {/* Show Availability */}
-              <label className={`p-3 rounded-lg border transition-colors cursor-pointer flex flex-col justify-between ${showAvailability ? "bg-zinc-900/80 border-orange-500/40" : "bg-zinc-900/30 border-zinc-800"}`}>
+              <label
+                className={`p-3 rounded-lg border transition-colors cursor-pointer flex flex-col justify-between ${showAvailability ? "bg-zinc-900/80 border-orange-500/40" : "bg-zinc-900/30 border-zinc-800"}`}
+              >
                 <div className="flex items-center justify-between mb-1.5">
                   <span className="font-bold text-xs text-white">Show Availability</span>
                   <input
@@ -1549,7 +1751,7 @@ function ProductFormModal({
                 onChange={(e) => setFeatured(e.target.checked)}
                 className="rounded accent-orange-500 h-4 w-4"
               />
-              Feature on Homepage
+              Hot Selling / Feature on Homepage
             </label>
             <label className="flex items-center gap-2 cursor-pointer font-bold text-zinc-300">
               <input
@@ -1595,8 +1797,17 @@ function CategoryManagerModal({
   onClose: () => void;
   categories: Category[];
   productsCount: Product[];
-  onCreate: (cat: { name: string; short: string; slug?: string; filterKey?: string; image?: string }) => void;
-  onUpdate?: (slug: string, updates: { name?: string; short?: string; filterKey?: string; image?: string }) => void;
+  onCreate: (cat: {
+    name: string;
+    short: string;
+    slug?: string;
+    filterKey?: string;
+    image?: string;
+  }) => void;
+  onUpdate?: (
+    slug: string,
+    updates: { name?: string; short?: string; filterKey?: string; image?: string },
+  ) => void;
   onDelete: (slug: string) => void;
 }) {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
@@ -1612,7 +1823,11 @@ function CategoryManagerModal({
   if (!isOpen) return null;
 
   const slugify = (s: string) =>
-    s.toLowerCase().replace(/["']/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+    s
+      .toLowerCase()
+      .replace(/["']/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "");
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -1722,7 +1937,8 @@ function CategoryManagerModal({
                 Category & Department Management
               </h2>
               <p className="text-xs text-zinc-400">
-                Organize store departments, customize URL slugs, and configure faceted filter dimensions.
+                Organize store departments, customize URL slugs, and configure faceted filter
+                dimensions.
               </p>
             </div>
           </div>
@@ -1742,7 +1958,9 @@ function CategoryManagerModal({
               <div className="flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full bg-orange-400 animate-pulse" />
                 <p className="text-xs font-bold text-white uppercase tracking-wider">
-                  {editingCategory ? `Edit Department: ${editingCategory.name}` : "Create New Category"}
+                  {editingCategory
+                    ? `Edit Department: ${editingCategory.name}`
+                    : "Create New Category"}
                 </p>
               </div>
               {editingCategory && (
@@ -1770,7 +1988,9 @@ function CategoryManagerModal({
                     placeholder="e.g. Computer Accessories"
                     className="admin-input text-xs w-full"
                   />
-                  <p className="text-[10px] text-zinc-500">The full public name displayed across the website.</p>
+                  <p className="text-[10px] text-zinc-500">
+                    The full public name displayed across the website.
+                  </p>
                 </div>
 
                 <div className="space-y-1">
@@ -1784,7 +2004,9 @@ function CategoryManagerModal({
                     placeholder="e.g. Accessories"
                     className="admin-input text-xs w-full"
                   />
-                  <p className="text-[10px] text-zinc-500">Compact name for navigation tabs and product badges.</p>
+                  <p className="text-[10px] text-zinc-500">
+                    Compact name for navigation tabs and product badges.
+                  </p>
                 </div>
               </div>
 
@@ -1817,7 +2039,8 @@ function CategoryManagerModal({
                     className="admin-input text-xs w-full font-mono text-zinc-300 disabled:opacity-50"
                   />
                   <p className="text-[10px] text-zinc-400 truncate">
-                    Store URL: <code className="text-orange-400">/shop?category={slug || "..."}</code>
+                    Store URL:{" "}
+                    <code className="text-orange-400">/shop?category={slug || "..."}</code>
                   </p>
                 </div>
 
@@ -1854,7 +2077,9 @@ function CategoryManagerModal({
 
               {/* Row 3: Category Thumbnail Selection */}
               <div className="space-y-1.5 pt-1 border-t border-zinc-800/80">
-                <label className="text-[11px] font-bold text-zinc-300">Department Cover Image</label>
+                <label className="text-[11px] font-bold text-zinc-300">
+                  Department Cover Image
+                </label>
                 <div className="flex flex-wrap items-center gap-2">
                   {imagePresets.map((preset) => (
                     <button
@@ -1884,11 +2109,7 @@ function CategoryManagerModal({
               {/* Submit Buttons */}
               <div className="flex items-center justify-end gap-2 pt-2">
                 {editingCategory && (
-                  <button
-                    type="button"
-                    onClick={resetForm}
-                    className="admin-btn-ghost text-xs"
-                  >
+                  <button type="button" onClick={resetForm} className="admin-btn-ghost text-xs">
                     Cancel
                   </button>
                 )}
@@ -2064,38 +2285,75 @@ function BrandManagerModal({
   brands: string[];
   brandLogos: Record<string, string>;
   products: Product[];
-  onSaveLogo: (brand: string, logoUrl: string) => void;
-  onDeleteLogo: (brand: string) => void;
+  onSaveLogo: (brand: string, logoUrl: string, imageData?: string) => Promise<boolean>;
+  onDeleteLogo: (brand: string) => Promise<boolean>;
 }) {
   const [search, setSearch] = useState("");
   const [editingBrand, setEditingBrand] = useState<string | null>(null);
   const [logoInput, setLogoInput] = useState("");
+  const [logoImageData, setLogoImageData] = useState("");
   const [newBrandName, setNewBrandName] = useState("");
   const [newBrandLogo, setNewBrandLogo] = useState("");
+  const [newBrandImageData, setNewBrandImageData] = useState("");
+  const [saving, setSaving] = useState(false);
 
   if (!isOpen) return null;
 
   // Filtered brands
   const filteredBrands = brands.filter((b) =>
-    b.toLowerCase().includes(search.trim().toLowerCase())
+    b.toLowerCase().includes(search.trim().toLowerCase()),
   );
 
   const handleStartEdit = (b: string) => {
     setEditingBrand(b);
     setLogoInput(brandLogos[b] || "");
+    setLogoImageData("");
   };
 
-  const handleSaveEdit = (b: string) => {
-    onSaveLogo(b, logoInput);
-    setEditingBrand(null);
+  const handleSaveEdit = async (b: string) => {
+    setSaving(true);
+    const saved = await onSaveLogo(b, logoInput, logoImageData || undefined);
+    setSaving(false);
+    if (saved) {
+      setEditingBrand(null);
+      setLogoImageData("");
+    }
   };
 
-  const handleCreateNewBrand = (e: React.FormEvent) => {
+  const handleCreateNewBrand = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newBrandName.trim()) return;
-    onSaveLogo(newBrandName.trim(), newBrandLogo.trim());
-    setNewBrandName("");
-    setNewBrandLogo("");
+    setSaving(true);
+    const saved = await onSaveLogo(
+      newBrandName.trim(),
+      newBrandLogo.trim(),
+      newBrandImageData || undefined,
+    );
+    setSaving(false);
+    if (saved) {
+      setNewBrandName("");
+      setNewBrandLogo("");
+      setNewBrandImageData("");
+    }
+  };
+
+  const loadImageFile = (
+    file: File | undefined,
+    setImageData: React.Dispatch<React.SetStateAction<string>>,
+  ) => {
+    if (!file) return;
+    if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
+      toast.error("Choose a PNG, JPEG, or WebP image.");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Brand images must be smaller than 2 MB.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setImageData(String(reader.result || ""));
+    reader.onerror = () => toast.error("Could not read the selected image.");
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -2112,7 +2370,7 @@ function BrandManagerModal({
               Manage Brands & Logos
             </h3>
             <p className="text-xs text-zinc-400 mt-0.5">
-              Configure brand logos for products in your store. Logos will be displayed in the storefront Brand Showcase, Shop Filters, and Admin catalog.
+              Brands and uploaded images are stored in Supabase and displayed across the storefront.
             </p>
           </div>
           <button
@@ -2135,7 +2393,9 @@ function BrandManagerModal({
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div>
-                <label className="block text-[11px] text-zinc-400 font-semibold mb-1">Brand Name *</label>
+                <label className="block text-[11px] text-zinc-400 font-semibold mb-1">
+                  Brand Name *
+                </label>
                 <input
                   required
                   value={newBrandName}
@@ -2145,7 +2405,9 @@ function BrandManagerModal({
                 />
               </div>
               <div>
-                <label className="block text-[11px] text-zinc-400 font-semibold mb-1">Brand Logo Image URL</label>
+                <label className="block text-[11px] text-zinc-400 font-semibold mb-1">
+                  Brand Logo Image URL
+                </label>
                 <input
                   value={newBrandLogo}
                   onChange={(e) => setNewBrandLogo(e.target.value)}
@@ -2153,13 +2415,32 @@ function BrandManagerModal({
                   className="admin-input w-full text-xs"
                 />
               </div>
+              <div className="sm:col-span-2">
+                <label className="block text-[11px] text-zinc-400 font-semibold mb-1">
+                  Or upload a logo (PNG, JPEG, WebP — max 2 MB)
+                </label>
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  onChange={(e) => loadImageFile(e.target.files?.[0], setNewBrandImageData)}
+                  className="admin-input w-full text-xs file:mr-3 file:rounded file:border-0 file:bg-orange-500 file:px-3 file:py-1 file:font-bold file:text-white"
+                />
+                {newBrandImageData && (
+                  <img
+                    src={newBrandImageData}
+                    alt="New brand logo preview"
+                    className="mt-2 h-14 max-w-40 rounded border border-zinc-700 bg-white object-contain p-1"
+                  />
+                )}
+              </div>
             </div>
             <div className="flex justify-end pt-1">
               <button
                 type="submit"
+                disabled={saving}
                 className="admin-btn-primary text-xs font-bold px-3 py-1.5"
               >
-                Save Brand & Logo
+                {saving ? "Saving…" : "Save Brand & Logo"}
               </button>
             </div>
           </form>
@@ -2193,7 +2474,10 @@ function BrandManagerModal({
                   const isEditingThis = editingBrand === b;
 
                   return (
-                    <div key={b} className="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs hover:bg-zinc-800/30 transition-colors">
+                    <div
+                      key={b}
+                      className="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs hover:bg-zinc-800/30 transition-colors"
+                    >
                       <div className="flex items-center gap-3 min-w-0">
                         {logo ? (
                           <div className="h-9 w-9 rounded-md bg-white/10 p-1 flex items-center justify-center shrink-0 border border-zinc-700/50">
@@ -2201,7 +2485,9 @@ function BrandManagerModal({
                               src={logo}
                               alt={b}
                               className="h-full w-full object-contain"
-                              onError={(e) => { (e.target as HTMLElement).style.display = "none"; }}
+                              onError={(e) => {
+                                (e.target as HTMLElement).style.display = "none";
+                              }}
                             />
                           </div>
                         ) : (
@@ -2212,13 +2498,14 @@ function BrandManagerModal({
                         <div className="min-w-0">
                           <p className="font-bold text-white truncate">{b}</p>
                           <p className="text-[11px] text-zinc-500">
-                            {count} {count === 1 ? "product in store" : "products in store"} · {logo ? "Custom logo active" : "No logo set"}
+                            {count} {count === 1 ? "product in store" : "products in store"} ·{" "}
+                            {logo ? "Custom logo active" : "No logo set"}
                           </p>
                         </div>
                       </div>
 
                       {isEditingThis ? (
-                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
                           <input
                             type="text"
                             value={logoInput}
@@ -2227,11 +2514,28 @@ function BrandManagerModal({
                             className="admin-input flex-1 sm:w-60 text-xs py-1"
                             autoFocus
                           />
+                          <label className="flex cursor-pointer items-center gap-1 rounded border border-zinc-700 px-2.5 py-1 font-semibold text-zinc-300 hover:bg-zinc-800">
+                            <Upload className="h-3 w-3" />
+                            Upload
+                            <input
+                              type="file"
+                              accept="image/png,image/jpeg,image/webp"
+                              className="sr-only"
+                              onChange={(e) => loadImageFile(e.target.files?.[0], setLogoImageData)}
+                            />
+                          </label>
+                          {logoImageData && (
+                            <span className="text-[10px] font-semibold text-emerald-400">
+                              New image ready
+                            </span>
+                          )}
                           <button
+                            type="button"
+                            disabled={saving}
                             onClick={() => handleSaveEdit(b)}
                             className="px-2.5 py-1 rounded bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs"
                           >
-                            Save
+                            {saving ? "Saving…" : "Save"}
                           </button>
                           <button
                             onClick={() => setEditingBrand(null)}
@@ -2251,7 +2555,7 @@ function BrandManagerModal({
                           </button>
                           {logo && (
                             <button
-                              onClick={() => onDeleteLogo(b)}
+                              onClick={() => void onDeleteLogo(b)}
                               className="px-2 py-1 rounded border border-red-500/30 text-red-400 hover:bg-red-500/10 text-xs flex items-center gap-1"
                               title="Remove brand logo"
                             >
@@ -2346,11 +2650,20 @@ AE-APP-5001,Smart Android LED TV 43 Inch,TCL,43P635,home-appliances,129900,5,4K 
         const sku = colSku || `AE-IMP-${1000 + i}`;
         const name = colName;
         const brand = brandIdx !== -1 && cols[brandIdx] ? (cols[brandIdx] ?? "Generic") : "Generic";
-        const model = modelIdx !== -1 && cols[modelIdx] ? (cols[modelIdx] ?? "Standard") : "Standard";
-        const cat = catIdx !== -1 && cols[catIdx] ? (cols[catIdx] ?? (categories[0]?.slug ?? "lighting")) : (categories[0]?.slug ?? "lighting");
-        const price = (priceIdx !== -1 && cols[priceIdx] ? parseFloat(cols[priceIdx] ?? "100") : 100) || 100;
-        const stock = stockIdx !== -1 && cols[stockIdx] ? parseInt(cols[stockIdx] ?? "10", 10) || 10 : 10;
-        const desc = descIdx !== -1 && cols[descIdx] ? (cols[descIdx] ?? "Imported product item") : "Imported product item";
+        const model =
+          modelIdx !== -1 && cols[modelIdx] ? (cols[modelIdx] ?? "Standard") : "Standard";
+        const cat =
+          catIdx !== -1 && cols[catIdx]
+            ? (cols[catIdx] ?? categories[0]?.slug ?? "lighting")
+            : (categories[0]?.slug ?? "lighting");
+        const price =
+          (priceIdx !== -1 && cols[priceIdx] ? parseFloat(cols[priceIdx] ?? "100") : 100) || 100;
+        const stock =
+          stockIdx !== -1 && cols[stockIdx] ? parseInt(cols[stockIdx] ?? "10", 10) || 10 : 10;
+        const desc =
+          descIdx !== -1 && cols[descIdx]
+            ? (cols[descIdx] ?? "Imported product item")
+            : "Imported product item";
 
         parsed.push({
           sku,
@@ -2389,14 +2702,20 @@ AE-APP-5001,Smart Android LED TV 43 Inch,TCL,43P635,home-appliances,129900,5,4K 
               Paste CSV text to quickly add tens or hundreds of SKUs to your catalog.
             </p>
           </div>
-          <button onClick={onClose} className="p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800">
+          <button
+            onClick={onClose}
+            className="p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800"
+          >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         <div className="p-6 space-y-3 text-xs">
           <p className="text-zinc-300 font-semibold">
-            CSV Format: <code className="text-orange-400 font-mono">sku,name,brand,model,category,price,stock,description</code>
+            CSV Format:{" "}
+            <code className="text-orange-400 font-mono">
+              sku,name,brand,model,category,price,stock,description
+            </code>
           </p>
           <textarea
             rows={10}
@@ -2411,7 +2730,10 @@ AE-APP-5001,Smart Android LED TV 43 Inch,TCL,43P635,home-appliances,129900,5,4K 
           <button onClick={onClose} className="admin-btn-ghost text-xs">
             Cancel
           </button>
-          <button onClick={handleParseAndImport} className="admin-btn-primary text-xs flex items-center gap-1.5">
+          <button
+            onClick={handleParseAndImport}
+            className="admin-btn-primary text-xs flex items-center gap-1.5"
+          >
             <Upload className="h-3.5 w-3.5" /> Parse & Import
           </button>
         </div>
@@ -2419,4 +2741,3 @@ AE-APP-5001,Smart Android LED TV 43 Inch,TCL,43P635,home-appliances,129900,5,4K 
     </div>
   );
 }
-

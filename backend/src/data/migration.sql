@@ -40,6 +40,27 @@ CREATE TABLE IF NOT EXISTS categories (
   filter_key  TEXT DEFAULT 'Type'
 );
 
+-- ───────────────── BRANDS ─────────────────
+CREATE TABLE IF NOT EXISTS brands (
+  slug        TEXT PRIMARY KEY,
+  name        TEXT UNIQUE NOT NULL,
+  image_url   TEXT DEFAULT '',
+  image_path  TEXT DEFAULT '',
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_brands_name ON brands(name);
+
+-- Register brands that already exist on products.
+INSERT INTO brands (slug, name)
+SELECT
+  trim(both '-' from regexp_replace(lower(trim(brand)), '[^a-z0-9]+', '-', 'g')),
+  trim(brand)
+FROM products
+WHERE trim(coalesce(brand, '')) <> ''
+ON CONFLICT DO NOTHING;
+
 -- ──────────────── ORDERS ────────────────
 CREATE TABLE IF NOT EXISTS orders (
   id              TEXT PRIMARY KEY,
@@ -63,7 +84,7 @@ CREATE TABLE IF NOT EXISTS store_settings (
   whatsapp_number TEXT NOT NULL DEFAULT '+94 74 106 6017',
   office_email    TEXT NOT NULL DEFAULT 'aecpvt60@gmail.com',
   phone           TEXT NOT NULL DEFAULT '+94 74 106 6017',
-  address         TEXT NOT NULL DEFAULT 'Sri Lanka',
+  address         TEXT NOT NULL DEFAULT '29, 2nd Rohini Lane, Colombo 01100, Sri Lanka',
   currency        TEXT NOT NULL DEFAULT 'LKR (Rs.)',
   tax_rate        TEXT NOT NULL DEFAULT '0%',
   notifications   JSONB NOT NULL DEFAULT '{"newOrders":true,"lowStock":true,"weeklyReport":false}'::jsonb,
@@ -91,7 +112,7 @@ VALUES (
   '+94 74 106 6017',
   'aecpvt60@gmail.com',
   '+94 74 106 6017',
-  'Sri Lanka',
+  '29, 2nd Rohini Lane, Colombo 01100, Sri Lanka',
   'LKR (Rs.)',
   '0%',
   '{"newOrders":true,"lowStock":true,"weeklyReport":false}'::jsonb
@@ -107,6 +128,22 @@ ALTER TABLE products       DISABLE ROW LEVEL SECURITY;
 ALTER TABLE categories     DISABLE ROW LEVEL SECURITY;
 ALTER TABLE orders         DISABLE ROW LEVEL SECURITY;
 ALTER TABLE store_settings DISABLE ROW LEVEL SECURITY;
+ALTER TABLE brands         DISABLE ROW LEVEL SECURITY;
+
+-- Public bucket used by the admin Brand Manager. Writes still go through the
+-- backend service-role client; public access is read-only.
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+  'brand-images',
+  'brand-images',
+  true,
+  2097152,
+  ARRAY['image/png', 'image/jpeg', 'image/webp']
+)
+ON CONFLICT (id) DO UPDATE SET
+  public = EXCLUDED.public,
+  file_size_limit = EXCLUDED.file_size_limit,
+  allowed_mime_types = EXCLUDED.allowed_mime_types;
 
 -- Option 2 (If you prefer RLS enabled, run these permissive policies):
 -- ALTER TABLE products       ENABLE ROW LEVEL SECURITY;
