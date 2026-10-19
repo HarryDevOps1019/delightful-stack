@@ -16,7 +16,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Shop electronic components, audio, lighting, mobile parts and TVs in Sri Lanka. Demo storefront with sample LKR prices.",
+          "Shop electronic components, repair parts, lighting, solar products, mobile accessories and equipment in Sri Lanka.",
       },
       { property: "og:title", content: "Asia Electronics & Cellular â€” Demo Store" },
       {
@@ -82,13 +82,13 @@ function Index() {
               >
                 <div className="relative z-10 max-w-[55%] p-6 sm:p-8">
                   <span className="bg-primary px-2 py-1 text-[10px] font-bold text-primary-foreground">
-                    SAMPLE OFFER
+                    FEATURED RANGE
                   </span>
                   <h2 className="mt-4 font-display text-xl font-extrabold uppercase sm:text-2xl">
                     2.1 Soundbars & Home Audio
                   </h2>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    Upgrade your TV sound. Illustrative demo pricing.
+                    Upgrade your TV sound with quality equipment and accessories.
                   </p>
                   <p className="mt-6 font-display font-extrabold">From Rs. 32,500</p>
                 </div>
@@ -338,7 +338,7 @@ function Index() {
         </div>
         <div className="grid grid-cols-3 gap-px bg-border">
           {[
-            ["5", "Product categories"],
+            ["40+", "Years of experience"],
             [String(existingBrands.length || 0), "Brands in stock"],
             ["LKR", "Local pricing"],
           ].map(([n, l]) => (

@@ -60,6 +60,9 @@ export function SiteFooter() {
           <Link to="/about" className="hover:text-primary">
             About us
           </Link>
+          <Link to="/wholesale" className="hover:text-primary">
+            Wholesale & bulk orders
+          </Link>
         </FooterCol>
         <FooterCol title="Policies">
           {policies.map((p) => (

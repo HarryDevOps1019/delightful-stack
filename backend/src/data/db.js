@@ -28,6 +28,7 @@ function toDbProduct(p) {
     brand: p.brand,
     model: p.model,
     category: p.category,
+    subcategory: p.subcategory || p.attributes?.Subcategory || null,
     price_cents: p.priceCents,
     compare_at_cents: p.compareAtCents ?? null,
     stock: p.stock,
@@ -54,6 +55,7 @@ function fromDbProduct(row) {
     brand: row.brand,
     model: row.model,
     category: row.category,
+    subcategory: row.subcategory || row.attributes?.Subcategory || undefined,
     priceCents: row.price_cents,
     compareAtCents: row.compare_at_cents ?? undefined,
     stock: row.stock,
@@ -512,6 +514,7 @@ export async function updateProduct(id, updates) {
   if (updates.brand !== undefined) dbUpdates.brand = updates.brand;
   if (updates.model !== undefined) dbUpdates.model = updates.model;
   if (updates.category !== undefined) dbUpdates.category = updates.category;
+  if (updates.subcategory !== undefined) dbUpdates.subcategory = updates.subcategory || null;
   if (updates.priceLKR !== undefined)
     dbUpdates.price_cents = Math.round(Number(updates.priceLKR) * 100);
   if (updates.priceCents !== undefined)

@@ -29,6 +29,23 @@ import { formatLKR } from "@/lib/format";
 import { StockBadge } from "@/components/admin/shared";
 import type { Category, Product } from "@/lib/types";
 
+const ADMIN_SUBCATEGORIES: Record<string, string[]> = {
+  lighting: ["LED Panel Lights", "Strip Lights", "Tube Lights", "Track Lights", "Spot Lights", "Indoor & Outdoor Lighting", "Solar Lights", "LED Modules", "Bulbs & Chandeliers"],
+  "home-appliances": ["TVs", "Projectors", "Consumer Appliances"],
+  "kitchen-appliances": ["Blenders", "Cookers", "Other Kitchen Appliances"],
+  "appliance-spare-parts": ["Washing Machine Parts", "AC Parts", "Microwave Oven Parts", "Vacuum Cleaner Parts", "Blender Parts", "Kettle Components"],
+  "electronic-components": ["ICs & IGBTs", "Resistors", "Capacitors", "Sensors", "Arduino & Robotics", "Modules", "Electronic Tools"],
+  "power-solar-batteries": ["Solar Panels", "Solar Controllers", "Inverters", "MPPT Controllers", "UPS Batteries", "Lithium-ion Batteries", "Generator Spares"],
+  audio: ["Bluetooth Speakers", "Wall & Ceiling Speakers", "Microphones", "Mixers", "Amplifiers", "Bluetooth Modules"],
+  mobile: ["Mobile Displays", "Mobile Repair Parts", "Phone Repair Tools", "Data Cables", "Chargers", "Power Banks", "Tripods"],
+  "tools-installation": ["Installation Tools", "Repair Tools", "Supplies"],
+  "laboratory-equipment": ["Oscilloscopes", "Microscopes", "Signal Generators", "Multimeters", "Soldering Stations", "Repair Lamps", "Thermal Mats", "Transformers"],
+  "tv-repair-parts": ["LED Backlights", "TV LCD Panels", "TV Boards"],
+  "test-repair-equipment": ["Oscilloscopes", "Microscopes", "Signal Generators", "Soldering Stations", "Multimeters", "Repair Lamps", "Thermal Mats"],
+  "electrical-control-boxes": ["Enclosure Boxes", "Distribution Boxes", "Electricity Control Boxes"],
+  "led-displays-signage": ["P10 LED Modules", "Indoor LED Displays", "Outdoor LED Displays", "Name Boards"],
+};
+
 export const Route = createFileRoute("/admin/products")({
   validateSearch: (search: Record<string, unknown>) => ({
     action:
@@ -869,6 +886,7 @@ function ProductsPage() {
           onClose={handleCloseProductModal}
           editingProduct={editingProduct}
           categories={categories}
+          products={products}
           brands={brands}
           brandLogos={brandLogos}
           onSave={(data) => {
@@ -976,6 +994,7 @@ function ProductFormModal({
   onClose,
   editingProduct,
   categories,
+  products,
   brands,
   brandLogos,
   onSave,
@@ -986,6 +1005,7 @@ function ProductFormModal({
   onClose: () => void;
   editingProduct: Product | null;
   categories: Category[];
+  products: Product[];
   brands: string[];
   brandLogos?: Record<string, string>;
   onSave: (
@@ -1009,6 +1029,13 @@ function ProductFormModal({
   const [category, setCategory] = useState(
     editingProduct?.category || categories[0]?.slug || "lighting",
   );
+  const [subcategory, setSubcategory] = useState(editingProduct?.attributes?.Subcategory || "");
+  const subcategoryOptions = Array.from(new Set([
+    ...(ADMIN_SUBCATEGORIES[category] ?? []),
+    ...products
+      .filter((product) => product.category === category && product.subcategory)
+      .map((product) => product.subcategory as string),
+  ])).sort((a, b) => a.localeCompare(b));
   const [priceLKR, setPriceLKR] = useState(
     editingProduct ? String(editingProduct.priceCents / 100) : "2500",
   );
@@ -1218,7 +1245,12 @@ function ProductFormModal({
       brand: brand.trim() || "Generic",
       model: model.trim() || "Standard",
       category,
+      subcategory: subcategory || undefined,
       priceLKR: numPrice,
+      attributes: {
+        ...(editingProduct?.attributes ?? {}),
+        ...(subcategory ? { Subcategory: subcategory } : {}),
+      },
       compareAtLKR: compareAtLKR ? Number(compareAtLKR) : undefined,
       stock: Math.max(0, parseInt(stock, 10) || 0),
       description: description.trim() || undefined,
@@ -1311,7 +1343,10 @@ function ProductFormModal({
               <select
                 required
                 value={category}
-                onChange={(e) => setCategory(e.target.value)}
+                onChange={(e) => {
+                  setCategory(e.target.value);
+                  setSubcategory("");
+                }}
                 className="admin-input w-full text-xs"
               >
                 {categories.map((c) => (
@@ -1321,6 +1356,21 @@ function ProductFormModal({
                 ))}
               </select>
             </div>
+          </div>
+
+          <div>
+            <label className="block font-bold text-zinc-300 mb-1">Subcategory</label>
+            <input
+              value={subcategory}
+              onChange={(e) => setSubcategory(e.target.value)}
+              list="subcategory-suggestions"
+              placeholder={subcategoryOptions.length ? "Select or type a new subcategory" : "Type a new subcategory"}
+              className="admin-input w-full text-xs"
+            />
+            <datalist id="subcategory-suggestions">
+              {subcategoryOptions.map((option) => <option key={option} value={option} />)}
+            </datalist>
+            <p className="mt-1 text-[10px] text-zinc-500">Choose a suggestion or type a new subcategory. It will be saved for this product.</p>
           </div>
 
           {/* Row 3: Brand & Model */}

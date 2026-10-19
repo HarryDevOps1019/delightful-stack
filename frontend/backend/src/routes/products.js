@@ -34,7 +34,11 @@ router.get("/", async (req, res) => {
           p.name?.toLowerCase().includes(q) ||
           p.sku?.toLowerCase().includes(q) ||
           p.brand?.toLowerCase().includes(q) ||
-          p.model?.toLowerCase().includes(q)
+          p.model?.toLowerCase().includes(q) ||
+          p.subcategory?.toLowerCase().includes(q) ||
+          Object.values(p.attributes || {}).some((value) =>
+            String(value).toLowerCase().includes(q),
+          )
       );
     }
 
@@ -146,6 +150,7 @@ router.post("/", async (req, res) => {
       brand: brand || "Generic",
       model: model || "Standard",
       category,
+      subcategory: req.body.subcategory || req.body.attributes?.Subcategory || null,
       priceCents: Math.round(Number(priceLKR) * 100),
       compareAtCents: req.body.compareAtLKR ? Math.round(Number(req.body.compareAtLKR) * 100) : undefined,
       stock: Number(stock) || 0,

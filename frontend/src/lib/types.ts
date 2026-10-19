@@ -31,6 +31,7 @@ export interface Product {
   brand: string;
   model: string;
   category: CategorySlug;
+  subcategory?: string | undefined;
   /** Price in LKR cents (integer minor units) */
   priceCents: number;
   compareAtCents?: number | undefined;

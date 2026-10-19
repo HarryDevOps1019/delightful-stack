@@ -733,6 +733,13 @@ export function SiteHeader() {
                   Contact
                 </Link>
                 <Link
+                  to="/wholesale"
+                  className="flex items-center px-3 xl:px-4 text-[11px] xl:text-xs font-bold uppercase tracking-wider text-zinc-200 hover:bg-white/10 hover:text-white transition-colors shrink-0"
+                  activeProps={{ className: "border-b-2 border-primary text-white bg-white/5" }}
+                >
+                  Wholesale
+                </Link>
+                <Link
                   to="/shop"
                   search={{ sort: "newest" }}
                   className="flex items-center px-3 xl:px-4 text-[11px] xl:text-xs font-bold uppercase tracking-wider text-zinc-200 hover:bg-white/10 hover:text-white transition-colors shrink-0"

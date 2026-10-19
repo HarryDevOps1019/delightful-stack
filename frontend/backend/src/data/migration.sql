@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS products (
   brand           TEXT NOT NULL DEFAULT 'Generic',
   model           TEXT DEFAULT 'Standard',
   category        TEXT NOT NULL,
+  subcategory     TEXT,
   price_cents     INTEGER NOT NULL DEFAULT 0,
   compare_at_cents INTEGER,
   stock           INTEGER NOT NULL DEFAULT 0,
