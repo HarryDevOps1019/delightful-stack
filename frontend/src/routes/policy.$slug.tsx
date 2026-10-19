@@ -2,8 +2,31 @@
 import { useState, type FormEvent } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { CheckCircle2, Circle, Clock3, PackageSearch, Search, Truck, XCircle } from "lucide-react";
-import { DemoNotice, PageHeading } from "@/components/site/PageHeading";
+import { PageHeading } from "@/components/site/PageHeading";
 import { fetchOrderStatusApi, type ApiOrder } from "@/services/api";
+
+const POLICY_CONTENT: Record<string, { intro: string; sections: Array<[string, string]> }> = {
+  delivery: {
+    intro: "We aim to process confirmed orders carefully and keep customers informed throughout the delivery process.",
+    sections: [["Order confirmation", "Orders are subject to product availability and confirmation by our team. We may contact you to confirm specifications, quantities or delivery details."], ["Delivery charges and timing", "Applicable delivery charges and estimated delivery arrangements are communicated during checkout or before a quotation is confirmed. Delivery timing can vary by location, product type and stock availability."], ["Receiving your order", "Please check the items and visible package condition when receiving your order. Contact us promptly if you need assistance with a delivery."]],
+  },
+  returns: {
+    intro: "If you have an issue with an item, please contact our team before returning it so we can advise on the correct next step.",
+    sections: [["Before returning an item", "Keep your proof of purchase, original packaging and all supplied accessories where possible. Our team will review the item and explain the available resolution."], ["Incorrect or damaged items", "Contact us promptly with your order details and clear photos where applicable. We will assess the issue and guide you through the return or replacement process."], ["Non-returnable items", "Some electronic components, special-order products and items affected by handling or installation may have return limitations. Please confirm eligibility with our team before purchase."]],
+  },
+  warranty: {
+    intro: "Warranty support depends on the specific product and any manufacturer or supplier warranty that applies.",
+    sections: [["Warranty coverage", "Where a warranty applies, the product page, quotation or invoice will identify the relevant coverage. Retain your proof of purchase for any warranty enquiry."], ["Making a claim", "Contact our team with the invoice number, product details and a description of the issue. We may request photos, testing information or an inspection of the item."], ["Exclusions", "Warranty support does not normally cover accidental damage, misuse, incorrect installation, unauthorised modification or normal wear. Final assessment follows the applicable product warranty terms."]],
+  },
+  privacy: {
+    intro: "We use the information you provide to process enquiries and orders, provide support and improve our service.",
+    sections: [["Information we collect", "This may include your name, contact details, delivery address, order details and messages you send to us."], ["How we use it", "We use this information to fulfil orders, respond to enquiries, provide delivery updates and support customers. We do not sell personal information."], ["Your choices", "Contact us if you want to correct your contact details or have a question about how your information is used."]],
+  },
+  terms: {
+    intro: "These terms explain the general basis on which products and quotations are supplied by Asia Electronics and Cellular.",
+    sections: [["Product information", "We take care to present product details accurately. Images, specifications and availability can change, so please confirm critical compatibility requirements with our team before ordering."], ["Prices and availability", "Prices, offers and stock availability may change. A quotation or order confirmation from our team is the final confirmation of the supplied items and price."], ["Technical compatibility", "Customers are responsible for confirming that a component, spare part or accessory is suitable for their intended equipment. Our team can help where model, part number or a clear photo is provided."]],
+  },
+};
 
 const POLICIES: Record<string, string> = {
   delivery: "Delivery Information",
@@ -57,5 +80,7 @@ function DeliveryTracker() {
 
 function Policy() {
   const { title } = Route.useLoaderData();
-  return <><PageHeading title={title} />{title === "Delivery Information" ? <DeliveryTracker /> : <div className="container-shop max-w-3xl space-y-4 text-sm"><DemoNotice>This policy is awaiting client content. Nothing here is a binding term.</DemoNotice><p className="text-muted-foreground">The final {title.toLowerCase()} text will be supplied by Asia Electronics and Cellular Pvt Ltd before launch.</p></div>}</>;
+  const slug = Route.useParams().slug;
+  const content = POLICY_CONTENT[slug];
+  return <><PageHeading title={title} />{title === "Delivery Information" ? <DeliveryTracker /> : <main className="container-shop max-w-3xl space-y-7 pb-16 text-sm"><p className="text-base leading-7 text-muted-foreground">{content.intro}</p>{content.sections.map(([heading, body]) => <section key={heading} className="border-t border-border pt-5"><h2 className="font-display text-base font-extrabold uppercase">{heading}</h2><p className="mt-2 leading-7 text-muted-foreground">{body}</p></section>)}</main>}</>;
 }

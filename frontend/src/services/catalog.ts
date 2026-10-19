@@ -118,7 +118,13 @@ export async function syncCatalogWithBackend() {
             short: backendCat.short || localDefault?.short || backendCat.name,
           };
         });
-        saveStoredCategories(syncedCats);
+        const mergedCategories = [
+          ...syncedCats,
+          ...defaultCategories.filter((defaultCategory) =>
+            !syncedCats.some((category) => category.slug === defaultCategory.slug),
+          ),
+        ];
+        saveStoredCategories(mergedCategories);
       }
       if (brandRecords && Array.isArray(brandRecords)) {
         saveStoredBrandRecords(brandRecords);
@@ -302,6 +308,7 @@ export interface CreateProductInput {
   brand: string;
   model: string;
   category: string;
+  subcategory?: string | undefined;
   priceLKR: number;
   compareAtLKR?: number | undefined;
   stock: number;
@@ -337,6 +344,7 @@ export function createProduct(input: CreateProductInput): Product {
     brand: input.brand.trim() || "Generic",
     model: input.model.trim() || "Standard",
     category: input.category,
+    subcategory: input.subcategory || input.attributes?.Subcategory || undefined,
     priceCents: Math.round(Number(input.priceLKR) * 100),
     compareAtCents: input.compareAtLKR ? Math.round(Number(input.compareAtLKR) * 100) : undefined,
     stock: Math.max(0, Math.floor(Number(input.stock) || 0)),
@@ -362,6 +370,7 @@ export function createProduct(input: CreateProductInput): Product {
     brand: newProduct.brand,
     model: newProduct.model,
     category: newProduct.category,
+    subcategory: newProduct.subcategory,
     priceCents: newProduct.priceCents,
     compareAtCents: newProduct.compareAtCents,
     stock: newProduct.stock,
@@ -409,6 +418,7 @@ export function updateProduct(id: string, updates: Partial<CreateProductInput>):
     brand: updates.brand ? updates.brand.trim() : existing.brand,
     model: updates.model ? updates.model.trim() : existing.model,
     category: updates.category ? updates.category : existing.category,
+    subcategory: updates.subcategory !== undefined ? updates.subcategory : existing.subcategory,
     priceCents:
       updates.priceLKR !== undefined
         ? Math.round(Number(updates.priceLKR) * 100)
@@ -438,6 +448,7 @@ export function updateProduct(id: string, updates: Partial<CreateProductInput>):
       updates.showAvailability !== undefined
         ? Boolean(updates.showAvailability)
         : existing.showAvailability !== false,
+    attributes: updates.attributes !== undefined ? updates.attributes : existing.attributes,
   };
 
   if (updates.name || updates.brand) {
@@ -455,6 +466,7 @@ export function updateProduct(id: string, updates: Partial<CreateProductInput>):
     brand: updatedProduct.brand,
     model: updatedProduct.model,
     category: updatedProduct.category,
+    subcategory: updatedProduct.subcategory,
     priceCents: updatedProduct.priceCents,
     compareAtCents: updatedProduct.compareAtCents,
     stock: updatedProduct.stock,
@@ -465,6 +477,7 @@ export function updateProduct(id: string, updates: Partial<CreateProductInput>):
     showPrice: updatedProduct.showPrice,
     showQuantity: updatedProduct.showQuantity,
     showAvailability: updatedProduct.showAvailability,
+    attributes: updatedProduct.attributes,
     slug: updatedProduct.slug,
   }).then((saved) => {
     if (saved) {

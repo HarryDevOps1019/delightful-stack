@@ -76,6 +76,10 @@ export const categories: Category[] = [
 
   // ── 10. Laboratory Equipment ──────────────────────────────────────────────
   { slug: "laboratory-equipment", name: "Laboratory Equipment", short: "Lab Equipment", image: catLabEquipment, filterKey: "Type" },
+  { slug: "tv-repair-parts", name: "TV Repair Parts & Displays", short: "TV Repair Parts", image: catElectronicComponents, filterKey: "Part Type" },
+  { slug: "test-repair-equipment", name: "Test & Repair Equipment", short: "Test Equipment", image: catLabEquipment, filterKey: "Equipment Type" },
+  { slug: "electrical-control-boxes", name: "Electrical Boxes & Control", short: "Control Boxes", image: catOtherEquipment, filterKey: "Box Type" },
+  { slug: "led-displays-signage", name: "LED Displays & Signage", short: "LED Displays", image: catNameBoards, filterKey: "Display Type" },
 
   // ── Inactive / Pending Classification ────────────────────────────────────
   { slug: "name-boards", name: "Name Boards", short: "Name Boards", image: catNameBoards, filterKey: "Type" },
@@ -102,6 +106,10 @@ const catImg: Record<string, string> = {
   mobile: catMobileParts,
   "tools-installation": catToolsInstallation,
   "laboratory-equipment": catLabEquipment,
+  "tv-repair-parts": catElectronicComponents,
+  "test-repair-equipment": catLabEquipment,
+  "electrical-control-boxes": catOtherEquipment,
+  "led-displays-signage": catNameBoards,
   // Inactive pending
   "name-boards": catNameBoards,
   "magnet-bars": catMagnetBars,

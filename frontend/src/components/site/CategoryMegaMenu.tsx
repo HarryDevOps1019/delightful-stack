@@ -259,6 +259,19 @@ const CATEGORY_GROUPS: Record<string, SubcategoryGroup[]> = {
       ],
     },
   ],
+
+  "tv-repair-parts": [
+    { title: "TV Parts", items: [{ label: "LED Backlights", query: "led backlight" }, { label: "TV LCD Panels", query: "tv lcd" }, { label: "TV Boards", query: "tv board" }] },
+  ],
+  "test-repair-equipment": [
+    { title: "Testing & Repair", items: [{ label: "Oscilloscopes", query: "oscilloscope" }, { label: "Microscopes", query: "microscope" }, { label: "Signal Generators", query: "signal generator" }, { label: "Multimeters", query: "multimeter" }, { label: "Soldering Stations", query: "solder station" }] },
+  ],
+  "electrical-control-boxes": [
+    { title: "Electrical Boxes", items: [{ label: "Enclosure Boxes", query: "enclosure box" }, { label: "Distribution Boxes", query: "distribution box" }, { label: "Electricity Control Boxes", query: "control box" }] },
+  ],
+  "led-displays-signage": [
+    { title: "LED Signage", items: [{ label: "P10 LED Modules", query: "p10 led module" }, { label: "Indoor LED Displays", query: "indoor led display" }, { label: "Outdoor LED Displays", query: "outdoor led display" }, { label: "Name Boards", query: "name board" }] },
+  ],
 };
 
 export const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -272,6 +285,10 @@ export const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: st
   mobile: Smartphone,
   "tools-installation": HardHat,
   "laboratory-equipment": FlaskConical,
+  "tv-repair-parts": Tv,
+  "test-repair-equipment": FlaskConical,
+  "electrical-control-boxes": Zap,
+  "led-displays-signage": Package,
   "name-boards": Package,
   "magnet-bars": Package,
   equipment: Package,

@@ -34,7 +34,11 @@ router.get("/", async (req, res) => {
           p.name?.toLowerCase().includes(q) ||
           p.sku?.toLowerCase().includes(q) ||
           p.brand?.toLowerCase().includes(q) ||
-          p.model?.toLowerCase().includes(q)
+          p.model?.toLowerCase().includes(q) ||
+          p.subcategory?.toLowerCase().includes(q) ||
+          Object.values(p.attributes || {}).some((value) =>
+            String(value).toLowerCase().includes(q),
+          )
       );
     }
 

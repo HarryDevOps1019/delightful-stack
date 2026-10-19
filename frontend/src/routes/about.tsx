@@ -1,4 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import componentsImg from "@/assets/imgs/ics-repair-components-v1.png";
+import solarImg from "@/assets/imgs/power-solar-batteries.png";
+import repairImg from "@/assets/imgs/tools-installation-supplies.png";
+import lightingImg from "@/assets/imgs/lighting.png";
+import audioImg from "@/assets/imgs/audio-music.png";
+import mobileImg from "@/assets/imgs/mobile-parts-accessories.png";
 import {
   ArrowRight,
   Clock3,
@@ -10,6 +16,9 @@ import {
   Microchip,
   Smartphone,
   Truck,
+  ShieldCheck,
+  Sun,
+  Wrench,
 } from "lucide-react";
 import { PageHeading } from "@/components/site/PageHeading";
 import { useSettings } from "@/context/settings";
@@ -19,26 +28,36 @@ const FACEBOOK_URL =
 
 const specialties = [
   {
-    title: "Electronic Components",
-    description: "Components, parts and equipment for repairs, projects and everyday requirements.",
-    icon: Microchip,
+    title: "ICs & repair components",
+    description: "ICs, IGBTs, resistors, capacitors, sensors, modules and tools for repair and projects.",
+    image: componentsImg,
+  },
+  {
+    title: "Solar & electrical",
+    description: "Solar panels, controllers, inverters, batteries and electrical solutions.",
+    image: solarImg,
+  },
+  {
+    title: "Repair equipment",
+    description: "Soldering stations, meters, microscopes and practical equipment for technicians.",
+    image: repairImg,
   },
   {
     title: "Lighting",
     description:
       "A wide lighting range, from chandeliers and decorative fittings to practical LED bulbs.",
-    icon: Lightbulb,
+    image: lightingImg,
   },
   {
     title: "Audio Equipment",
     description:
       "Home and professional audio equipment, speakers, accessories and replacement parts.",
-    icon: Headphones,
+    image: audioImg,
   },
   {
     title: "Mobile Parts",
     description: "Popular mobile repair parts and accessories for technicians and device owners.",
-    icon: Smartphone,
+    image: mobileImg,
   },
 ];
 
@@ -74,16 +93,16 @@ function AboutPage() {
           <div className="absolute -right-20 -top-24 h-64 w-64 rounded-full bg-primary/20 blur-3xl" />
           <div className="relative max-w-3xl">
             <p className="text-xs font-extrabold uppercase tracking-[0.24em] text-primary">
-              Colombo&apos;s electronics destination
+              Serving Sri Lanka since 1983
             </p>
             <h2 className="mt-4 font-display text-3xl font-black uppercase leading-tight sm:text-4xl lg:text-5xl">
-              Parts, equipment and practical solutions under one roof
+              A trusted electronics supplier for over four decades
             </h2>
             <p className="mt-5 max-w-2xl text-sm leading-7 text-ink-foreground/75 sm:text-base">
-              Asia Electronics and Cellular Pvt Ltd supplies electronic components, lighting, audio
-              equipment, repair parts and mobile accessories from Colombo 01100. Our range supports
-              home users, technicians, installers and businesses looking for dependable electronics
-              in one convenient place.
+              Asia Electronics and Cellular Pvt Ltd is a direct importer, distributor and supplier
+              of electronic products, components, equipment and accessories. We support retailers,
+              wholesalers, professional technicians, repair centres, businesses, institutions and
+              industrial clients across Sri Lanka.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <Link
@@ -121,16 +140,27 @@ function AboutPage() {
           </div>
 
           <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {specialties.map(({ title, description, icon: Icon }) => (
+            {specialties.map(({ title, description, image }) => (
               <article key={title} className="border border-border bg-card p-5">
-                <div className="flex h-11 w-11 items-center justify-center bg-primary/10 text-primary">
-                  <Icon className="h-5 w-5" />
-                </div>
+                <img src={image} alt="" className="h-32 w-full object-cover" loading="lazy" />
                 <h3 className="mt-5 font-display text-sm font-extrabold uppercase">{title}</h3>
                 <p className="mt-2 text-xs leading-5 text-muted-foreground">{description}</p>
               </article>
             ))}
           </div>
+        </section>
+
+        <section className="grid gap-5 border-y border-border py-10 sm:grid-cols-3">
+          {[
+            ["40+ years", "Established in 1983 with deep industry experience."],
+            ["Direct supply", "Reliable sourcing, availability and competitive value."],
+            ["Built on trust", "Professional service and long-term customer relationships."],
+          ].map(([title, description]) => (
+            <div key={title} className="flex gap-3">
+              <ShieldCheck className="h-5 w-5 shrink-0 text-primary" />
+              <div><h3 className="font-display text-sm font-extrabold uppercase">{title}</h3><p className="mt-1 text-sm leading-6 text-muted-foreground">{description}</p></div>
+            </div>
+          ))}
         </section>
 
         <section className="grid overflow-hidden border border-border lg:grid-cols-[1.15fr_0.85fr]">
@@ -197,8 +227,18 @@ function AboutPage() {
               >
                 View all contact details <ArrowRight className="h-4 w-4" />
               </Link>
+              <a href="/aec-company-profile.pdf" target="_blank" rel="noopener noreferrer" className="block font-bold hover:underline">
+                Download company profile
+              </a>
             </div>
           </div>
+        </section>
+
+        <section className="mt-10 bg-tile p-6 sm:p-9">
+          <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-primary">Our philosophy</p>
+          <h2 className="mt-2 font-display text-2xl font-black uppercase">Build trust. Deliver value. Grow together.</h2>
+          <p className="mt-4 max-w-3xl text-sm leading-7 text-muted-foreground">We continue to expand our range, improve sourcing and embrace new technologies so every customer can find reliable, practical products that offer value.</p>
+          <Link to="/wholesale" className="mt-6 inline-flex h-11 items-center gap-2 bg-primary px-5 text-xs font-extrabold uppercase text-primary-foreground">Wholesale & bulk enquiries <ArrowRight className="h-4 w-4" /></Link>
         </section>
 
         <section className="mt-10 flex flex-col gap-5 border-t border-border pt-8 sm:flex-row sm:items-center sm:justify-between">

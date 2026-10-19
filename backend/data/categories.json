@@ -33,5 +33,33 @@
     "short": "TVs",
     "image": "/assets/cat-tv.jpg",
     "filterKey": "Screen Size"
+  },
+  {
+    "slug": "tv-repair-parts",
+    "name": "TV Repair Parts & Displays",
+    "short": "TV Repair Parts",
+    "image": "/assets/imgs/electronic-components.png",
+    "filterKey": "Part Type"
+  },
+  {
+    "slug": "test-repair-equipment",
+    "name": "Test & Repair Equipment",
+    "short": "Test Equipment",
+    "image": "/assets/imgs/laboratory-equipment.png",
+    "filterKey": "Equipment Type"
+  },
+  {
+    "slug": "electrical-control-boxes",
+    "name": "Electrical Boxes & Control",
+    "short": "Control Boxes",
+    "image": "/assets/imgs/other-equipment.png",
+    "filterKey": "Box Type"
+  },
+  {
+    "slug": "led-displays-signage",
+    "name": "LED Displays & Signage",
+    "short": "LED Displays",
+    "image": "/assets/imgs/name-boards.png",
+    "filterKey": "Display Type"
   }
 ]

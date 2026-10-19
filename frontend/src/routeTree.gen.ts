@@ -20,6 +20,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as OrderConfirmationRouteImport } from './routes/order-confirmation'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ShopRouteImport } from './routes/shop'
+import { Route as WholesaleRouteImport } from './routes/wholesale'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin/analytics'
 import { Route as AdminInventoryRouteImport } from './routes/admin/inventory'
@@ -85,6 +86,11 @@ const ShopRoute = ShopRouteImport.update({
   path: '/shop',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WholesaleRoute = WholesaleRouteImport.update({
+  id: '/wholesale',
+  path: '/wholesale',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -143,6 +149,7 @@ export interface FileRoutesByFullPath {
   '/order-confirmation': typeof OrderConfirmationRoute
   '/register': typeof RegisterRoute
   '/shop': typeof ShopRoute
+  '/wholesale': typeof WholesaleRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/offers': typeof AdminOffersRoute
@@ -164,6 +171,7 @@ export interface FileRoutesByTo {
   '/order-confirmation': typeof OrderConfirmationRoute
   '/register': typeof RegisterRoute
   '/shop': typeof ShopRoute
+  '/wholesale': typeof WholesaleRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/offers': typeof AdminOffersRoute
@@ -187,6 +195,7 @@ export interface FileRoutesById {
   '/order-confirmation': typeof OrderConfirmationRoute
   '/register': typeof RegisterRoute
   '/shop': typeof ShopRoute
+  '/wholesale': typeof WholesaleRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/offers': typeof AdminOffersRoute
@@ -211,6 +220,7 @@ export interface FileRouteTypes {
     | '/order-confirmation'
     | '/register'
     | '/shop'
+    | '/wholesale'
     | '/admin/analytics'
     | '/admin/inventory'
     | '/admin/offers'
@@ -232,6 +242,7 @@ export interface FileRouteTypes {
     | '/order-confirmation'
     | '/register'
     | '/shop'
+    | '/wholesale'
     | '/admin/analytics'
     | '/admin/inventory'
     | '/admin/offers'
@@ -254,6 +265,7 @@ export interface FileRouteTypes {
     | '/order-confirmation'
     | '/register'
     | '/shop'
+    | '/wholesale'
     | '/admin/analytics'
     | '/admin/inventory'
     | '/admin/offers'
@@ -277,6 +289,7 @@ export interface RootRouteChildren {
   OrderConfirmationRoute: typeof OrderConfirmationRoute
   RegisterRoute: typeof RegisterRoute
   ShopRoute: typeof ShopRoute
+  WholesaleRoute: typeof WholesaleRoute
   PolicySlugRoute: typeof PolicySlugRoute
   ProductSlugRoute: typeof ProductSlugRoute
 }
@@ -358,6 +371,13 @@ declare module '@tanstack/react-router' {
       path: '/shop'
       fullPath: '/shop'
       preLoaderRoute: typeof ShopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/wholesale': {
+      id: '/wholesale'
+      path: '/wholesale'
+      fullPath: '/wholesale'
+      preLoaderRoute: typeof WholesaleRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/': {
@@ -460,6 +480,7 @@ const rootRouteChildren: RootRouteChildren = {
   OrderConfirmationRoute: OrderConfirmationRoute,
   RegisterRoute: RegisterRoute,
   ShopRoute: ShopRoute,
+  WholesaleRoute: WholesaleRoute,
   PolicySlugRoute: PolicySlugRoute,
   ProductSlugRoute: ProductSlugRoute,
 }

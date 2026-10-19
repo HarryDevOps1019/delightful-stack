@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS products (
   brand           TEXT NOT NULL DEFAULT 'Generic',
   model           TEXT DEFAULT 'Standard',
   category        TEXT NOT NULL,
+  subcategory     TEXT,
   price_cents     INTEGER NOT NULL DEFAULT 0,
   compare_at_cents INTEGER,
   stock           INTEGER NOT NULL DEFAULT 0,
@@ -93,6 +94,8 @@ CREATE TABLE IF NOT EXISTS store_settings (
 );
 
 -- Run these ALTER statements if tables already exist (idempotent):
+ALTER TABLE products ADD COLUMN IF NOT EXISTS subcategory TEXT;
+CREATE INDEX IF NOT EXISTS idx_products_subcategory ON products(subcategory);
 ALTER TABLE products ADD COLUMN IF NOT EXISTS show_price BOOLEAN NOT NULL DEFAULT true;
 ALTER TABLE products ADD COLUMN IF NOT EXISTS show_quantity BOOLEAN NOT NULL DEFAULT true;
 ALTER TABLE products ADD COLUMN IF NOT EXISTS show_availability BOOLEAN NOT NULL DEFAULT true;
