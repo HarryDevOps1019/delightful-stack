@@ -1,8 +1,23 @@
-﻿import { createFileRoute, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { CheckCircle2, Circle, Clock3, PackageSearch, Search, Truck, XCircle } from "lucide-react";
+import {
+  ArrowRight,
+  CheckCircle2,
+  Circle,
+  Clock3,
+  MapPin,
+  MessageCircle,
+  PackageCheck,
+  PackageSearch,
+  Search,
+  ShieldCheck,
+  Truck,
+  XCircle,
+} from "lucide-react";
+import deliveryVisual from "@/assets/imgs/hero-electronics-showcase.png";
 import { PageHeading } from "@/components/site/PageHeading";
+import { useSettings } from "@/context/settings";
 import { fetchOrderStatusApi, type ApiOrder } from "@/services/api";
 
 const POLICY_CONTENT: Record<string, { intro: string; sections: Array<[string, string]> }> = {
@@ -161,7 +176,7 @@ function TrackingTimeline({ status }: { status: OrderStatus }) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
       transition={{ duration: 0.28 }}
-      className="mt-5 rounded-lg border border-border bg-muted/25 p-4"
+      className="mt-7 rounded-lg border border-border bg-muted/25 p-6"
     >
       <div className="flex items-center justify-between">
         <div>
@@ -178,25 +193,25 @@ function TrackingTimeline({ status }: { status: OrderStatus }) {
           <Clock3 className="h-7 w-7 text-amber-500" />
         )}
       </div>
-      <ol className="mt-5 space-y-1 sm:grid sm:grid-cols-5 sm:gap-1 sm:space-y-0">
+      <ol className="mt-6 space-y-3">
         {TRACKING_STEPS.map((step, index) => {
           const complete = index <= activeStep;
           return (
-            <li key={step} className="flex min-w-0 items-stretch gap-3 sm:block">
+            <li key={step} className="flex min-w-0 items-stretch gap-3">
               <motion.div
                 initial={{ scaleY: 0 }}
                 animate={{ scaleY: 1 }}
                 transition={{ delay: index * 0.08, duration: 0.3 }}
-                className={`origin-top w-1 shrink-0 rounded-full ${complete ? "bg-primary" : "bg-border"} sm:origin-left sm:h-1 sm:w-full`}
+                className={`origin-top h-8 w-1 shrink-0 rounded-full ${complete ? "bg-primary" : "bg-border"}`}
               />
-              <div className="flex items-start gap-1 pb-2 sm:mt-1.5 sm:pb-0">
+              <div className="flex items-start gap-2 pb-0">
                 {complete ? (
                   <CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0 text-primary" />
                 ) : (
                   <Circle className="mt-0.5 h-3 w-3 shrink-0 text-muted-foreground" />
                 )}
                 <span
-                  className={`text-[9px] leading-tight ${complete ? "font-semibold text-foreground" : "text-muted-foreground"}`}
+                  className={`text-xs leading-tight ${complete ? "font-semibold text-foreground" : "text-muted-foreground"}`}
                 >
                   {step.replace("Quotation ", "Quote ")}
                 </span>
@@ -214,6 +229,7 @@ function DeliveryTracker() {
   const [status, setStatus] = useState<OrderStatus | null>(null);
   const [error, setError] = useState("");
   const [checking, setChecking] = useState(false);
+  const { settings, buildWhatsAppUrl } = useSettings();
 
   const trackOrder = async (event: FormEvent) => {
     event.preventDefault();
@@ -232,74 +248,183 @@ function DeliveryTracker() {
   };
 
   return (
-    <motion.div
+    <motion.main
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
-      className="container-shop max-w-3xl space-y-6"
+      className="container-shop pb-16 sm:pb-20"
     >
-      <section className="rounded-xl border border-border bg-card p-5 shadow-sm sm:p-7">
-        <div className="flex items-start gap-3">
-          <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
-            <PackageSearch className="h-5 w-5" />
-          </div>
-          <div>
-            <h2 className="text-lg font-extrabold text-foreground">Track your order</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Enter the order or quotation ID from your confirmation page to see its latest status.
-            </p>
-          </div>
-        </div>
-        <form onSubmit={trackOrder} className="mt-5 flex flex-col gap-2 sm:flex-row">
-          <label className="sr-only" htmlFor="tracking-order-id">
-            Order ID
-          </label>
-          <input
-            id="tracking-order-id"
-            value={orderId}
-            onChange={(event) => setOrderId(event.target.value.toUpperCase())}
-            placeholder="Example: AEC-ABC123456"
-            className="h-11 flex-1 rounded-md border border-input bg-background px-3 text-sm font-medium uppercase outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+      <section className="min-h-[680px] overflow-hidden border border-border bg-card shadow-[0_18px_50px_rgb(15_23_42/0.12)] lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(560px,0.9fr)]">
+        <div className="relative min-h-[300px] overflow-hidden bg-ink sm:min-h-[500px] lg:min-h-[680px]">
+          <img
+            src={deliveryVisual}
+            alt="Electronics and components from Asia Electronics"
+            className="absolute inset-0 h-full w-full object-cover opacity-75"
           />
-          <button
-            type="submit"
-            disabled={checking}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-primary px-5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
-          >
-            <Search className="h-4 w-4" />
-            {checking ? "Checking..." : "Track order"}
-          </button>
-        </form>
-        <AnimatePresence mode="wait">
-          {error && (
-            <motion.p
-              initial={{ opacity: 0, y: -4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="mt-3 text-sm font-medium text-rose-600"
+          <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/40 to-transparent" />
+          <div className="relative flex h-full min-h-[300px] flex-col justify-between p-6 text-ink-foreground sm:min-h-[420px] sm:p-9">
+            <div className="inline-flex w-fit items-center gap-2 bg-primary px-3 py-2 text-[10px] font-extrabold uppercase tracking-[0.14em] text-primary-foreground">
+              <Truck className="h-3.5 w-3.5" /> Islandwide delivery
+            </div>
+            <div className="max-w-sm">
+              <p className="text-xs font-extrabold uppercase tracking-[0.22em] text-primary">
+                Asia Electronics & Cellular
+              </p>
+              <h2 className="mt-3 font-display text-3xl font-black uppercase leading-[0.95] sm:text-4xl">
+                Your order, handled with care.
+              </h2>
+              <p className="mt-4 text-sm leading-6 text-ink-foreground/80">
+                From order confirmation to delivery, we keep you informed at every important step.
+              </p>
+            </div>
+            <div className="flex items-center gap-3 border-t border-white/20 pt-4 text-xs text-ink-foreground/80">
+              <ShieldCheck className="h-5 w-5 shrink-0 text-primary" />
+              <span>Order updates, delivery support and product assistance from our team.</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex min-h-[680px] flex-col justify-center p-7 sm:p-10 lg:p-12">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <div className="grid h-11 w-11 place-items-center rounded-full bg-primary/10 text-primary">
+                <PackageSearch className="h-5 w-5" />
+              </div>
+              <h1 className="mt-5 font-display text-2xl font-black uppercase leading-tight text-foreground sm:text-3xl">
+                Track your delivery
+              </h1>
+              <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">
+                Enter your order or quotation ID to see the latest progress from our team.
+              </p>
+            </div>
+            {status === "Delivered" && (
+              <CheckCircle2 className="h-8 w-8 shrink-0 text-emerald-600" />
+            )}
+          </div>
+
+          <form onSubmit={trackOrder} className="mt-7 space-y-3">
+            <label
+              className="text-xs font-extrabold uppercase tracking-wide text-foreground"
+              htmlFor="tracking-order-id"
             >
-              {error}
-            </motion.p>
-          )}
-          {status && <TrackingTimeline status={status} />}
-        </AnimatePresence>
-      </section>
-      <section className="grid gap-4 text-sm text-muted-foreground sm:grid-cols-2">
-        <div className="rounded-lg border border-border p-4">
-          <h3 className="font-bold text-foreground">Delivery updates</h3>
-          <p className="mt-1">
-            Your status updates when our team processes, ships, or completes your order.
-          </p>
+              Order or quotation ID
+            </label>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <input
+                id="tracking-order-id"
+                value={orderId}
+                onChange={(event) => setOrderId(event.target.value.toUpperCase())}
+                placeholder="Example: AEC-ABC123456"
+                className="h-12 min-w-0 flex-1 border border-input bg-background px-3 text-sm font-bold uppercase outline-none transition focus:border-primary focus:ring-1 focus:ring-primary"
+              />
+              <button
+                type="submit"
+                disabled={checking}
+                className="inline-flex h-12 items-center justify-center gap-2 bg-primary px-5 text-xs font-extrabold uppercase text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
+              >
+                <Search className="h-4 w-4" /> {checking ? "Checking..." : "Track order"}
+              </button>
+            </div>
+          </form>
+
+          <AnimatePresence mode="wait">
+            {error && (
+              <motion.p
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="mt-3 text-sm font-medium text-rose-600"
+              >
+                {error}
+              </motion.p>
+            )}
+            {status ? (
+              <TrackingTimeline status={status} />
+            ) : (
+              <div className="mt-7 border-y border-border py-5">
+                {[
+                  ["01", "Order confirmed", "Your order or quotation has been received."],
+                  [
+                    "02",
+                    "Prepared by our team",
+                    "We verify availability and arrange delivery details.",
+                  ],
+                  ["03", "Shipped or delivered", "Track the status until your order is complete."],
+                ].map(([number, heading, detail], index) => (
+                  <div key={number} className={`flex gap-4 ${index ? "mt-4" : ""}`}>
+                    <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full border border-primary text-[10px] font-black text-primary">
+                      {number}
+                    </span>
+                    <div>
+                      <h2 className="text-sm font-bold text-foreground">{heading}</h2>
+                      <p className="mt-0.5 text-xs leading-5 text-muted-foreground">{detail}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </AnimatePresence>
+
+          <div className="mt-7 border-t border-border pt-5">
+            <p className="text-xs font-bold text-muted-foreground">
+              Need delivery help? Include your order ID when you contact us.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2">
+              <a
+                href={buildWhatsAppUrl(
+                  "Hello Asia Electronics, I need a delivery update for order ID: ",
+                )}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-sm font-bold text-primary hover:underline"
+              >
+                <MessageCircle className="h-4 w-4" /> WhatsApp support
+              </a>
+              <Link
+                to="/contact"
+                className="inline-flex items-center gap-2 text-sm font-bold text-foreground hover:text-primary"
+              >
+                <MapPin className="h-4 w-4" /> Contact details{" "}
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+          </div>
         </div>
-        <div className="rounded-lg border border-border p-4">
-          <h3 className="font-bold text-foreground">Need help?</h3>
-          <p className="mt-1">Contact us on WhatsApp with your order ID for delivery assistance.</p>
-        </div>
       </section>
-    </motion.div>
+
+      <section className="mt-6 grid gap-4 sm:grid-cols-3">
+        {[
+          [
+            PackageCheck,
+            "Check your package",
+            "Inspect the package and item condition when receiving your order.",
+          ],
+          [
+            Clock3,
+            "Delivery timing",
+            "Timing can vary by location, product type and stock availability.",
+          ],
+          [
+            MessageCircle,
+            "Talk to our team",
+            `For quick support, contact us on WhatsApp or call ${settings.phone}.`,
+          ],
+        ].map(([Icon, heading, detail]) => {
+          const ItemIcon = Icon as typeof PackageCheck;
+          return (
+            <article key={heading as string} className="border border-border bg-card p-5">
+              <ItemIcon className="h-5 w-5 text-primary" />
+              <h2 className="mt-4 text-sm font-extrabold uppercase text-foreground">
+                {heading as string}
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">{detail as string}</p>
+            </article>
+          );
+        })}
+      </section>
+    </motion.main>
   );
 }
-
 function Policy() {
   const { title } = Route.useLoaderData();
   const slug = Route.useParams().slug;
