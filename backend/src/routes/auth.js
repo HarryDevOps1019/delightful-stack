@@ -4,13 +4,13 @@ import { supabase, createAuthClient } from "../data/supabase.js";
 const router = express.Router();
 
 /**
- * Default admin credentials. Used ONLY to bootstrap the first admin account
+ * Configured administrator credentials. Used ONLY to bootstrap the first admin account
  * in Supabase Auth when no admin exists yet. After the admin changes their
  * email/password from Admin → Settings, these defaults stop working.
- * Override via ADMIN_EMAIL / ADMIN_PASSWORD in backend/.env.
+ * Configure ADMIN_EMAIL / ADMIN_PASSWORD in backend/.env before first use.
  */
-const DEFAULT_ADMIN_EMAIL = (process.env.ADMIN_EMAIL || "admin@gmail.com").trim().toLowerCase();
-const DEFAULT_ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "123456";
+const DEFAULT_ADMIN_EMAIL = (process.env.ADMIN_EMAIL || "").trim().toLowerCase();
+const DEFAULT_ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "";
 const DEFAULT_ADMIN_NAME = "Store Administrator";
 
 /**
@@ -62,6 +62,10 @@ async function ensureAdminAccount() {
     return;
   }
 
+  if (!DEFAULT_ADMIN_EMAIL || !DEFAULT_ADMIN_PASSWORD) {
+    throw new Error("ADMIN_EMAIL and ADMIN_PASSWORD must be configured before creating the first admin account");
+  }
+
   const legacy = users.find((u) => u.email?.toLowerCase() === DEFAULT_ADMIN_EMAIL);
   if (legacy) {
     const { error } = await supabase.auth.admin.updateUserById(legacy.id, {
@@ -79,7 +83,7 @@ async function ensureAdminAccount() {
       user_metadata: { name: DEFAULT_ADMIN_NAME, role: "admin" },
     });
     if (error) throw error;
-    console.log(`🔐 Default admin created in Supabase Auth: ${DEFAULT_ADMIN_EMAIL}`);
+    console.log(`🔐 Configured administrator created in Supabase Auth: ${DEFAULT_ADMIN_EMAIL}`);
   }
 
   adminEnsured = true;

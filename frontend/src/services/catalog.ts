@@ -120,8 +120,9 @@ export async function syncCatalogWithBackend() {
         });
         const mergedCategories = [
           ...syncedCats,
-          ...defaultCategories.filter((defaultCategory) =>
-            !syncedCats.some((category) => category.slug === defaultCategory.slug),
+          ...defaultCategories.filter(
+            (defaultCategory) =>
+              !syncedCats.some((category) => category.slug === defaultCategory.slug),
           ),
         ];
         saveStoredCategories(mergedCategories);

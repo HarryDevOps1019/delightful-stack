@@ -1,4 +1,5 @@
 import express from "express";
+import { requireAdmin, requireAuth } from "../middleware/auth.js";
 import { readCategories, insertCategory, updateCategoryInDb, deleteCategory, readProducts } from "../data/db.js";
 
 const router = express.Router();
@@ -39,7 +40,7 @@ router.get("/", async (req, res) => {
 });
 
 // POST /api/categories
-router.post("/", async (req, res) => {
+router.post("/", requireAuth, requireAdmin, async (req, res) => {
   try {
     const { name, slug, short, image, filterKey, subcategories } = req.body;
     if (!name || !slug) {
@@ -68,7 +69,7 @@ router.post("/", async (req, res) => {
 });
 
 // PUT /api/categories/:slug
-router.put("/:slug", async (req, res) => {
+router.put("/:slug", requireAuth, requireAdmin, async (req, res) => {
   try {
     const updates = { ...req.body };
     if (updates.subcategories !== undefined) {
@@ -84,7 +85,7 @@ router.put("/:slug", async (req, res) => {
 });
 
 // DELETE /api/categories/:slug
-router.delete("/:slug", async (req, res) => {
+router.delete("/:slug", requireAuth, requireAdmin, async (req, res) => {
   try {
     await deleteCategory(req.params.slug);
     res.json({ success: true, message: "Category deleted successfully" });

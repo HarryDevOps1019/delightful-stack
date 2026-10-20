@@ -1,4 +1,4 @@
-﻿import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, useMemo } from "react";
 import { formatRupees } from "@/lib/format";
 import { PageHeading } from "@/components/site/PageHeading";
@@ -35,9 +35,15 @@ export const Route = createFileRoute("/account")({
   head: () => ({
     meta: [
       { title: "My Account & Orders â€” Asia Electronics" },
-      { name: "description", content: "Customer account, profile details, and live order history." },
+      {
+        name: "description",
+        content: "Customer account, profile details, and live order history.",
+      },
       { property: "og:title", content: "My Account & Orders â€” Asia Electronics" },
-      { property: "og:description", content: "Customer account, profile details, and live order history." },
+      {
+        property: "og:description",
+        content: "Customer account, profile details, and live order history.",
+      },
     ],
   }),
   component: Account,
@@ -65,7 +71,9 @@ function StatusBadge({ status }: { status: string }) {
   }
 
   return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${bg}`}>
+    <span
+      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${bg}`}
+    >
       {status || "Quotation Requested"}
     </span>
   );
@@ -139,8 +147,8 @@ function OrderDetailsModal({
       onOrderUpdated(result.data);
       setIsEditing(false);
       toast.success("Order details and delivery destination updated successfully!");
-    } catch (err: any) {
-      toast.error(err.message || "Failed to save changes");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to save changes");
     } finally {
       setSaving(false);
     }
@@ -158,7 +166,7 @@ function OrderDetailsModal({
 
   // Build WhatsApp inquiry link
   const waMessage = encodeURIComponent(
-    `Hello Asia Electronics! I would like an update regarding my Order #${order.id} (${order.customerName}). Status: ${order.status}`
+    `Hello Asia Electronics! I would like an update regarding my Order #${order.id} (${order.customerName}). Status: ${order.status}`,
   );
   const waUrl = `https://wa.me/${whatsappDigits}?text=${waMessage}`;
 
@@ -180,7 +188,11 @@ function OrderDetailsModal({
                 className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
                 title="Copy Order ID"
               >
-                {copied ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+                {copied ? (
+                  <Check className="h-3.5 w-3.5 text-emerald-500" />
+                ) : (
+                  <Copy className="h-3.5 w-3.5" />
+                )}
               </button>
             </div>
             <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1.5">
@@ -245,7 +257,10 @@ function OrderDetailsModal({
 
           {isEditing ? (
             /* Inline Edit Form */
-            <form onSubmit={handleSaveEdit} className="p-4 rounded-lg border border-primary/30 bg-primary/5 space-y-4 text-xs">
+            <form
+              onSubmit={handleSaveEdit}
+              className="p-4 rounded-lg border border-primary/30 bg-primary/5 space-y-4 text-xs"
+            >
               <div className="flex items-center gap-2 text-primary font-bold">
                 <Edit2 className="h-4 w-4" />
                 Edit Delivery Information
@@ -314,7 +329,9 @@ function OrderDetailsModal({
                 </div>
 
                 <div className="md:col-span-2 space-y-1">
-                  <label className="font-semibold text-foreground">Delivery Notes / Special Instructions</label>
+                  <label className="font-semibold text-foreground">
+                    Delivery Notes / Special Instructions
+                  </label>
                   <textarea
                     rows={2}
                     value={editForm.notes}
@@ -342,7 +359,11 @@ function OrderDetailsModal({
                   disabled={saving}
                   className="rounded-none text-xs bg-primary text-white flex items-center gap-1.5"
                 >
-                  {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+                  {saving ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Save className="h-3.5 w-3.5" />
+                  )}
                   Save Changes
                 </Button>
               </div>
@@ -406,7 +427,9 @@ function OrderDetailsModal({
                     return (
                       <tr key={idx} className="hover:bg-muted/30 transition-colors">
                         <td className="px-4 py-3 font-medium text-foreground">{it.name}</td>
-                        <td className="px-4 py-3 text-center font-mono text-muted-foreground">{it.sku}</td>
+                        <td className="px-4 py-3 text-center font-mono text-muted-foreground">
+                          {it.sku}
+                        </td>
                         <td className="px-4 py-3 text-center font-bold">{it.qty}</td>
                         <td className="px-4 py-3 text-right text-muted-foreground">
                           {price > 0 ? formatRupees(price) : "Quote required"}
@@ -532,7 +555,9 @@ function Account() {
           o.customerName?.toLowerCase().includes(q) ||
           o.email?.toLowerCase().includes(q) ||
           o.city?.toLowerCase().includes(q) ||
-          o.items?.some((it) => it.name?.toLowerCase().includes(q) || it.sku?.toLowerCase().includes(q)),
+          o.items?.some(
+            (it) => it.name?.toLowerCase().includes(q) || it.sku?.toLowerCase().includes(q),
+          ),
       );
     }
 
@@ -546,7 +571,9 @@ function Account() {
         <PageHeading title="My Account & Order History" />
         <div className="container-shop py-20 text-center space-y-3">
           <RefreshCw className="h-8 w-8 text-primary animate-spin mx-auto" />
-          <p className="text-xs font-semibold text-muted-foreground">Checking authentication session...</p>
+          <p className="text-xs font-semibold text-muted-foreground">
+            Checking authentication session...
+          </p>
         </div>
       </>
     );
@@ -565,14 +592,22 @@ function Account() {
             <div className="space-y-1.5">
               <h2 className="text-xl font-bold text-foreground">Sign In to View Your Orders</h2>
               <p className="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">
-                Your order history, quotation status, and delivery details are private. Please sign in to your account to view your past and active orders.
+                Your order history, quotation status, and delivery details are private. Please sign
+                in to your account to view your past and active orders.
               </p>
             </div>
             <div className="pt-2 space-y-2.5 max-w-xs mx-auto">
-              <Button asChild className="w-full rounded-none bg-primary hover:bg-primary/90 text-white font-bold text-xs py-2.5">
+              <Button
+                asChild
+                className="w-full rounded-none bg-primary hover:bg-primary/90 text-white font-bold text-xs py-2.5"
+              >
                 <Link to="/login">Sign In to Your Account</Link>
               </Button>
-              <Button asChild variant="outline" className="w-full rounded-none text-xs py-2.5 font-semibold">
+              <Button
+                asChild
+                variant="outline"
+                className="w-full rounded-none text-xs py-2.5 font-semibold"
+              >
                 <Link to="/register">Create a New Account</Link>
               </Button>
             </div>
@@ -609,7 +644,9 @@ function Account() {
                   {user.name.charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <p className="font-display font-extrabold text-foreground leading-tight">{user.name}</p>
+                  <p className="font-display font-extrabold text-foreground leading-tight">
+                    {user.name}
+                  </p>
                   <p className="text-xs text-muted-foreground">{user.email}</p>
                 </div>
               </div>
@@ -627,7 +664,10 @@ function Account() {
               </div>
 
               {isAdmin && (
-                <Button asChild className="w-full bg-primary hover:bg-primary/90 text-white rounded-none font-bold text-xs">
+                <Button
+                  asChild
+                  className="w-full bg-primary hover:bg-primary/90 text-white rounded-none font-bold text-xs"
+                >
                   <Link to="/admin" className="flex items-center justify-center gap-1.5">
                     <ShieldCheck className="h-4 w-4" />
                     Open Admin Portal
@@ -676,8 +716,8 @@ function Account() {
                   {isAdmin
                     ? "Store administrator view: Displaying live customer quotation orders from Supabase"
                     : user
-                    ? `Showing orders associated with ${user.email}`
-                    : "Track recent customer quotation orders and live statuses"}
+                      ? `Showing orders associated with ${user.email}`
+                      : "Track recent customer quotation orders and live statuses"}
                 </p>
               </div>
 
@@ -731,7 +771,9 @@ function Account() {
             {loading ? (
               <div className="border border-border p-12 text-center bg-tile rounded space-y-3">
                 <RefreshCw className="h-6 w-6 text-primary animate-spin mx-auto" />
-                <p className="text-xs font-semibold text-muted-foreground">Loading orders from Supabase database...</p>
+                <p className="text-xs font-semibold text-muted-foreground">
+                  Loading orders from Supabase database...
+                </p>
               </div>
             ) : filteredOrders.length === 0 ? (
               <div className="border border-border p-12 text-center bg-tile rounded space-y-4">
@@ -744,8 +786,8 @@ function Account() {
                     {searchQuery
                       ? "No orders match your search criteria. Try searching with a different Order ID or phone number."
                       : user
-                      ? "You haven't requested any quotations yet. When you request a quotation through checkout, it will be listed here with live updates."
-                      : "Sign in to see your account's order history, or search by your Order ID above."}
+                        ? "You haven't requested any quotations yet. When you request a quotation through checkout, it will be listed here with live updates."
+                        : "Sign in to see your account's order history, or search by your Order ID above."}
                   </p>
                 </div>
                 <Button asChild className="rounded-none text-xs font-bold bg-primary text-white">
@@ -777,7 +819,9 @@ function Account() {
                             })
                           : "â€”";
 
-                        const itemsCount = o.items ? o.items.reduce((s, it) => s + (it.qty || 1), 0) : 0;
+                        const itemsCount = o.items
+                          ? o.items.reduce((s, it) => s + (it.qty || 1), 0)
+                          : 0;
                         const firstItemName = o.items?.[0]?.name || "Component Item";
 
                         return (
@@ -785,7 +829,13 @@ function Account() {
                             <td className="px-4 py-3">
                               <div className="flex items-center gap-1.5 font-mono font-bold text-primary">
                                 <span>#{o.id}</span>
-                                <button type="button" onClick={() => void copyOrderId(o.id)} title="Copy Order ID" aria-label={`Copy order ID ${o.id}`} className="rounded p-1 text-primary hover:bg-primary/10">
+                                <button
+                                  type="button"
+                                  onClick={() => void copyOrderId(o.id)}
+                                  title="Copy Order ID"
+                                  aria-label={`Copy order ID ${o.id}`}
+                                  className="rounded p-1 text-primary hover:bg-primary/10"
+                                >
                                   <Copy className="h-3.5 w-3.5" />
                                 </button>
                               </div>
@@ -798,7 +848,9 @@ function Account() {
                               <p className="text-[11px] text-muted-foreground">{o.phone}</p>
                             </td>
                             <td className="px-4 py-3 max-w-[200px]">
-                              <p className="truncate font-medium text-foreground">{firstItemName}</p>
+                              <p className="truncate font-medium text-foreground">
+                                {firstItemName}
+                              </p>
                               <p className="text-[11px] text-muted-foreground">
                                 {itemsCount} {itemsCount === 1 ? "item" : "items"} total
                               </p>
@@ -829,7 +881,10 @@ function Account() {
 
                 <div className="p-3 border-t border-border bg-muted/20 text-xs text-muted-foreground flex items-center justify-between">
                   <span>Showing {filteredOrders.length} order(s)</span>
-                  <span className="text-[11px]">Click &ldquo;Details&rdquo; to view line items or edit delivery info before shipping</span>
+                  <span className="text-[11px]">
+                    Click &ldquo;Details&rdquo; to view line items or edit delivery info before
+                    shipping
+                  </span>
                 </div>
               </div>
             )}

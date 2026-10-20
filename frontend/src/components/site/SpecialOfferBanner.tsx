@@ -65,8 +65,7 @@ function BannerSlide({ banner }: { banner: Banner }) {
 
   if (hasCta) {
     const isExternal =
-      banner.ctaLink!.startsWith("http://") ||
-      banner.ctaLink!.startsWith("https://");
+      banner.ctaLink!.startsWith("http://") || banner.ctaLink!.startsWith("https://");
     if (isExternal) {
       return (
         <a
@@ -87,7 +86,11 @@ function BannerSlide({ banner }: { banner: Banner }) {
     );
   }
 
-  return <div className="block w-full" style={{ minHeight: 220 }}>{inner}</div>;
+  return (
+    <div className="block w-full" style={{ minHeight: 220 }}>
+      {inner}
+    </div>
+  );
 }
 
 // â”€â”€â”€ Carousel wrapper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -101,7 +104,7 @@ function BannerCarousel({ banners }: { banners: Banner[] }) {
       setDir(delta);
       setIdx((i) => (i + delta + banners.length) % banners.length);
     },
-    [banners.length]
+    [banners.length],
   );
 
   // Auto-advance every 6 s when multiple banners
@@ -209,7 +212,9 @@ export function SpecialOfferBanner() {
           role="dialog"
           aria-modal="true"
           aria-label="Special offers"
-          onClick={(event) => { if (event.target === event.currentTarget) close(); }}
+          onClick={(event) => {
+            if (event.target === event.currentTarget) close();
+          }}
         >
           <motion.section
             initial={{ opacity: 0, y: 24, scale: 0.97 }}
@@ -218,11 +223,22 @@ export function SpecialOfferBanner() {
             transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
             className="relative w-full max-w-4xl overflow-hidden rounded-xl bg-black shadow-2xl"
           >
-            <button type="button" onClick={close} aria-label="Close special offers" className="absolute right-3 top-3 z-30 grid h-9 w-9 place-items-center rounded-full bg-black/65 text-white backdrop-blur-sm transition-colors hover:bg-primary">
+            <button
+              type="button"
+              onClick={close}
+              aria-label="Close special offers"
+              className="absolute right-3 top-3 z-30 grid h-9 w-9 place-items-center rounded-full bg-black/65 text-white backdrop-blur-sm transition-colors hover:bg-primary"
+            >
               <X className="h-4 w-4" />
             </button>
             <BannerCarousel banners={banners} />
-            <button type="button" onClick={close} className="absolute bottom-3 right-4 z-30 text-[11px] font-semibold text-white/80 underline-offset-2 hover:text-white hover:underline">No thanks</button>
+            <button
+              type="button"
+              onClick={close}
+              className="absolute bottom-3 right-4 z-30 text-[11px] font-semibold text-white/80 underline-offset-2 hover:text-white hover:underline"
+            >
+              No thanks
+            </button>
           </motion.section>
         </motion.div>
       )}

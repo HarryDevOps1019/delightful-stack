@@ -1,4 +1,5 @@
 import express from "express";
+import { requireAdmin, requireAuth } from "../middleware/auth.js";
 import { readSettings, updateSettings } from "../data/db.js";
 
 const router = express.Router();
@@ -17,7 +18,7 @@ router.get("/", async (req, res) => {
 });
 
 // PUT /api/settings
-router.put("/", async (req, res) => {
+router.put("/", requireAuth, requireAdmin, async (req, res) => {
   try {
     const updated = await updateSettings(req.body);
     res.json({

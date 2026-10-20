@@ -1,5 +1,10 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { fetchSettingsApi, updateSettingsApi, type ApiSettings, DEFAULT_SETTINGS } from "@/services/api";
+import {
+  fetchSettingsApi,
+  updateSettingsApi,
+  type ApiSettings,
+  DEFAULT_SETTINGS,
+} from "@/services/api";
 import { cleanWhatsAppNumber } from "@/lib/config";
 
 interface SettingsContextValue {
@@ -67,7 +72,8 @@ export function useSettings(): SettingsContextValue {
       whatsappDigits,
       updateSettings: async () => false,
       refreshSettings: async () => {},
-      buildWhatsAppUrl: (message: string) => `https://wa.me/${whatsappDigits}?text=${encodeURIComponent(message)}`,
+      buildWhatsAppUrl: (message: string) =>
+        `https://wa.me/${whatsappDigits}?text=${encodeURIComponent(message)}`,
     };
   }
   return ctx;

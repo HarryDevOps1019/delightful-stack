@@ -29,9 +29,7 @@ export interface Banner extends BannerFormValues {
 // ─── Timezone helper (Asia/Colombo) ──────────────────────────────────────────
 
 export function nowInColombo(): Date {
-  return new Date(
-    new Date().toLocaleString("en-US", { timeZone: "Asia/Colombo" })
-  );
+  return new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Colombo" }));
 }
 
 /**

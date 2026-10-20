@@ -1,4 +1,12 @@
-import { createContext, useContext, useEffect, useMemo, useReducer, useRef, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  type ReactNode,
+} from "react";
 import { getStoredProducts } from "@/services/catalog";
 import type { Product } from "@/lib/types";
 
@@ -26,7 +34,9 @@ export function reducer(state: CartLine[], a: Action): CartLine[] {
       const key = `${a.productId}::${a.variant ?? ""}`;
       const existing = state.find((l) => l.key === key);
       // stock cap is per product across variants
-      const otherQty = state.filter((l) => l.productId === a.productId && l.key !== key).reduce((s, l) => s + l.qty, 0);
+      const otherQty = state
+        .filter((l) => l.productId === a.productId && l.key !== key)
+        .reduce((s, l) => s + l.qty, 0);
       const stock = findProduct(a.productId)?.stock ?? 0;
       const next = Math.min((existing?.qty ?? 0) + a.qty, Math.max(0, stock - otherQty));
       if (next <= 0) return state;
@@ -36,7 +46,9 @@ export function reducer(state: CartLine[], a: Action): CartLine[] {
     case "set": {
       const line = state.find((l) => l.key === a.key);
       if (!line) return state;
-      const otherQty = state.filter((l) => l.productId === line.productId && l.key !== a.key).reduce((s, l) => s + l.qty, 0);
+      const otherQty = state
+        .filter((l) => l.productId === line.productId && l.key !== a.key)
+        .reduce((s, l) => s + l.qty, 0);
       const stock = findProduct(line.productId)?.stock ?? 0;
       const qty = Math.min(Math.max(1, a.qty), Math.max(1, stock - otherQty));
       return state.map((l) => (l.key === a.key ? { ...l, qty } : l));
@@ -46,7 +58,10 @@ export function reducer(state: CartLine[], a: Action): CartLine[] {
     case "clear":
       return [];
     case "hydrate":
-      return a.lines.filter((l) => findProduct(l.productId)).map((l) => ({ ...l, qty: cap(l.productId, l.qty) })).filter((l) => l.qty > 0);
+      return a.lines
+        .filter((l) => findProduct(l.productId))
+        .map((l) => ({ ...l, qty: cap(l.productId, l.qty) }))
+        .filter((l) => l.qty > 0);
   }
 }
 
@@ -92,7 +107,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return product ? [{ ...l, product, lineTotal: product.priceCents * l.qty }] : [];
     });
     const subtotal = lines.reduce((s, l) => s + l.lineTotal, 0);
-    const delivery = subtotal === 0 || subtotal >= FREE_DELIVERY_OVER_CENTS ? 0 : DELIVERY_FLAT_CENTS;
+    const delivery =
+      subtotal === 0 || subtotal >= FREE_DELIVERY_OVER_CENTS ? 0 : DELIVERY_FLAT_CENTS;
     return {
       lines,
       count: lines.reduce((s, l) => s + l.qty, 0),
@@ -104,7 +120,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       remove: (key) => dispatch({ type: "remove", key }),
       clear: () => dispatch({ type: "clear" }),
       remainingFor: (productId) =>
-        (findProduct(productId)?.stock ?? 0) - state.filter((l) => l.productId === productId).reduce((s, l) => s + l.qty, 0),
+        (findProduct(productId)?.stock ?? 0) -
+        state.filter((l) => l.productId === productId).reduce((s, l) => s + l.qty, 0),
     };
   }, [state]);
 

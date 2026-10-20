@@ -10,8 +10,20 @@ export function LGLogo({ className = "h-7 w-auto" }: BrandLogoProps) {
       <svg viewBox="0 0 100 100" className="h-7 w-7 text-[#A50034] shrink-0 fill-current">
         <circle cx="50" cy="50" r="48" fill="none" stroke="#A50034" strokeWidth="8" />
         <circle cx="36" cy="38" r="5" fill="#A50034" />
-        <path d="M50 24 v36 h22" fill="none" stroke="#A50034" strokeWidth="8" strokeLinecap="round" />
-        <path d="M72 48 v18 A26 26 0 1 1 50 24" fill="none" stroke="#A50034" strokeWidth="8" strokeLinecap="round" />
+        <path
+          d="M50 24 v36 h22"
+          fill="none"
+          stroke="#A50034"
+          strokeWidth="8"
+          strokeLinecap="round"
+        />
+        <path
+          d="M72 48 v18 A26 26 0 1 1 50 24"
+          fill="none"
+          stroke="#A50034"
+          strokeWidth="8"
+          strokeLinecap="round"
+        />
       </svg>
       <span className="font-bold text-lg tracking-tight text-[#4a4a4a]">LG</span>
     </div>
@@ -59,7 +71,9 @@ export function AppleLogo({ className = "h-7 w-auto" }: BrandLogoProps) {
 
 export function AbansLogo({ className = "h-7 w-auto" }: BrandLogoProps) {
   return (
-    <div className={`flex items-center justify-center font-extrabold text-xl tracking-tight text-[#611160] ${className}`}>
+    <div
+      className={`flex items-center justify-center font-extrabold text-xl tracking-tight text-[#611160] ${className}`}
+    >
       <span className="font-display italic font-black">Abans</span>
     </div>
   );
@@ -67,7 +81,9 @@ export function AbansLogo({ className = "h-7 w-auto" }: BrandLogoProps) {
 
 export function HaierLogo({ className = "h-7 w-auto" }: BrandLogoProps) {
   return (
-    <div className={`flex items-center justify-center text-[#005BAC] font-black tracking-tight text-xl ${className}`}>
+    <div
+      className={`flex items-center justify-center text-[#005BAC] font-black tracking-tight text-xl ${className}`}
+    >
       <span>Haier</span>
     </div>
   );
@@ -75,7 +91,9 @@ export function HaierLogo({ className = "h-7 w-auto" }: BrandLogoProps) {
 
 export function SamsungLogo({ className = "h-7 w-auto" }: BrandLogoProps) {
   return (
-    <div className={`flex items-center justify-center font-black text-base tracking-widest text-[#034EA2] ${className}`}>
+    <div
+      className={`flex items-center justify-center font-black text-base tracking-widest text-[#034EA2] ${className}`}
+    >
       <span>SAMSUNG</span>
     </div>
   );
@@ -83,7 +101,9 @@ export function SamsungLogo({ className = "h-7 w-auto" }: BrandLogoProps) {
 
 export function SonyLogo({ className = "h-7 w-auto" }: BrandLogoProps) {
   return (
-    <div className={`flex items-center justify-center font-serif font-black text-lg tracking-wider text-black ${className}`}>
+    <div
+      className={`flex items-center justify-center font-serif font-black text-lg tracking-wider text-black ${className}`}
+    >
       <span>SONY</span>
     </div>
   );
@@ -91,7 +111,9 @@ export function SonyLogo({ className = "h-7 w-auto" }: BrandLogoProps) {
 
 export function PhilipsLogo({ className = "h-7 w-auto" }: BrandLogoProps) {
   return (
-    <div className={`flex items-center justify-center font-bold text-base tracking-widest text-[#0b5ed7] ${className}`}>
+    <div
+      className={`flex items-center justify-center font-bold text-base tracking-widest text-[#0b5ed7] ${className}`}
+    >
       <span>PHILIPS</span>
     </div>
   );
@@ -99,7 +121,9 @@ export function PhilipsLogo({ className = "h-7 w-auto" }: BrandLogoProps) {
 
 export function TCLLogo({ className = "h-7 w-auto" }: BrandLogoProps) {
   return (
-    <div className={`flex items-center justify-center font-black text-xl italic tracking-tighter text-[#E11D48] ${className}`}>
+    <div
+      className={`flex items-center justify-center font-black text-xl italic tracking-tighter text-[#E11D48] ${className}`}
+    >
       <span>TCL</span>
     </div>
   );
@@ -109,14 +133,18 @@ export function ToshibaLogo({ className = "h-7 w-auto" }: BrandLogoProps) {
   return (
     <div className={`flex flex-col items-center justify-center leading-none ${className}`}>
       <span className="font-extrabold text-sm tracking-tight text-[#E11D48]">TOSHIBA</span>
-      <span className="text-[7px] text-zinc-600 font-semibold tracking-tighter">Leading Innovation &gt;&gt;</span>
+      <span className="text-[7px] text-zinc-600 font-semibold tracking-tighter">
+        Leading Innovation &gt;&gt;
+      </span>
     </div>
   );
 }
 
 export function AnkerLogo({ className = "h-7 w-auto" }: BrandLogoProps) {
   return (
-    <div className={`flex items-center justify-center font-black text-base tracking-wider text-[#00A0DF] ${className}`}>
+    <div
+      className={`flex items-center justify-center font-black text-base tracking-wider text-[#00A0DF] ${className}`}
+    >
       <span>ANKER</span>
     </div>
   );
@@ -124,7 +152,9 @@ export function AnkerLogo({ className = "h-7 w-auto" }: BrandLogoProps) {
 
 export function HakkoLogo({ className = "h-7 w-auto" }: BrandLogoProps) {
   return (
-    <div className={`flex items-center justify-center font-black text-base tracking-wider text-[#0066B2] ${className}`}>
+    <div
+      className={`flex items-center justify-center font-black text-base tracking-wider text-[#0066B2] ${className}`}
+    >
       <span>HAKKO</span>
     </div>
   );
@@ -132,7 +162,9 @@ export function HakkoLogo({ className = "h-7 w-auto" }: BrandLogoProps) {
 
 export function NichiconLogo({ className = "h-7 w-auto" }: BrandLogoProps) {
   return (
-    <div className={`flex items-center justify-center font-black text-base tracking-tight text-zinc-900 ${className}`}>
+    <div
+      className={`flex items-center justify-center font-black text-base tracking-tight text-zinc-900 ${className}`}
+    >
       <span className="text-[#E11D48]">nichi</span>
       <span>con</span>
     </div>
@@ -152,7 +184,9 @@ export function TexasInstrumentsLogo({ className = "h-7 w-auto" }: BrandLogoProp
 
 export function KesterLogo({ className = "h-7 w-auto" }: BrandLogoProps) {
   return (
-    <div className={`flex items-center justify-center font-extrabold text-sm tracking-tight text-[#008080] ${className}`}>
+    <div
+      className={`flex items-center justify-center font-extrabold text-sm tracking-tight text-[#008080] ${className}`}
+    >
       <span>Kester</span>
     </div>
   );
@@ -169,7 +203,9 @@ export function OrangeElectricLogo({ className = "h-7 w-auto" }: BrandLogoProps)
 
 export function KeyestudioLogo({ className = "h-7 w-auto" }: BrandLogoProps) {
   return (
-    <div className={`flex items-center justify-center bg-black text-yellow-400 px-2 py-0.5 rounded font-black text-[11px] tracking-tight ${className}`}>
+    <div
+      className={`flex items-center justify-center bg-black text-yellow-400 px-2 py-0.5 rounded font-black text-[11px] tracking-tight ${className}`}
+    >
       <span>KEYESTUDIO</span>
     </div>
   );
@@ -177,7 +213,9 @@ export function KeyestudioLogo({ className = "h-7 w-auto" }: BrandLogoProps) {
 
 export function EdifierLogo({ className = "h-7 w-auto" }: BrandLogoProps) {
   return (
-    <div className={`flex items-center justify-center font-black text-base tracking-widest text-zinc-800 ${className}`}>
+    <div
+      className={`flex items-center justify-center font-black text-base tracking-widest text-zinc-800 ${className}`}
+    >
       <span>EDIFIER</span>
     </div>
   );

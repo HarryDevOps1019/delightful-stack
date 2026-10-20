@@ -75,10 +75,7 @@ export async function createBanner(values: BannerFormValues): Promise<Banner> {
   return banner;
 }
 
-export async function updateBanner(
-  id: string,
-  values: BannerFormValues
-): Promise<Banner> {
+export async function updateBanner(id: string, values: BannerFormValues): Promise<Banner> {
   await new Promise((r) => setTimeout(r, 300));
   const all = loadAll();
   const idx = all.findIndex((b) => b.id === id);

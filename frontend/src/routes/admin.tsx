@@ -77,7 +77,7 @@ const TITLES: Record<string, string> = {
 
 function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { logout, user } = useAuth();
+  const { logout, user, isAdmin, isLoading } = useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const productAction = useRouterState({
@@ -89,6 +89,16 @@ function AdminLayout() {
   useEffect(() => {
     if (pathname.startsWith("/admin/products")) setProductsMenuOpen(true);
   }, [pathname]);
+
+  useEffect(() => {
+    if (!isLoading && !isAdmin) {
+      void navigate({ to: "/login", replace: true });
+    }
+  }, [isAdmin, isLoading, navigate]);
+
+  if (isLoading || !isAdmin) {
+    return null;
+  }
 
   const handleLogout = async () => {
     await logout();

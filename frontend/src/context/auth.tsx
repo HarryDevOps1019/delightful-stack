@@ -1,5 +1,12 @@
-﻿import React, { createContext, useContext, useEffect, useState } from "react";
-import { AuthUser, loginApi, registerApi, fetchCurrentUserApi, logoutApi, updateAdminCredentialsApi } from "@/services/api";
+import React, { createContext, useContext, useEffect, useState } from "react";
+import {
+  AuthUser,
+  loginApi,
+  registerApi,
+  fetchCurrentUserApi,
+  logoutApi,
+  updateAdminCredentialsApi,
+} from "@/services/api";
 import { toast } from "sonner";
 
 interface AuthContextType {
@@ -10,7 +17,11 @@ interface AuthContextType {
   login: (credentials: { email: string; password: string }) => Promise<AuthUser | null>;
   register: (data: { name: string; email: string; password: string }) => Promise<boolean>;
   logout: () => Promise<void>;
-  updateAdminCredentials: (data: { currentPassword: string; newEmail?: string; newPassword?: string }) => Promise<boolean>;
+  updateAdminCredentials: (data: {
+    currentPassword: string;
+    newEmail?: string;
+    newPassword?: string;
+  }) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -58,10 +69,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     void restoreSession();
-    return () => { isMounted = false; };
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  const login = async (credentials: { email: string; password: string }): Promise<AuthUser | null> => {
+  const login = async (credentials: {
+    email: string;
+    password: string;
+  }): Promise<AuthUser | null> => {
     setIsLoading(true);
     try {
       const res = await loginApi(credentials);
@@ -76,15 +92,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return res.user;
       }
       return null;
-    } catch (err: any) {
-      toast.error(err.message || "Invalid credentials");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Invalid credentials");
       return null;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const register = async (data: { name: string; email: string; password: string }): Promise<boolean> => {
+  const register = async (data: {
+    name: string;
+    email: string;
+    password: string;
+  }): Promise<boolean> => {
     setIsLoading(true);
     try {
       const res = await registerApi(data);
@@ -99,8 +119,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return true;
       }
       return false;
-    } catch (err: any) {
-      toast.error(err.message || "Failed to create account");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to create account");
       return false;
     } finally {
       setIsLoading(false);
@@ -138,8 +158,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       toast.success(res.message || "Admin credentials updated");
       return true;
-    } catch (err: any) {
-      toast.error(err.message || "Failed to update credentials");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to update credentials");
       return false;
     }
   };

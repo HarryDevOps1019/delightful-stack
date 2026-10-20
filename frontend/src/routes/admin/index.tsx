@@ -1,6 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { DollarSign, ShoppingCart, Package, AlertTriangle, Layers, ShoppingBag, ArrowUpRight, CheckCircle2 } from "lucide-react";
+import {
+  DollarSign,
+  ShoppingCart,
+  Package,
+  AlertTriangle,
+  Layers,
+  ShoppingBag,
+  ArrowUpRight,
+  CheckCircle2,
+} from "lucide-react";
 import { useCatalog } from "@/services/catalog";
 import { formatLKR, formatRupees } from "@/lib/format";
 import { StatusBadge, StockBadge } from "@/components/admin/shared";
@@ -34,7 +43,10 @@ function OverviewPage() {
   const totalRevenueLKR = validOrders.reduce((a, o) => a + (Number(o.totalLKR) || 0), 0);
 
   const processingOrders = orders.filter(
-    (o) => o.status === "Processing" || o.status === "Quotation Requested" || o.status === "Quotation Sent"
+    (o) =>
+      o.status === "Processing" ||
+      o.status === "Quotation Requested" ||
+      o.status === "Quotation Sent",
   ).length;
   const deliveredOrders = orders.filter((o) => o.status === "Delivered").length;
   const cancelledOrders = orders.filter((o) => o.status === "Cancelled").length;
@@ -90,10 +102,14 @@ function OverviewPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {kpis.map((k) => (
           <div key={k.label} className="admin-card group relative overflow-hidden">
-            <div className={`absolute inset-0 bg-gradient-to-br ${k.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
+            <div
+              className={`absolute inset-0 bg-gradient-to-br ${k.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}
+            />
             <div className="flex items-start justify-between mb-3">
               <div>
-                <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">{k.label}</p>
+                <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+                  {k.label}
+                </p>
                 <p className="mt-1.5 text-2xl font-black text-white tracking-tight">{k.value}</p>
               </div>
               <div className={`p-2.5 rounded-xl bg-gradient-to-br ${k.color} shadow-lg`}>
@@ -122,7 +138,9 @@ function OverviewPage() {
               <div key={c.slug}>
                 <div className="flex justify-between text-xs mb-1.5">
                   <span className="text-zinc-300 font-semibold">{c.name}</span>
-                  <span className="text-zinc-400 font-mono">{c.count} items ({c.pct}%)</span>
+                  <span className="text-zinc-400 font-mono">
+                    {c.count} items ({c.pct}%)
+                  </span>
                 </div>
                 <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
                   <div
@@ -132,7 +150,9 @@ function OverviewPage() {
                 </div>
                 <div className="flex justify-between text-[10px] text-zinc-500 mt-1">
                   <span>Stock value:</span>
-                  <span className="text-zinc-400 font-semibold">{formatLKR(c.invValueLKR * 100)}</span>
+                  <span className="text-zinc-400 font-semibold">
+                    {formatLKR(c.invValueLKR * 100)}
+                  </span>
                 </div>
               </div>
             ))}
@@ -144,7 +164,10 @@ function OverviewPage() {
             <h3 className="text-sm font-bold text-white flex items-center gap-2">
               <ShoppingBag className="h-4 w-4 text-violet-400" /> Recent Orders in Database
             </h3>
-            <Link to="/admin/orders" className="text-[11px] text-violet-400 font-semibold hover:text-violet-300">
+            <Link
+              to="/admin/orders"
+              className="text-[11px] text-violet-400 font-semibold hover:text-violet-300"
+            >
               View all orders ({orders.length}) →
             </Link>
           </div>
@@ -165,7 +188,10 @@ function OverviewPage() {
           ) : (
             <div className="space-y-3">
               {orders.slice(0, 6).map((o) => (
-                <div key={o.id} className="flex items-center gap-3 py-2 border-b border-zinc-800/60 last:border-0">
+                <div
+                  key={o.id}
+                  className="flex items-center gap-3 py-2 border-b border-zinc-800/60 last:border-0"
+                >
                   <div className="h-8 w-8 rounded-full bg-gradient-to-br from-violet-500/20 to-indigo-500/20 border border-violet-500/20 flex items-center justify-center text-[10px] font-black text-violet-400 shrink-0">
                     {o.customerName?.charAt(0) || "C"}
                   </div>
@@ -176,8 +202,10 @@ function OverviewPage() {
                     </p>
                   </div>
                   <div className="text-right shrink-0">
-                    <p className="text-xs font-bold text-white">{formatLKR((o.totalLKR || 0) * 100)}</p>
-                    <StatusBadge status={o.status as any} />
+                    <p className="text-xs font-bold text-white">
+                      {formatLKR((o.totalLKR || 0) * 100)}
+                    </p>
+                    <StatusBadge status={o.status} />
                   </div>
                 </div>
               ))}
@@ -191,15 +219,22 @@ function OverviewPage() {
         <div className="admin-card border-l-2 border-amber-500">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-bold text-white flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-amber-400" /> Stock Alerts ({lowStock.length + outOfStock.length} items)
+              <AlertTriangle className="h-4 w-4 text-amber-400" /> Stock Alerts (
+              {lowStock.length + outOfStock.length} items)
             </h3>
-            <Link to="/admin/inventory" className="text-[11px] text-amber-400 font-semibold hover:text-amber-300">
+            <Link
+              to="/admin/inventory"
+              className="text-[11px] text-amber-400 font-semibold hover:text-amber-300"
+            >
               Manage inventory →
             </Link>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {[...outOfStock, ...lowStock].slice(0, 9).map((p) => (
-              <div key={p.id} className="flex items-center justify-between gap-3 p-3 bg-zinc-800/40 rounded-lg">
+              <div
+                key={p.id}
+                className="flex items-center justify-between gap-3 p-3 bg-zinc-800/40 rounded-lg"
+              >
                 <div className="min-w-0">
                   <p className="text-xs font-semibold text-white truncate">{p.name}</p>
                   <p className="text-[10px] text-zinc-500 font-mono">{p.sku}</p>

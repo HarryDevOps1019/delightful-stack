@@ -1,4 +1,5 @@
 import express from "express";
+import { requireAdmin, requireAuth } from "../middleware/auth.js";
 import { supabase } from "../data/supabase.js";
 import { deleteBrand, findBrand, readBrands, upsertBrand } from "../data/db.js";
 
@@ -85,7 +86,7 @@ router.get("/", async (_req, res) => {
   }
 });
 
-router.post("/", async (req, res) => {
+router.post("/", requireAuth, requireAdmin, async (req, res) => {
   try {
     const name = String(req.body.name || "").trim();
     const slug = slugify(name);
@@ -138,7 +139,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.delete("/:slug", async (req, res) => {
+router.delete("/:slug", requireAuth, requireAdmin, async (req, res) => {
   try {
     const slug = slugify(req.params.slug);
     const existing = await findBrand(slug);

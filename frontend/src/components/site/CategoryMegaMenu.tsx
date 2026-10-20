@@ -81,9 +81,7 @@ const CATEGORY_GROUPS: Record<string, SubcategoryGroup[]> = {
   "home-appliances": [
     {
       title: "Entertainment",
-      items: [
-        { label: "Televisions", query: "television" },
-      ],
+      items: [{ label: "Televisions", query: "television" }],
     },
     {
       title: "Laundry & Cooling",
@@ -116,9 +114,7 @@ const CATEGORY_GROUPS: Record<string, SubcategoryGroup[]> = {
   "appliance-spare-parts": [
     {
       title: "TV Spares",
-      items: [
-        { label: "TV Spares", query: "tv spare" },
-      ],
+      items: [{ label: "TV Spares", query: "tv spare" }],
     },
     {
       title: "Washing Machine Parts",
@@ -244,9 +240,7 @@ const CATEGORY_GROUPS: Record<string, SubcategoryGroup[]> = {
     },
     {
       title: "Maintenance",
-      items: [
-        { label: "Contact Cleaners", query: "contact cleaner" },
-      ],
+      items: [{ label: "Contact Cleaners", query: "contact cleaner" }],
     },
   ],
 
@@ -254,23 +248,52 @@ const CATEGORY_GROUPS: Record<string, SubcategoryGroup[]> = {
   "laboratory-equipment": [
     {
       title: "Lab Equipment",
-      items: [
-        { label: "Browse All Lab Equipment", query: "lab" },
-      ],
+      items: [{ label: "Browse All Lab Equipment", query: "lab" }],
     },
   ],
 
   "tv-repair-parts": [
-    { title: "TV Parts", items: [{ label: "LED Backlights", query: "led backlight" }, { label: "TV LCD Panels", query: "tv lcd" }, { label: "TV Boards", query: "tv board" }] },
+    {
+      title: "TV Parts",
+      items: [
+        { label: "LED Backlights", query: "led backlight" },
+        { label: "TV LCD Panels", query: "tv lcd" },
+        { label: "TV Boards", query: "tv board" },
+      ],
+    },
   ],
   "test-repair-equipment": [
-    { title: "Testing & Repair", items: [{ label: "Oscilloscopes", query: "oscilloscope" }, { label: "Microscopes", query: "microscope" }, { label: "Signal Generators", query: "signal generator" }, { label: "Multimeters", query: "multimeter" }, { label: "Soldering Stations", query: "solder station" }] },
+    {
+      title: "Testing & Repair",
+      items: [
+        { label: "Oscilloscopes", query: "oscilloscope" },
+        { label: "Microscopes", query: "microscope" },
+        { label: "Signal Generators", query: "signal generator" },
+        { label: "Multimeters", query: "multimeter" },
+        { label: "Soldering Stations", query: "solder station" },
+      ],
+    },
   ],
   "electrical-control-boxes": [
-    { title: "Electrical Boxes", items: [{ label: "Enclosure Boxes", query: "enclosure box" }, { label: "Distribution Boxes", query: "distribution box" }, { label: "Electricity Control Boxes", query: "control box" }] },
+    {
+      title: "Electrical Boxes",
+      items: [
+        { label: "Enclosure Boxes", query: "enclosure box" },
+        { label: "Distribution Boxes", query: "distribution box" },
+        { label: "Electricity Control Boxes", query: "control box" },
+      ],
+    },
   ],
   "led-displays-signage": [
-    { title: "LED Signage", items: [{ label: "P10 LED Modules", query: "p10 led module" }, { label: "Indoor LED Displays", query: "indoor led display" }, { label: "Outdoor LED Displays", query: "outdoor led display" }, { label: "Name Boards", query: "name board" }] },
+    {
+      title: "LED Signage",
+      items: [
+        { label: "P10 LED Modules", query: "p10 led module" },
+        { label: "Indoor LED Displays", query: "indoor led display" },
+        { label: "Outdoor LED Displays", query: "outdoor led display" },
+        { label: "Name Boards", query: "name board" },
+      ],
+    },
   ],
 };
 
@@ -300,7 +323,9 @@ interface CategoryMegaMenuProps {
 }
 
 export function CategoryMegaMenu({ categories, onClose }: CategoryMegaMenuProps) {
-  const [selectedSlug, setSelectedSlug] = useState<string>(() => categories[0]?.slug ?? "components");
+  const [selectedSlug, setSelectedSlug] = useState<string>(
+    () => categories[0]?.slug ?? "components",
+  );
 
   const activeCategory = categories.find((c) => c.slug === selectedSlug) ?? categories[0];
   const subcategoryGroups = activeCategory ? (CATEGORY_GROUPS[activeCategory.slug] ?? []) : [];
@@ -330,10 +355,14 @@ export function CategoryMegaMenu({ categories, onClose }: CategoryMegaMenuProps)
               }`}
             >
               <div className="flex items-center gap-2.5 truncate">
-                <IconComponent className={`h-4 w-4 shrink-0 ${isSelected ? "text-primary" : "text-zinc-500"}`} />
+                <IconComponent
+                  className={`h-4 w-4 shrink-0 ${isSelected ? "text-primary" : "text-zinc-500"}`}
+                />
                 <span className="truncate">{c.short || c.name}</span>
               </div>
-              <ChevronRight className={`h-3.5 w-3.5 shrink-0 ${isSelected ? "text-primary" : "text-zinc-400"}`} />
+              <ChevronRight
+                className={`h-3.5 w-3.5 shrink-0 ${isSelected ? "text-primary" : "text-zinc-400"}`}
+              />
             </button>
           );
         })}
@@ -357,7 +386,9 @@ export function CategoryMegaMenu({ categories, onClose }: CategoryMegaMenuProps)
             <div className="flex items-center justify-between pb-3 mb-4 border-b border-zinc-100">
               <div className="flex items-center gap-2">
                 <ActiveIcon className="h-5 w-5 text-primary" />
-                <h3 className="font-bold text-sm tracking-tight text-zinc-900">{activeCategory.name}</h3>
+                <h3 className="font-bold text-sm tracking-tight text-zinc-900">
+                  {activeCategory.name}
+                </h3>
               </div>
               <Link
                 to="/shop"

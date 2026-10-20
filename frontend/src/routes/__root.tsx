@@ -90,12 +90,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "Asia Electronics & Cellular — Demo Store" },
       {
         name: "description",
-        content: "Electronics, repair parts, lighting, solar products and equipment from Asia Electronics and Cellular Pvt Ltd, Sri Lanka.",
+        content:
+          "Electronics, repair parts, lighting, solar products and equipment from Asia Electronics and Cellular Pvt Ltd, Sri Lanka.",
       },
       { property: "og:title", content: "Asia Electronics & Cellular — Demo Store" },
       {
         property: "og:description",
-        content: "Electronics, repair parts, lighting, solar products and equipment from Asia Electronics and Cellular Pvt Ltd, Sri Lanka.",
+        content:
+          "Electronics, repair parts, lighting, solar products and equipment from Asia Electronics and Cellular Pvt Ltd, Sri Lanka.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
