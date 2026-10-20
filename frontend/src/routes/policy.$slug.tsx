@@ -176,7 +176,7 @@ function TrackingTimeline({ status }: { status: OrderStatus }) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
       transition={{ duration: 0.28 }}
-      className="mt-7 rounded-lg border border-border bg-muted/25 p-6"
+      className="mt-5 rounded-lg border border-border bg-muted/25 p-4"
     >
       <div className="flex items-center justify-between">
         <div>
@@ -193,25 +193,25 @@ function TrackingTimeline({ status }: { status: OrderStatus }) {
           <Clock3 className="h-7 w-7 text-amber-500" />
         )}
       </div>
-      <ol className="mt-6 space-y-3">
+      <ol className="mt-5 space-y-1 sm:grid sm:grid-cols-5 sm:gap-1 sm:space-y-0">
         {TRACKING_STEPS.map((step, index) => {
           const complete = index <= activeStep;
           return (
-            <li key={step} className="flex min-w-0 items-stretch gap-3">
+            <li key={step} className="flex min-w-0 items-stretch gap-3 sm:block">
               <motion.div
                 initial={{ scaleY: 0 }}
                 animate={{ scaleY: 1 }}
                 transition={{ delay: index * 0.08, duration: 0.3 }}
-                className={`origin-top h-8 w-1 shrink-0 rounded-full ${complete ? "bg-primary" : "bg-border"}`}
+                className={`origin-top w-1 shrink-0 rounded-full ${complete ? "bg-primary" : "bg-border"} sm:origin-left sm:h-1 sm:w-full`}
               />
-              <div className="flex items-start gap-2 pb-0">
+              <div className="flex items-start gap-1 pb-2 sm:mt-1.5 sm:pb-0">
                 {complete ? (
                   <CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0 text-primary" />
                 ) : (
                   <Circle className="mt-0.5 h-3 w-3 shrink-0 text-muted-foreground" />
                 )}
                 <span
-                  className={`text-xs leading-tight ${complete ? "font-semibold text-foreground" : "text-muted-foreground"}`}
+                  className={`text-[9px] leading-tight ${complete ? "font-semibold text-foreground" : "text-muted-foreground"}`}
                 >
                   {step.replace("Quotation ", "Quote ")}
                 </span>
@@ -252,10 +252,10 @@ function DeliveryTracker() {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
-      className="container-shop pb-16 sm:pb-20"
+      className="container-shop max-w-6xl pb-16 sm:pb-20"
     >
-      <section className="min-h-[680px] overflow-hidden border border-border bg-card shadow-[0_18px_50px_rgb(15_23_42/0.12)] lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(560px,0.9fr)]">
-        <div className="relative min-h-[300px] overflow-hidden bg-ink sm:min-h-[500px] lg:min-h-[680px]">
+      <section className="overflow-hidden border border-border bg-card shadow-[0_18px_50px_rgb(15_23_42/0.12)] lg:grid lg:grid-cols-2">
+        <div className="relative min-h-[300px] overflow-hidden bg-ink sm:min-h-[420px] lg:min-h-[620px]">
           <img
             src={deliveryVisual}
             alt="Electronics and components from Asia Electronics"
@@ -284,7 +284,7 @@ function DeliveryTracker() {
           </div>
         </div>
 
-        <div className="flex min-h-[680px] flex-col justify-center p-7 sm:p-10 lg:p-12">
+        <div className="p-6 sm:p-9 lg:p-10">
           <div className="flex items-start justify-between gap-4">
             <div>
               <div className="grid h-11 w-11 place-items-center rounded-full bg-primary/10 text-primary">
