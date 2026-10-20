@@ -165,25 +165,32 @@ function CheckoutPage() {
   return (
     <>
       <PageHeading title="Request Quotation" />
-      <div className="container-shop grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="container-shop grid min-w-0 gap-6 pb-12 sm:gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
         {/* ── Customer Details Form ── */}
-        <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-8">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          noValidate
+          className="min-w-0 space-y-6 sm:space-y-8"
+        >
           {/* Info banner */}
-          <div className="flex items-start gap-3 rounded border border-green-200 bg-green-50 p-4 dark:border-green-900/40 dark:bg-green-950/30">
+          <div className="flex min-w-0 overflow-hidden items-start gap-3 rounded border border-green-200 bg-green-50 p-4 dark:border-green-900/40 dark:bg-green-950/30">
             <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-green-600 dark:text-green-400" />
-            <div>
+            <div className="min-w-0">
               <p className="text-sm font-bold text-green-800 dark:text-green-300">
                 Quotation-based ordering
               </p>
-              <p className="mt-0.5 text-xs text-green-700 dark:text-green-400">
-                Fill your details and click <strong>"Place Order / Request Quotation"</strong>. Your
-                request will be saved and we'll contact you via WhatsApp with pricing and
+              <p className="mt-0.5 min-w-0 [overflow-wrap:anywhere] text-xs leading-5 text-green-700 dark:text-green-400">
+                Fill your details and click{" "}
+                <strong className="[overflow-wrap:anywhere]">
+                  "Place Order / Request Quotation"
+                </strong>
+                . Your request will be saved and we'll contact you via WhatsApp with pricing and
                 availability. No payment is collected online.
               </p>
             </div>
           </div>
 
-          <section className="grid gap-4 sm:grid-cols-2">
+          <section className="grid min-w-0 gap-4 sm:grid-cols-2">
             <h2 className="font-display text-sm font-extrabold uppercase sm:col-span-2">
               Customer Details
             </h2>
