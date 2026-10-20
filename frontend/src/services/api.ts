@@ -321,9 +321,10 @@ export async function deleteBrandApi(slug: string): Promise<boolean> {
 
 // â”€â”€â”€ Orders API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-export async function fetchOrdersApi(): Promise<ApiOrder[] | null> {
+export async function fetchOrdersApi(scope: "all" | "mine" = "all"): Promise<ApiOrder[] | null> {
   try {
-    const res = await fetch(`${API_BASE}/orders`, { headers: authHeaders(false) });
+    const path = scope === "mine" ? "/orders/mine" : "/orders";
+    const res = await fetch(`${API_BASE}${path}`, { headers: authHeaders(false) });
     if (!res.ok) return null;
     const json = await res.json();
     return json.data || null;

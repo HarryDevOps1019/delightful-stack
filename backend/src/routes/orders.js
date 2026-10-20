@@ -15,6 +15,22 @@ router.get("/", requireAuth, requireAdmin, async (req, res) => {
   }
 });
 
+// GET /api/orders/mine
+// A signed-in customer can view only orders placed with their account email.
+router.get("/mine", requireAuth, async (req, res) => {
+  try {
+    const email = String(req.user?.email || "").trim().toLowerCase();
+    if (!email) return res.json({ success: true, data: [] });
+
+    const orders = await readOrders();
+    const ownOrders = orders.filter(
+      (order) => String(order.email || "").trim().toLowerCase() === email,
+    );
+    res.json({ success: true, data: ownOrders });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
 // GET /api/orders/:id/status
 // Returns only the tracking status, never customer or order-item details.
 router.get("/:id/status", async (req, res) => {

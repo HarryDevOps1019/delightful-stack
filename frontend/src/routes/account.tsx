@@ -82,11 +82,13 @@ function StatusBadge({ status }: { status: string }) {
 // â”€â”€â”€ Order Details Modal (With Editing & Accurate LKR Prices) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function OrderDetailsModal({
   order: initialOrder,
+  canEdit,
   onClose,
   onOrderUpdated,
   whatsappDigits,
 }: {
   order: ApiOrder;
+  canEdit: boolean;
   onClose: () => void;
   onOrderUpdated: (updated: ApiOrder) => void;
   whatsappDigits: string;
@@ -106,7 +108,7 @@ function OrderDetailsModal({
     notes: initialOrder.notes || "",
   });
 
-  const editable = isOrderEditable(order.status);
+  const editable = canEdit && isOrderEditable(order.status);
 
   const handleCopyId = () => {
     navigator.clipboard.writeText(order.id);
@@ -500,7 +502,7 @@ function Account() {
     }
     setLoading(true);
     try {
-      const data = await fetchOrdersApi();
+      const data = await fetchOrdersApi(isAdmin ? "all" : "mine");
       if (data && Array.isArray(data)) {
         setOrders(data);
       } else {
@@ -653,19 +655,24 @@ function Account() {
     <>
       <PageHeading title="My Account & Order History" />
       <div className="container-shop space-y-8">
-        <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+        <div className="grid gap-6 lg:grid-cols-[minmax(300px,340px)_minmax(0,1fr)]">
           {/* User Profile Card */}
-          <div className="h-fit border border-border bg-tile p-6 rounded shadow-xs space-y-4">
+          <div className="h-fit min-w-0 border border-border bg-tile p-6 rounded shadow-xs space-y-4">
             <div className="space-y-4">
               <div className="flex items-center gap-3">
                 <div className="h-12 w-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-lg">
                   {user.name.charAt(0).toUpperCase()}
                 </div>
-                <div>
-                  <p className="font-display font-extrabold text-foreground leading-tight">
-                    {user.name}
+                <div className="min-w-0">
+                  <p
+                    className="truncate font-display font-extrabold text-foreground leading-tight"
+                    title={user.name}
+                  >
+                    {user.name === user.email ? "Customer account" : user.name}
                   </p>
-                  <p className="text-xs text-muted-foreground">{user.email}</p>
+                  <p className="truncate text-xs text-muted-foreground" title={user.email}>
+                    {user.email}
+                  </p>
                 </div>
               </div>
 
@@ -728,9 +735,9 @@ function Account() {
           {/* â”€â”€ Order History Section â”€â”€ */}
           <div className="min-w-0 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
+              <div className="min-w-0">
                 <h2 className="section-title">Order History & Details</h2>
-                <p className="text-xs text-muted-foreground mt-0.5">
+                <p className="truncate text-xs text-muted-foreground mt-0.5">
                   {isAdmin
                     ? "Store administrator view: Displaying live customer quotation orders from Supabase"
                     : user
@@ -914,6 +921,7 @@ function Account() {
       {selectedOrder && (
         <OrderDetailsModal
           order={selectedOrder}
+          canEdit={isAdmin}
           onClose={() => setSelectedOrder(null)}
           onOrderUpdated={handleOrderUpdated}
           whatsappDigits={whatsappDigits}
