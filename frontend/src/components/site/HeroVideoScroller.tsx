@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import { ChevronLeft, ChevronRight, Play, Pause, Sparkles, Wrench } from "lucide-react";
@@ -103,7 +103,7 @@ export function HeroVideoScroller() {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      <div className="relative h-[250px] w-full overflow-hidden rounded-md border border-zinc-800 bg-black shadow-xl sm:h-[440px] lg:h-[500px]">
+      <div className="relative h-[240px] w-full overflow-hidden rounded-md border border-zinc-800 bg-black shadow-xl sm:h-[440px] lg:h-[500px]">
         {/* Horizontal Slider Track */}
         <div
           className="flex h-full w-full transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
@@ -145,16 +145,16 @@ export function HeroVideoScroller() {
                   </h1>
 
                   {/* Description */}
-                  <p className="mt-2 line-clamp-2 text-[11px] font-medium leading-relaxed text-zinc-200 sm:mt-4 sm:line-clamp-3 sm:text-sm lg:text-base">
+                  <p className="mt-2 hidden text-[11px] font-medium leading-relaxed text-zinc-200 sm:mt-4 sm:block sm:line-clamp-3 sm:text-sm lg:text-base">
                     {slide.description}
                   </p>
 
                   {/* CTAs */}
-                  <div className="mt-4 flex flex-nowrap items-center gap-2 sm:mt-8 sm:flex-wrap sm:gap-4">
+                  <div className="mt-4 flex flex-col items-start gap-2 sm:mt-8 sm:flex-row sm:flex-wrap sm:gap-4">
                     <Link
                       to={slide.primaryCta.to}
                       search={slide.primaryCta.search}
-                      className="inline-flex w-auto shrink-0 items-center justify-center rounded bg-primary px-3 py-2 text-[10px] sm:px-6 sm:py-3 sm:text-sm text-primary-foreground font-display font-black uppercase tracking-wider transition-all hover:bg-primary/90 hover:scale-102 shadow-md"
+                      className="inline-flex w-auto items-center justify-center rounded bg-primary px-3 py-2 text-[10px] leading-tight sm:px-6 sm:py-3 sm:text-sm text-primary-foreground font-display font-black uppercase tracking-wider transition-all hover:bg-primary/90 hover:scale-102 shadow-md"
                     >
                       {slide.primaryCta.text} â†’
                     </Link>
@@ -164,10 +164,10 @@ export function HeroVideoScroller() {
                         href={slide.whatsappCta.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex w-auto shrink-0 items-center justify-center gap-1 rounded bg-[#25D366] px-3 py-2 text-[10px] sm:gap-2 sm:px-5 sm:py-3 sm:text-sm text-white font-display font-bold uppercase tracking-wider transition-all hover:bg-[#20ba5a] hover:scale-102 shadow-md"
+                        className="inline-flex items-center justify-center gap-1 rounded bg-[#25D366] px-3 py-2 text-[10px] sm:gap-2 sm:px-5 sm:py-3 sm:text-sm text-white font-display font-bold uppercase tracking-wider transition-all hover:bg-[#20ba5a] hover:scale-102 shadow-md"
                       >
                         <WhatsAppIcon className="h-4 w-4" />
-                        <span>{slide.whatsappCta.text}</span>
+                        <span className="sm:hidden">WhatsApp</span><span className="hidden sm:inline">{slide.whatsappCta.text}</span>
                       </a>
                     ) : (
                       slide.secondaryCta && (
