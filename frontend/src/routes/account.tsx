@@ -582,55 +582,73 @@ function Account() {
   // 2. Gated state: User is NOT logged in
   if (!user) {
     return (
-      <>
-        <PageHeading title="My Account & Orders" />
-        <div className="container-shop max-w-lg py-12">
-          <div className="border border-border bg-card p-6 sm:p-8 rounded-lg shadow-sm text-center space-y-5">
-            <div className="h-16 w-16 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto">
-              <Lock className="h-8 w-8" />
-            </div>
-            <div className="space-y-1.5">
-              <h2 className="text-xl font-bold text-foreground">Sign In to View Your Orders</h2>
-              <p className="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">
-                Your order history, quotation status, and delivery details are private. Please sign
-                in to your account to view your past and active orders.
+      <main className="relative isolate min-h-[calc(100vh-7rem)] overflow-hidden bg-[#07111f] px-4 py-10 sm:px-6 lg:px-8">
+        <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_16%_18%,rgba(240,0,63,.26),transparent_28%),radial-gradient(circle_at_86%_80%,rgba(24,104,173,.28),transparent_32%),linear-gradient(135deg,#07111f,#0d1b2d_52%,#070b13)]" />
+        <div className="absolute inset-0 -z-10 opacity-20 [background-image:linear-gradient(rgba(255,255,255,.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.08)_1px,transparent_1px)] [background-size:42px_42px]" />
+        <div className="mx-auto grid max-w-6xl overflow-hidden rounded-3xl border border-white/10 bg-white/5 shadow-2xl shadow-black/40 backdrop-blur-sm lg:min-h-[570px] lg:grid-cols-[1.1fr_.9fr]">
+          <section className="hidden p-10 text-white lg:flex lg:flex-col lg:justify-between xl:p-14">
+            <div>
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold tracking-[.16em]">
+                <ShieldCheck className="h-3.5 w-3.5 text-primary" /> PRIVATE ACCOUNT AREA
+              </span>
+              <h1 className="mt-8 max-w-xl text-4xl font-black leading-[1.08]">
+                Your orders, enquiries and support — in one place.
+              </h1>
+              <p className="mt-5 max-w-md text-base leading-7 text-slate-300">
+                Sign in to keep track of your quotation requests and access help from our
+                electronics specialists.
               </p>
             </div>
-            <div className="pt-2 space-y-2.5 max-w-xs mx-auto">
-              <Button
-                asChild
-                className="w-full rounded-none bg-primary hover:bg-primary/90 text-white font-bold text-xs py-2.5"
-              >
-                <Link to="/login">Sign In to Your Account</Link>
-              </Button>
-              <Button
-                asChild
-                variant="outline"
-                className="w-full rounded-none text-xs py-2.5 font-semibold"
-              >
-                <Link to="/register">Create a New Account</Link>
-              </Button>
-            </div>
-
-            <div className="pt-4 border-t border-border text-xs text-muted-foreground">
-              <p className="text-[11px]">
-                Need immediate help with a quotation?{" "}
-                <a
-                  href={`https://wa.me/${whatsappDigits}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline font-semibold"
-                >
-                  Contact support on WhatsApp
-                </a>
+            <div className="space-y-3 text-sm">
+              <p className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[.06] p-4">
+                <Package className="h-5 w-5 text-primary" /> View active enquiries and order history
+              </p>
+              <p className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[.06] p-4">
+                <ShieldCheck className="h-5 w-5 text-primary" /> Private information, protected
+                securely
               </p>
             </div>
-          </div>
+          </section>
+          <section className="flex items-center bg-white p-7 sm:p-10 lg:p-12">
+            <div className="w-full space-y-6 text-center lg:text-left">
+              <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-primary/10 text-primary lg:mx-0">
+                <Lock className="h-7 w-7" />
+              </div>
+              <div>
+                <p className="text-xs font-extrabold uppercase tracking-[.18em] text-primary">
+                  Customer account
+                </p>
+                <h2 className="mt-3 text-3xl font-black tracking-tight text-foreground">
+                  Sign in to view your orders
+                </h2>
+                <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                  Your order history, quotation status and delivery details are private. Sign in to
+                  continue.
+                </p>
+              </div>
+              <div className="space-y-3">
+                <Button asChild className="h-12 w-full rounded-lg font-extrabold">
+                  <Link to="/login">Sign in to your account</Link>
+                </Button>
+                <Button asChild variant="outline" className="h-12 w-full rounded-lg font-bold">
+                  <Link to="/register">Create a new account</Link>
+                </Button>
+              </div>
+              <a
+                href={`https://wa.me/${whatsappDigits}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 border-t border-border pt-5 text-xs font-semibold text-muted-foreground transition-colors hover:text-primary lg:justify-start"
+              >
+                <MessageCircle className="h-4 w-4 text-primary" /> Need help now? Contact us on
+                WhatsApp
+              </a>
+            </div>
+          </section>
         </div>
-      </>
+      </main>
     );
   }
-
   return (
     <>
       <PageHeading title="My Account & Order History" />

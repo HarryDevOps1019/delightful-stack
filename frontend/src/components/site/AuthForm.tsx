@@ -63,7 +63,19 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_18%_12%,rgba(240,0,63,0.26),transparent_27%),radial-gradient(circle_at_84%_76%,rgba(24,104,173,0.28),transparent_30%),linear-gradient(135deg,#07111f_0%,#0d1b2d_54%,#070b13_100%)]" />
       <div className="absolute inset-0 -z-10 opacity-20 [background-image:linear-gradient(rgba(255,255,255,.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.08)_1px,transparent_1px)] [background-size:42px_42px]" />
 
-      <div className="mx-auto grid min-h-[620px] max-w-6xl overflow-hidden rounded-3xl border border-white/10 bg-white/5 shadow-2xl shadow-black/40 backdrop-blur-sm lg:grid-cols-[1.12fr_.88fr]">
+      <div className="mx-auto mb-6 max-w-lg text-center text-white lg:hidden">
+        <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[11px] font-bold tracking-[0.14em] text-white/90">
+          <LockKeyhole className="h-3.5 w-3.5 text-primary" /> SECURE CUSTOMER PORTAL
+        </div>
+        <h1 className="mt-4 text-2xl font-black leading-tight">
+          {isLogin ? "Welcome back to Asia Electronics." : "Start your account with confidence."}
+        </h1>
+        <p className="mt-2 text-sm leading-6 text-slate-300">
+          Genuine electronics, expert guidance, and support when you need it.
+        </p>
+      </div>
+
+      <div className="mx-auto grid max-w-6xl overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-2xl shadow-black/40 backdrop-blur-sm lg:min-h-[620px] lg:grid-cols-[1.12fr_.88fr] lg:rounded-3xl">
         <section className="relative hidden overflow-hidden p-10 text-white lg:flex lg:flex-col lg:justify-between xl:p-14">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold tracking-[0.16em] text-white/90">
