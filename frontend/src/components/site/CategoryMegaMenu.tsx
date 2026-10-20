@@ -383,7 +383,7 @@ export function CategoryMegaMenu({ categories, onClose }: CategoryMegaMenuProps)
                             to="/shop"
                             search={{
                               category: activeCategory.slug,
-                              q: item.query,
+                              subcategory: item.label,
                             }}
                             onClick={onClose}
                             className="text-xs text-zinc-600 hover:text-primary hover:font-medium py-0.5 block transition-colors leading-relaxed"

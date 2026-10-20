@@ -9,9 +9,27 @@ router.get("/", async (req, res) => {
     const cats = await readCategories();
     const prods = await readProducts();
 
-    const withCounts = cats.map((c) => {
-      const count = prods.filter((p) => p.category === c.slug).length;
-      return { ...c, productCount: count };
+    // Backfill category subcategories from products created before category-level
+    // subcategories existed. This is idempotent and preserves manually added values.
+    const syncedCategories = await Promise.all(
+      cats.map(async (category) => {
+        const productSubcategories = prods
+          .filter((product) => product.category === category.slug)
+          .map((product) => product.subcategory || product.attributes?.Subcategory || "")
+          .map((subcategory) => String(subcategory).trim())
+          .filter(Boolean);
+        const subcategories = [...new Set([...(category.subcategories || []), ...productSubcategories])];
+
+        if (subcategories.length !== (category.subcategories || []).length) {
+          return updateCategoryInDb(category.slug, { subcategories });
+        }
+        return category;
+      }),
+    );
+
+    const withCounts = syncedCategories.map((category) => {
+      const count = prods.filter((product) => product.category === category.slug).length;
+      return { ...category, productCount: count };
     });
 
     res.json({ success: true, data: withCounts });
@@ -23,7 +41,7 @@ router.get("/", async (req, res) => {
 // POST /api/categories
 router.post("/", async (req, res) => {
   try {
-    const { name, slug, short, image, filterKey } = req.body;
+    const { name, slug, short, image, filterKey, subcategories } = req.body;
     if (!name || !slug) {
       return res.status(400).json({ success: false, error: "Name and slug are required" });
     }
@@ -36,6 +54,9 @@ router.post("/", async (req, res) => {
       short: short || name.split(" ")[0] || "General",
       image: image || "/assets/imgs/electronic-components.png",
       filterKey: filterKey || "Type",
+      subcategories: Array.isArray(subcategories)
+        ? [...new Set(subcategories.map((item) => String(item).trim()).filter(Boolean))]
+        : [],
     };
 
     const saved = await insertCategory(newCat);
@@ -49,7 +70,13 @@ router.post("/", async (req, res) => {
 // PUT /api/categories/:slug
 router.put("/:slug", async (req, res) => {
   try {
-    const updated = await updateCategoryInDb(req.params.slug, req.body);
+    const updates = { ...req.body };
+    if (updates.subcategories !== undefined) {
+      updates.subcategories = Array.isArray(updates.subcategories)
+        ? [...new Set(updates.subcategories.map((item) => String(item).trim()).filter(Boolean))]
+        : [];
+    }
+    const updated = await updateCategoryInDb(req.params.slug, updates);
     res.json({ success: true, data: updated, message: "Category updated successfully" });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });

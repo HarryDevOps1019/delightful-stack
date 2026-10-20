@@ -7,6 +7,8 @@ export interface Category {
   image: string;
   /** Category-specific attribute exposed as an extra filter */
   filterKey: string;
+  /** Managed subcategory labels for this category. */
+  subcategories?: string[] | undefined;
 }
 
 export interface Brand {
@@ -56,6 +58,7 @@ export type SortKey = "featured" | "price-asc" | "price-desc" | "newest" | "name
 export interface ProductQuery {
   q?: string | undefined;
   category?: CategorySlug | undefined;
+  subcategory?: string | undefined;
   brands?: string[] | undefined;
   min?: number | undefined;
   max?: number | undefined;

@@ -95,6 +95,7 @@ function toDbCategory(c) {
     short: c.short,
     image: c.image,
     filter_key: c.filterKey,
+    subcategories: Array.isArray(c.subcategories) ? c.subcategories : [],
   };
 }
 
@@ -105,9 +106,21 @@ function fromDbCategory(row) {
     short: row.short,
     image: row.image,
     filterKey: row.filter_key,
+    subcategories: Array.isArray(row.subcategories) ? row.subcategories : [],
   };
 }
 
+async function replaceCategorySubcategories(categorySlug, subcategories) {
+  const names = [...new Set((subcategories || []).map((item) => String(item).trim()).filter(Boolean))];
+  const { error: deleteError } = await supabase.from("subcategories").delete().eq("category_slug", categorySlug);
+  if (deleteError) throw new Error(deleteError.message);
+  if (names.length === 0) return [];
+  const { error: insertError } = await supabase
+    .from("subcategories")
+    .insert(names.map((name) => ({ category_slug: categorySlug, name })));
+  if (insertError) throw new Error(insertError.message);
+  return names;
+}
 function toDbBrand(brand) {
   return {
     slug: brand.slug,
@@ -634,7 +647,23 @@ export async function readCategories() {
     return defaultCategories;
   }
 
-  return data.map(fromDbCategory);
+  const categories = data.map(fromDbCategory);
+  const { data: subcategoryRows, error: subcategoryError } = await supabase
+    .from("subcategories")
+    .select("category_slug, name")
+    .order("name", { ascending: true });
+  if (subcategoryError) return categories;
+
+  const namesByCategory = new Map();
+  subcategoryRows.forEach((row) => {
+    const names = namesByCategory.get(row.category_slug) || [];
+    names.push(row.name);
+    namesByCategory.set(row.category_slug, names);
+  });
+  return categories.map((category) => ({
+    ...category,
+    subcategories: namesByCategory.get(category.slug) || [],
+  }));
 }
 
 export async function writeCategories(cats) {
@@ -660,7 +689,9 @@ export async function insertCategory(cat) {
     .single();
 
   if (error) throw new Error(error.message);
-  return fromDbCategory(data);
+  const saved = fromDbCategory(data);
+  saved.subcategories = await replaceCategorySubcategories(saved.slug, cat.subcategories);
+  return saved;
 }
 
 export async function deleteCategory(slug) {
@@ -676,6 +707,9 @@ export async function updateCategoryInDb(slug, updates) {
   if (updates.short !== undefined) dbUpdates.short = updates.short;
   if (updates.image !== undefined) dbUpdates.image = updates.image;
   if (updates.filterKey !== undefined) dbUpdates.filter_key = updates.filterKey;
+  if (updates.subcategories !== undefined) {
+    dbUpdates.subcategories = Array.isArray(updates.subcategories) ? updates.subcategories : [];
+  }
 
   const { data, error } = await supabase
     .from("categories")
@@ -685,7 +719,11 @@ export async function updateCategoryInDb(slug, updates) {
     .single();
 
   if (error) throw new Error(error.message);
-  return fromDbCategory(data);
+  const saved = fromDbCategory(data);
+  if (updates.subcategories !== undefined) {
+    saved.subcategories = await replaceCategorySubcategories(saved.slug, updates.subcategories);
+  }
+  return saved;
 }
 
 // ─── BRANDS ────────────────────────────────────────────────

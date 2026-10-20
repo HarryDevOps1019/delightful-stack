@@ -1,4 +1,4 @@
-﻿import type { Product, Category, Brand } from "@/lib/types";
+import type { Product, Category, Brand } from "@/lib/types";
 import { toast } from "sonner";
 
 export function getApiBaseUrl(): string {
@@ -72,6 +72,7 @@ export interface ApiAnalytics {
 export async function fetchProductsApi(params?: {
   search?: string;
   category?: string;
+  subcategory?: string;
   brand?: string;
   minPrice?: number;
   maxPrice?: number;
@@ -93,6 +94,7 @@ export async function fetchProductsApi(params?: {
       if (params.search) url.searchParams.set("search", params.search);
       if (params.category && params.category !== "all")
         url.searchParams.set("category", params.category);
+      if (params.subcategory) url.searchParams.set("subcategory", params.subcategory);
       if (params.brand && params.brand !== "all") url.searchParams.set("brand", params.brand);
       if (params.minPrice != null) url.searchParams.set("minPrice", String(params.minPrice));
       if (params.maxPrice != null) url.searchParams.set("maxPrice", String(params.maxPrice));

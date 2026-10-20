@@ -18,6 +18,7 @@ router.get("/", async (req, res) => {
     const {
       search,
       category,
+      subcategory,
       brand,
       minPrice,
       maxPrice,
@@ -44,6 +45,10 @@ router.get("/", async (req, res) => {
 
     if (category) {
       items = items.filter((p) => p.category === category);
+    }
+
+    if (subcategory) {
+      items = items.filter((p) => p.subcategory === subcategory);
     }
 
     if (brand) {
@@ -188,6 +193,7 @@ router.post("/", async (req, res) => {
       brand,
       model,
       category,
+      subcategory: body.subcategory || body.attributes?.Subcategory || null,
       priceCents,
       compareAtCents,
       stock,

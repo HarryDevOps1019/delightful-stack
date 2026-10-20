@@ -324,6 +324,27 @@ export interface CreateProductInput {
   attributes?: Record<string, string> | undefined;
 }
 
+function saveProductSubcategoryOnCategory(categorySlug: string, subcategory?: string): void {
+  const label = subcategory?.trim();
+  if (!label) return;
+
+  const categories = getStoredCategories();
+  const index = categories.findIndex((category) => category.slug === categorySlug);
+  if (index === -1) return;
+
+  const category = categories[index];
+  if (!category || category.subcategories?.includes(label)) return;
+
+  const updatedCategory: Category = {
+    ...category,
+    subcategories: [...(category.subcategories ?? []), label],
+  };
+  const updatedCategories = [...categories];
+  updatedCategories[index] = updatedCategory;
+  saveStoredCategories(updatedCategories);
+  void updateCategoryApi(categorySlug, updatedCategory);
+}
+
 export function createProduct(input: CreateProductInput): Product {
   const current = getStoredProducts();
   const id = `p_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
@@ -362,6 +383,7 @@ export function createProduct(input: CreateProductInput): Product {
 
   const updated = [newProduct, ...current];
   saveStoredProducts(updated);
+  saveProductSubcategoryOnCategory(newProduct.category, newProduct.subcategory);
   createProductApi({
     id: newProduct.id,
     slug: newProduct.slug,
@@ -460,6 +482,7 @@ export function updateProduct(id: string, updates: Partial<CreateProductInput>):
   const updatedList = [...current];
   updatedList[idx] = updatedProduct;
   saveStoredProducts(updatedList);
+  saveProductSubcategoryOnCategory(updatedProduct.category, updatedProduct.subcategory);
   updateProductApi(id, {
     name: updatedProduct.name,
     sku: updatedProduct.sku,
@@ -504,6 +527,7 @@ export interface CreateCategoryInput {
   slug?: string | undefined;
   filterKey?: string | undefined;
   image?: string | undefined;
+  subcategories?: string[] | undefined;
 }
 
 export function createCategory(input: CreateCategoryInput): Category {
@@ -521,6 +545,7 @@ export function createCategory(input: CreateCategoryInput): Category {
     short,
     image: input.image || images.catComponents,
     filterKey: input.filterKey?.trim() || "Type",
+    subcategories: input.subcategories ?? [],
   };
 
   saveStoredCategories([...current, newCat]);
@@ -546,6 +571,7 @@ export function updateCategory(
     short: updates.short ? updates.short.trim() : existing.short,
     filterKey: updates.filterKey ? updates.filterKey.trim() : existing.filterKey,
     image: updates.image ? updates.image : existing.image,
+    subcategories: updates.subcategories ?? existing.subcategories ?? [],
   };
 
   const updatedList = [...current];
@@ -942,6 +968,7 @@ export async function listProducts(query: ProductQuery = {}): Promise<ProductPag
   const {
     q,
     category,
+    subcategory,
     brands: bs,
     min,
     max,
@@ -963,6 +990,9 @@ export async function listProducts(query: ProductQuery = {}): Promise<ProductPag
   }
 
   if (category) items = items.filter((p) => p.category === category);
+  if (subcategory) {
+    items = items.filter((p) => (p.subcategory || p.attributes["Subcategory"]) === subcategory);
+  }
   if (bs?.length) items = items.filter((p) => bs.includes(p.brand));
   if (min != null) items = items.filter((p) => p.priceCents >= min * 100);
   if (max != null) items = items.filter((p) => p.priceCents <= max * 100);

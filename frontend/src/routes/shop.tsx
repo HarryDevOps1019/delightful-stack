@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 export interface ShopSearch {
   q?: string | undefined;
   category?: CategorySlug | undefined;
+  subcategory?: string | undefined;
   brands?: string | undefined;
   min?: number | undefined;
   max?: number | undefined;
@@ -77,6 +78,7 @@ export const Route = createFileRoute("/shop")({
     q: typeof s.q === "string" && s.q ? s.q : undefined,
     category:
       typeof s.category === "string" && s.category ? (s.category as CategorySlug) : undefined,
+    subcategory: typeof s.subcategory === "string" && s.subcategory ? s.subcategory : undefined,
     brands: typeof s.brands === "string" && s.brands ? s.brands : undefined,
     min: num(s.min),
     max: num(s.max),
@@ -354,14 +356,16 @@ function Filters({
           <li>
             <Link
               to="/shop"
-              search={(p) => ({ ...p, category: undefined, attr: undefined, page: undefined })}
+              search={(p) => ({ ...p, category: undefined, subcategory: undefined, attr: undefined, page: undefined })}
               className={!search.category ? "font-bold text-primary" : "hover:text-primary"}
             >
               All categories
             </Link>
           </li>
           {categories.map((c) => {
-            const subcategories = SHOP_SUBCATEGORIES[c.slug] ?? [];
+            const subcategories = c.subcategories?.length
+              ? c.subcategories.map((label) => ({ label, subcategory: label }))
+              : (SHOP_SUBCATEGORIES[c.slug] ?? []).map(({ label }) => ({ label, subcategory: undefined }));
             const isExpanded = expandedCategory === c.slug;
             return (
               <li key={c.slug}>
@@ -369,7 +373,7 @@ function Filters({
                   type="button"
                   onClick={() => {
                     setExpandedCategory(isExpanded ? undefined : c.slug);
-                    update({ category: c.slug, q: undefined, attr: undefined });
+                    update({ category: c.slug, subcategory: undefined, q: undefined, attr: undefined });
                   }}
                   aria-expanded={isExpanded}
                   className={`flex w-full items-center justify-between gap-2 text-left ${search.category === c.slug ? "font-bold text-primary" : "hover:text-primary"}`}
@@ -383,7 +387,7 @@ function Filters({
                       <li key={subcategory.label}>
                         <Link
                           to="/shop"
-                          search={(p) => ({ ...p, category: c.slug, q: subcategory.query, attr: undefined, page: undefined })}
+                          search={(p) => ({ ...p, category: c.slug, subcategory: subcategory.subcategory, q: undefined, attr: undefined, page: undefined })}
                           className="block py-0.5 hover:text-primary"
                         >
                           {subcategory.label}

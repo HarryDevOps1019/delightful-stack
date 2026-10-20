@@ -79,6 +79,7 @@ function ProductsPage() {
   // Search, filter & sorting state
   const [search, setSearch] = useState("");
   const [catFilter, setCatFilter] = useState("all");
+  const [subcategoryFilter, setSubcategoryFilter] = useState("all");
   const [stockFilter, setStockFilter] = useState<"all" | "in" | "low" | "out">("all");
   const [brandFilter, setBrandFilter] = useState("all");
   const [sortBy, setSortBy] = useState<
@@ -114,6 +115,9 @@ function ProductsPage() {
   const filtered = useMemo(() => {
     const result = products.filter((p) => {
       const matchCat = catFilter === "all" || p.category === catFilter;
+      const productSubcategory = p.subcategory || p.attributes?.["Subcategory"] || "";
+      const matchSubcategory =
+        subcategoryFilter === "all" || productSubcategory === subcategoryFilter;
       const matchBrand = brandFilter === "all" || p.brand === brandFilter;
 
       let matchStock = true;
@@ -129,7 +133,7 @@ function ProductsPage() {
         p.brand.toLowerCase().includes(q) ||
         p.model.toLowerCase().includes(q);
 
-      return matchCat && matchBrand && matchStock && matchSearch;
+      return matchCat && matchSubcategory && matchBrand && matchStock && matchSearch;
     });
 
     // Sorting
@@ -154,7 +158,23 @@ function ProductsPage() {
     });
 
     return result;
-  }, [products, search, catFilter, brandFilter, stockFilter, sortBy]);
+  }, [products, search, catFilter, subcategoryFilter, brandFilter, stockFilter, sortBy]);
+
+  const availableSubcategories = useMemo(() => {
+    if (catFilter === "all") return [];
+    const savedSubcategories = categories.find((category) => category.slug === catFilter)?.subcategories;
+    if (savedSubcategories?.length) return [...savedSubcategories].sort((a, b) => a.localeCompare(b));
+
+    // Existing product values remain available until subcategories are configured on the category.
+    return Array.from(
+      new Set(
+        products
+          .filter((product) => product.category === catFilter)
+          .map((product) => product.subcategory || product.attributes?.["Subcategory"] || "")
+          .filter(Boolean),
+      ),
+    ).sort((a, b) => a.localeCompare(b));
+  }, [categories, products, catFilter]);
 
   // Pagination calculation
   const totalItems = filtered.length;
@@ -488,6 +508,7 @@ function ProductsPage() {
             value={catFilter}
             onChange={(e) => {
               setCatFilter(e.target.value);
+              setSubcategoryFilter("all");
               setPage(1);
             }}
             className="admin-input text-xs min-w-[150px]"
@@ -498,6 +519,34 @@ function ProductsPage() {
               return (
                 <option key={c.slug} value={c.slug}>
                   {c.short} ({count})
+                </option>
+              );
+            })}
+          </select>
+
+          <select
+            id="products-subcategory-filter"
+            value={subcategoryFilter}
+            disabled={catFilter === "all" || availableSubcategories.length === 0}
+            onChange={(e) => {
+              setSubcategoryFilter(e.target.value);
+              setPage(1);
+            }}
+            className="admin-input text-xs min-w-[150px] disabled:cursor-not-allowed disabled:opacity-50"
+            title={catFilter === "all" ? "Select a category first" : "Filter by subcategory"}
+          >
+            <option value="all">
+              {catFilter === "all" ? "Select category first" : "All Subcategories"}
+            </option>
+            {availableSubcategories.map((subcategory) => {
+              const count = products.filter(
+                (product) =>
+                  product.category === catFilter &&
+                  (product.subcategory || product.attributes?.["Subcategory"]) === subcategory,
+              ).length;
+              return (
+                <option key={subcategory} value={subcategory}>
+                  {subcategory} ({count})
                 </option>
               );
             })}
@@ -1031,6 +1080,7 @@ function ProductFormModal({
   );
   const [subcategory, setSubcategory] = useState(editingProduct?.attributes?.Subcategory || "");
   const subcategoryOptions = Array.from(new Set([
+    ...(categories.find((item) => item.slug === category)?.subcategories ?? []),
     ...(ADMIN_SUBCATEGORIES[category] ?? []),
     ...products
       .filter((product) => product.category === category && product.subcategory)
@@ -1853,10 +1903,11 @@ function CategoryManagerModal({
     slug?: string;
     filterKey?: string;
     image?: string;
+    subcategories?: string[];
   }) => void;
   onUpdate?: (
     slug: string,
-    updates: { name?: string; short?: string; filterKey?: string; image?: string },
+    updates: { name?: string; short?: string; filterKey?: string; image?: string; subcategories?: string[] },
   ) => void;
   onDelete: (slug: string) => void;
 }) {
@@ -1865,6 +1916,7 @@ function CategoryManagerModal({
   const [short, setShort] = useState("");
   const [slug, setSlug] = useState("");
   const [filterKey, setFilterKey] = useState("Type");
+  const [subcategories, setSubcategories] = useState("");
   const [image, setImage] = useState(images.catComponents);
   const [customImage, setCustomImage] = useState("");
   const [search, setSearch] = useState("");
@@ -1896,6 +1948,7 @@ function CategoryManagerModal({
     setShort(cat.short);
     setSlug(cat.slug);
     setFilterKey(cat.filterKey || "Type");
+    setSubcategories((cat.subcategories ?? []).join(", "));
     setImage(cat.image || images.catComponents);
     setAutoSlug(false);
   };
@@ -1906,6 +1959,7 @@ function CategoryManagerModal({
     setShort("");
     setSlug("");
     setFilterKey("Type");
+    setSubcategories("");
     setImage(images.catComponents);
     setCustomImage("");
     setAutoSlug(true);
@@ -1921,6 +1975,9 @@ function CategoryManagerModal({
     const finalSlug = slug.trim() ? slugify(slug) : slugify(name);
     const finalShort = short.trim() || name.trim();
     const finalImage = customImage.trim() || image;
+    const finalSubcategories = [...new Set(
+      subcategories.split(",").map((item) => item.trim()).filter(Boolean),
+    )];
 
     if (editingCategory) {
       if (onUpdate) {
@@ -1929,6 +1986,7 @@ function CategoryManagerModal({
           short: finalShort,
           filterKey: filterKey.trim() || "Type",
           image: finalImage,
+          subcategories: finalSubcategories,
         });
       }
       resetForm();
@@ -1939,6 +1997,7 @@ function CategoryManagerModal({
         slug: finalSlug,
         filterKey: filterKey.trim() || "Type",
         image: finalImage,
+        subcategories: finalSubcategories,
       });
       resetForm();
     }
@@ -2125,6 +2184,17 @@ function CategoryManagerModal({
                 </div>
               </div>
 
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-zinc-300">Subcategories</label>
+                <input
+                  value={subcategories}
+                  onChange={(e) => setSubcategories(e.target.value)}
+                  placeholder="e.g. LED Panels, Strip Lights, Solar Lights"
+                  className="admin-input text-xs w-full"
+                />
+                <p className="text-[10px] text-zinc-500">Separate subcategories with commas. These appear in the shop filter.</p>
+              </div>
+
               {/* Row 3: Category Thumbnail Selection */}
               <div className="space-y-1.5 pt-1 border-t border-zinc-800/80">
                 <label className="text-[11px] font-bold text-zinc-300">
@@ -2253,6 +2323,20 @@ function CategoryManagerModal({
                           </span>
                         </div>
                       </div>
+                    </div>
+
+                    <div className="w-full -mt-2 pl-13">
+                      {c.subcategories?.length ? (
+                        <div className="flex flex-wrap gap-1">
+                          {c.subcategories.map((subcategory) => (
+                            <span key={subcategory} className="rounded border border-orange-500/20 bg-orange-500/10 px-1.5 py-0.5 text-[10px] font-medium text-orange-300">
+                              {subcategory}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-[10px] text-zinc-500">No subcategories configured</p>
+                      )}
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
