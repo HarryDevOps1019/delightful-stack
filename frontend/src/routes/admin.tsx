@@ -77,6 +77,7 @@ const TITLES: Record<string, string> = {
 
 function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const { logout, user, isAdmin, isLoading } = useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -96,10 +97,36 @@ function AdminLayout() {
     }
   }, [isAdmin, isLoading, navigate]);
 
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 767px)");
+    const updateMobileState = () => setIsMobile(mediaQuery.matches);
+    updateMobileState();
+    mediaQuery.addEventListener("change", updateMobileState);
+    return () => mediaQuery.removeEventListener("change", updateMobileState);
+  }, []);
+
   if (isLoading || !isAdmin) {
     return null;
   }
 
+  if (isMobile) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-zinc-950 px-6 text-center text-white">
+        <div className="max-w-sm space-y-4">
+          <h1 className="text-2xl font-bold">Desktop access required</h1>
+          <p className="text-sm leading-6 text-zinc-400">
+            The admin dashboard is not available on mobile devices. Please use a desktop or laptop.
+          </p>
+          <Link
+            to="/"
+            className="inline-flex rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+          >
+            Return to store
+          </Link>
+        </div>
+      </main>
+    );
+  }
   const handleLogout = async () => {
     await logout();
     navigate({ to: "/login" });
