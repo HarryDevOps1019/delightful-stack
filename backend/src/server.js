@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import morgan from "morgan";
+import { createRateLimiter, requireTrustedOrigin, sanitizeRequestInput, securityHeaders } from "./middleware/security.js";
 
 import productsRouter from "./routes/products.js";
 import categoriesRouter from "./routes/categories.js";
@@ -28,20 +29,19 @@ app.use(
     origin: (origin, callback) => {
       // Allow requests with no origin (like mobile apps, curl, postman)
       if (!origin) return callback(null, true);
-      if (
-        allowedOrigins.indexOf(origin) !== -1 ||
-        process.env.NODE_ENV === "development"
-      ) {
-        return callback(null, true);
-      }
-      return callback(null, true); // Dev-friendly fallback
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error("Origin is not allowed by CORS"));
     },
     credentials: true,
   }),
 );
 
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ limit: "50mb", extended: true }));
+app.use(securityHeaders);
+app.use(express.json({ limit: "1mb" }));
+app.use(express.urlencoded({ limit: "1mb", extended: false }));
+app.use(sanitizeRequestInput);
+app.use(requireTrustedOrigin(allowedOrigins));
+app.use(createRateLimiter());
 app.use(morgan("dev"));
 
 // Health check endpoints

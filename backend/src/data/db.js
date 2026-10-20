@@ -621,17 +621,20 @@ export async function deleteProduct(id) {
 }
 
 export async function findProduct(identifier) {
-  // Try by id first
-  let { data } = await supabase
-    .from("products")
-    .select("*")
-    .or(`id.eq.${identifier},slug.eq.${identifier},sku.ilike.${identifier}`)
-    .limit(1)
-    .maybeSingle();
+  const value = String(identifier || "").trim();
+  if (!/^[a-zA-Z0-9_-]{1,160}$/.test(value)) return null;
 
-  return data ? fromDbProduct(data) : null;
+  // Safe PostgREST filters: user input is never interpolated into a filter string.
+  for (const [column, operator] of [["id", "eq"], ["slug", "eq"], ["sku", "ilike"]]) {
+    const query = supabase.from("products").select("*").limit(1);
+    const { data, error } = operator === "ilike"
+      ? await query.ilike(column, value).maybeSingle()
+      : await query.eq(column, value).maybeSingle();
+    if (error) throw new Error(error.message);
+    if (data) return fromDbProduct(data);
+  }
+  return null;
 }
-
 // ─── CATEGORIES ────────────────────────────────────────────
 export async function readCategories() {
   const { data, error } = await supabase.from("categories").select("*");

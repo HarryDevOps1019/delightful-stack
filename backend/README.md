@@ -1,4 +1,4 @@
-﻿# Asia Electronics â€” Express.js Backend API
+# Asia Electronics â€” Express.js Backend API
 
 Production-ready REST API built with Node.js and Express.js for **Asia Electronics & Cellular Pvt Ltd**.
 
@@ -112,3 +112,23 @@ EMAIL_FROM=yourstore@gmail.com
 ```
 
 On Vercel, add the same values through **Project Settings → Environment Variables** instead of committing them to the repository.
+## Security controls
+
+The API applies these protections before route handlers run:
+
+- **XSS and unsafe input:** request values remove control characters, executable HTML tags, inline event-handler attributes, and `javascript:` URLs. React also escapes rendered text by default; do not introduce unsanitized `dangerouslySetInnerHTML` for API data.
+- **SQL / query injection:** Supabase/PostgREST parameterized filter methods (`eq`, `ilike`, and similar) are used for user-controlled values. Do not build raw filter strings or SQL by concatenating request input.
+- **CSRF / cross-site requests:** all mutating browser requests (`POST`, `PUT`, `PATCH`, `DELETE`) must have an allowed `Origin`. Configure every production frontend origin in `FRONTEND_URL`. The app authenticates with Bearer tokens rather than cookie sessions, which also prevents browsers from automatically attaching credentials cross-site.
+- **CORS:** unknown origins are rejected in production. Never use a wildcard origin together with credentials.
+- **Security headers:** the API sends CSP, anti-framing, MIME-sniffing, referrer, and permissions-policy headers.
+- **Rate limiting:** each backend instance limits clients to 120 requests per 15 minutes. Configure an edge/WAF or shared Redis limiter for a distributed production deployment.
+- **Request size limits:** JSON and URL-encoded request bodies are limited to 1 MB.
+
+### Production checklist
+
+```env
+NODE_ENV=production
+FRONTEND_URL=https://your-store.example
+```
+
+Use HTTPS, keep `SUPABASE_SERVICE_KEY`, SMTP credentials, and admin passwords only in Vercel/Supabase environment variables, rotate secrets if exposed, and use a WAF/rate limiter at the hosting edge. Run dependency audits (`npm audit`) during releases.
