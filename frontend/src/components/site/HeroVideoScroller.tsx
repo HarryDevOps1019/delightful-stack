@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import { ChevronLeft, ChevronRight, Play, Pause, Sparkles, Wrench } from "lucide-react";
@@ -150,11 +150,11 @@ export function HeroVideoScroller() {
                   </p>
 
                   {/* CTAs */}
-                  <div className="mt-4 flex flex-nowrap items-center gap-2 sm:mt-8 sm:flex-wrap sm:gap-4">
+                  <div className="mt-4 flex items-center gap-2 pr-2 sm:mt-8 sm:flex-wrap sm:gap-4 sm:pr-0">
                     <Link
                       to={slide.primaryCta.to}
                       search={slide.primaryCta.search}
-                      className="inline-flex w-auto shrink-0 items-center justify-center rounded bg-primary px-3 py-2 text-[10px] sm:px-6 sm:py-3 sm:text-sm text-primary-foreground font-display font-black uppercase tracking-wider transition-all hover:bg-primary/90 hover:scale-102 shadow-md"
+                      className="inline-flex min-w-0 flex-1 items-center justify-center rounded bg-primary px-3 py-2 text-center text-[10px] leading-tight sm:flex-none sm:px-6 sm:py-3 sm:text-sm text-primary-foreground font-display font-black uppercase tracking-wider transition-all hover:bg-primary/90 hover:scale-102 shadow-md"
                     >
                       {slide.primaryCta.text} â†’
                     </Link>
@@ -164,10 +164,10 @@ export function HeroVideoScroller() {
                         href={slide.whatsappCta.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex w-auto shrink-0 items-center justify-center gap-1 rounded bg-[#25D366] px-3 py-2 text-[10px] sm:gap-2 sm:px-5 sm:py-3 sm:text-sm text-white font-display font-bold uppercase tracking-wider transition-all hover:bg-[#20ba5a] hover:scale-102 shadow-md"
+                        className="inline-flex shrink-0 items-center justify-center gap-1 rounded bg-[#25D366] px-3 py-2 text-[10px] sm:gap-2 sm:px-5 sm:py-3 sm:text-sm text-white font-display font-bold uppercase tracking-wider transition-all hover:bg-[#20ba5a] hover:scale-102 shadow-md"
                       >
                         <WhatsAppIcon className="h-4 w-4" />
-                        <span>{slide.whatsappCta.text}</span>
+                        <span className="sm:hidden">WhatsApp</span><span className="hidden sm:inline">{slide.whatsappCta.text}</span>
                       </a>
                     ) : (
                       slide.secondaryCta && (
