@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AuthForm } from "@/components/site/AuthForm";
-import { PageHeading } from "@/components/site/PageHeading";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
@@ -11,12 +10,5 @@ export const Route = createFileRoute("/login")({
       { property: "og:description", content: "Demo customer sign-in." },
     ],
   }),
-  component: () => (
-    <>
-      <PageHeading title="Sign In" />
-      <div className="container-shop">
-        <AuthForm mode="login" />
-      </div>
-    </>
-  ),
+  component: () => <AuthForm mode="login" />,
 });
