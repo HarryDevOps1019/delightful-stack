@@ -21,7 +21,8 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "Asia Electronics & Cellular â€” Demo Store" },
       {
         property: "og:description",
-        content: "Electronic components, audio, lighting, mobile parts and TVs â€” demo storefront.",
+        content:
+          "Electronic components, audio, lighting, mobile parts and TVs â€” demo storefront.",
       },
     ],
   }),

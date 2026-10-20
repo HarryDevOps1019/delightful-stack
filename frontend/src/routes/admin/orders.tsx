@@ -1,12 +1,31 @@
-﻿import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
 import {
-  Search, Download, Filter, Eye, Clock, CheckCircle2, Zap,
-  X, MapPin, Phone, Mail, CreditCard, Package, Truck,
-  FileText, ChevronRight, Save,
+  Search,
+  Download,
+  Filter,
+  Eye,
+  Clock,
+  CheckCircle2,
+  Zap,
+  X,
+  MapPin,
+  Phone,
+  Mail,
+  CreditCard,
+  Package,
+  Truck,
+  FileText,
+  ChevronRight,
+  Save,
 } from "lucide-react";
 import { formatLKR, formatRupees } from "@/lib/format";
-import { mockOrders, StatusBadge, type MockOrder, type OrderStatus } from "@/components/admin/shared";
+import {
+  mockOrders,
+  StatusBadge,
+  type MockOrder,
+  type OrderStatus,
+} from "@/components/admin/shared";
 import { fetchOrdersApi, updateOrderStatusApi } from "@/services/api";
 import { toast } from "sonner";
 
@@ -26,12 +45,12 @@ const STATUS_OPTIONS: OrderStatus[] = [
 ];
 
 const STATUS_COLORS: Record<OrderStatus, string> = {
-  Processing:            "bg-amber-500/20 text-amber-400 border-amber-500/40",
-  Shipped:               "bg-blue-500/20 text-blue-400 border-blue-500/40",
-  Delivered:             "bg-emerald-500/20 text-emerald-400 border-emerald-500/40",
-  Cancelled:             "bg-red-500/20 text-red-400 border-red-500/40",
+  Processing: "bg-amber-500/20 text-amber-400 border-amber-500/40",
+  Shipped: "bg-blue-500/20 text-blue-400 border-blue-500/40",
+  Delivered: "bg-emerald-500/20 text-emerald-400 border-emerald-500/40",
+  Cancelled: "bg-red-500/20 text-red-400 border-red-500/40",
   "Quotation Requested": "bg-purple-500/20 text-purple-400 border-purple-500/40",
-  "Quotation Sent":      "bg-sky-500/20 text-sky-400 border-sky-500/40",
+  "Quotation Sent": "bg-sky-500/20 text-sky-400 border-sky-500/40",
 };
 
 function OrderDetailModal({
@@ -41,7 +60,10 @@ function OrderDetailModal({
 }: {
   order: MockOrder;
   onClose: () => void;
-  onStatusChange: (id: string, status: OrderStatus) => Promise<{ updated: boolean; emailSent: boolean; emailReason?: string }>;
+  onStatusChange: (
+    id: string,
+    status: OrderStatus,
+  ) => Promise<{ updated: boolean; emailSent: boolean; emailReason?: string }>;
 }) {
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus>(order.status);
   const [saving, setSaving] = useState(false);
@@ -110,11 +132,13 @@ function OrderDetailModal({
         </div>
 
         <div className="p-6 space-y-5">
-
           {/* â”€â”€ Status Changer â”€â”€ */}
           <div
             className="rounded-xl p-4 space-y-3"
-            style={{ background: "oklch(0.15 0.004 270)", border: "1px solid oklch(0.25 0.004 270)" }}
+            style={{
+              background: "oklch(0.15 0.004 270)",
+              border: "1px solid oklch(0.25 0.004 270)",
+            }}
           >
             <div className="flex items-center justify-between">
               <p className="text-xs font-bold text-white uppercase tracking-wider">Order Status</p>
@@ -137,7 +161,8 @@ function OrderDetailModal({
             </div>
             {selectedStatus !== order.status && (
               <p className="text-[11px] text-orange-400 font-semibold">
-                âš  Status will change from <strong>{order.status}</strong> â†’ <strong>{selectedStatus}</strong>
+                Status will change from <strong>{order.status}</strong> â†’{" "}
+                <strong>{selectedStatus}</strong>
               </p>
             )}
           </div>
@@ -145,30 +170,53 @@ function OrderDetailModal({
           {/* â”€â”€ Customer Details â”€â”€ */}
           <div
             className="rounded-xl p-4 space-y-3"
-            style={{ background: "oklch(0.15 0.004 270)", border: "1px solid oklch(0.25 0.004 270)" }}
+            style={{
+              background: "oklch(0.15 0.004 270)",
+              border: "1px solid oklch(0.25 0.004 270)",
+            }}
           >
-            <p className="text-xs font-bold text-white uppercase tracking-wider mb-3">Customer Information</p>
+            <p className="text-xs font-bold text-white uppercase tracking-wider mb-3">
+              Customer Information
+            </p>
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-600 flex items-center justify-center text-sm font-black text-white shrink-0">
                 {order.customer.charAt(0)}
               </div>
               <div>
                 <p className="text-sm font-bold text-white">{order.customer}</p>
-                <p className="text-[10px] text-zinc-400">{order.items} item{order.items > 1 ? "s" : ""} ordered</p>
+                <p className="text-[10px] text-zinc-400">
+                  {order.items} item{order.items > 1 ? "s" : ""} ordered
+                </p>
               </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
-              <InfoRow icon={<Mail className="h-3.5 w-3.5 text-orange-400" />} label="Email" value={order.email} />
-              <InfoRow icon={<Phone className="h-3.5 w-3.5 text-orange-400" />} label="Phone" value={order.phone} />
+              <InfoRow
+                icon={<Mail className="h-3.5 w-3.5 text-orange-400" />}
+                label="Email"
+                value={order.email}
+              />
+              <InfoRow
+                icon={<Phone className="h-3.5 w-3.5 text-orange-400" />}
+                label="Phone"
+                value={order.phone}
+              />
               <InfoRow
                 icon={<MapPin className="h-3.5 w-3.5 text-orange-400" />}
                 label="Delivery Address"
                 value={`${order.address}, ${order.city}, ${order.district}`}
                 className="sm:col-span-2"
               />
-              <InfoRow icon={<CreditCard className="h-3.5 w-3.5 text-orange-400" />} label="Payment Method" value={order.paymentMethod} />
+              <InfoRow
+                icon={<CreditCard className="h-3.5 w-3.5 text-orange-400" />}
+                label="Payment Method"
+                value={order.paymentMethod}
+              />
               {order.trackingNumber && (
-                <InfoRow icon={<Truck className="h-3.5 w-3.5 text-blue-400" />} label="Tracking Number" value={order.trackingNumber} />
+                <InfoRow
+                  icon={<Truck className="h-3.5 w-3.5 text-blue-400" />}
+                  label="Tracking Number"
+                  value={order.trackingNumber}
+                />
               )}
             </div>
           </div>
@@ -180,7 +228,10 @@ function OrderDetailModal({
           >
             <div
               className="px-4 py-3 flex items-center gap-2"
-              style={{ background: "oklch(0.15 0.004 270)", borderBottom: "1px solid oklch(0.22 0.004 270)" }}
+              style={{
+                background: "oklch(0.15 0.004 270)",
+                borderBottom: "1px solid oklch(0.22 0.004 270)",
+              }}
             >
               <Package className="h-3.5 w-3.5 text-orange-400" />
               <p className="text-xs font-bold text-white uppercase tracking-wider">Order Items</p>
@@ -190,12 +241,18 @@ function OrderDetailModal({
                 <div
                   key={i}
                   className="flex items-center justify-between px-4 py-3 text-xs"
-                  style={{ borderBottom: i < order.lineItems.length - 1 ? "1px solid oklch(0.20 0.004 270)" : "none" }}
+                  style={{
+                    borderBottom:
+                      i < order.lineItems.length - 1 ? "1px solid oklch(0.20 0.004 270)" : "none",
+                  }}
                 >
                   <div className="flex items-start gap-3 min-w-0">
                     <div
                       className="h-6 w-6 rounded flex items-center justify-center shrink-0 text-[10px] font-black text-orange-400"
-                      style={{ background: "oklch(0.18 0.004 270)", border: "1px solid oklch(0.25 0.004 270)" }}
+                      style={{
+                        background: "oklch(0.18 0.004 270)",
+                        border: "1px solid oklch(0.25 0.004 270)",
+                      }}
                     >
                       {item.qty}Ã—
                     </div>
@@ -205,7 +262,9 @@ function OrderDetailModal({
                     </div>
                   </div>
                   <div className="text-right shrink-0 ml-3">
-                    <p className="font-bold text-white">{formatRupees(item.qty * item.unitPrice)}</p>
+                    <p className="font-bold text-white">
+                      {formatRupees(item.qty * item.unitPrice)}
+                    </p>
                     <p className="text-[10px] text-zinc-500">{formatRupees(item.unitPrice)} each</p>
                   </div>
                 </div>
@@ -214,7 +273,10 @@ function OrderDetailModal({
               {/* Totals */}
               <div
                 className="px-4 py-3 space-y-1.5 text-xs"
-                style={{ borderTop: "1px solid oklch(0.22 0.004 270)", background: "oklch(0.14 0.004 270)" }}
+                style={{
+                  borderTop: "1px solid oklch(0.22 0.004 270)",
+                  background: "oklch(0.14 0.004 270)",
+                }}
               >
                 <div className="flex justify-between text-zinc-400">
                   <span>Subtotal</span>
@@ -231,9 +293,18 @@ function OrderDetailModal({
                     <span>Included / Free</span>
                   </div>
                 )}
-                <div className="flex justify-between font-black text-white text-sm pt-1.5" style={{ borderTop: "1px solid oklch(0.25 0.004 270)" }}>
+                <div
+                  className="flex justify-between font-black text-white text-sm pt-1.5"
+                  style={{ borderTop: "1px solid oklch(0.25 0.004 270)" }}
+                >
                   <span>Total</span>
-                  <span className={order.status === "Cancelled" ? "text-zinc-500 line-through" : "text-orange-400"}>
+                  <span
+                    className={
+                      order.status === "Cancelled"
+                        ? "text-zinc-500 line-through"
+                        : "text-orange-400"
+                    }
+                  >
                     {formatRupees(order.total)}
                   </span>
                 </div>
@@ -245,7 +316,10 @@ function OrderDetailModal({
           {order.notes && (
             <div
               className="rounded-xl p-4 flex gap-3"
-              style={{ background: "oklch(0.58 0.235 22 / 8%)", border: "1px solid oklch(0.58 0.235 22 / 25%)" }}
+              style={{
+                background: "oklch(0.58 0.235 22 / 8%)",
+                border: "1px solid oklch(0.58 0.235 22 / 25%)",
+              }}
             >
               <FileText className="h-4 w-4 text-orange-400 shrink-0 mt-0.5" />
               <div>
@@ -264,10 +338,7 @@ function OrderDetailModal({
             borderColor: "oklch(0.22 0.004 270)",
           }}
         >
-          <button
-            onClick={onClose}
-            className="admin-btn-ghost text-xs"
-          >
+          <button onClick={onClose} className="admin-btn-ghost text-xs">
             Cancel
           </button>
           <button
@@ -333,9 +404,10 @@ function AdminOrders() {
           // Parse items safely (Supabase returns JSONB as parsed JS array already)
           const items = Array.isArray(o.items) ? o.items : [];
           const itemCount = items.reduce((s, it) => s + (Number(it.qty) || 1), 0);
-          const productSummary = items.length > 0
-            ? items.map((it) => `${it.qty > 1 ? `${it.qty}Ã— ` : ""}${it.name}`).join(", ")
-            : "â€”";
+          const productSummary =
+            items.length > 0
+              ? items.map((it) => `${it.qty > 1 ? `${it.qty}Ã— ` : ""}${it.name}`).join(", ")
+              : "â€”";
 
           return {
             id: o.id,
@@ -350,7 +422,7 @@ function AdminOrders() {
             paymentMethod: "Direct / WhatsApp",
             address: o.address || "â€”",
             city: o.city || "â€”",
-            district: o.city || "â€”",           // DB has no separate district; use city
+            district: o.city || "â€”", // DB has no separate district; use city
             notes: o.notes || undefined,
             lineItems: items.map((it) => ({
               name: it.name || "Unknown Item",
@@ -372,7 +444,10 @@ function AdminOrders() {
     const validOrders = orders.filter((o) => o.status !== "Cancelled");
     const total = validOrders.reduce((acc, o) => acc + (Number(o.total) || 0), 0);
     const processing = orders.filter(
-      (o) => o.status === "Processing" || o.status === "Quotation Requested" || o.status === "Quotation Sent"
+      (o) =>
+        o.status === "Processing" ||
+        o.status === "Quotation Requested" ||
+        o.status === "Quotation Sent",
     ).length;
     const shipped = orders.filter((o) => o.status === "Shipped").length;
     const delivered = orders.filter((o) => o.status === "Delivered").length;
@@ -399,7 +474,8 @@ function AdminOrders() {
         (statusFilter === "Active" && !isPastOrder) ||
         (statusFilter === "Past Orders" && isPastOrder) ||
         o.status === statusFilter ||
-        (statusFilter === "Processing" && (o.status === "Quotation Requested" || o.status === "Quotation Sent"));
+        (statusFilter === "Processing" &&
+          (o.status === "Quotation Requested" || o.status === "Quotation Sent"));
       return matchSearch && matchStatus;
     });
   }, [search, statusFilter, orders]);
@@ -431,7 +507,9 @@ function AdminOrders() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="admin-card">
             <div className="flex items-center justify-between">
-              <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Total Sales</p>
+              <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
+                Total Sales
+              </p>
               <CreditCard className="h-4 w-4 text-orange-400" />
             </div>
             <p className="text-xl font-black text-white mt-1">{formatRupees(stats.total)}</p>
@@ -442,7 +520,9 @@ function AdminOrders() {
           </div>
           <div className="admin-card">
             <div className="flex items-center justify-between">
-              <p className="text-[11px] font-bold text-amber-500/80 uppercase tracking-wider">Processing</p>
+              <p className="text-[11px] font-bold text-amber-500/80 uppercase tracking-wider">
+                Processing
+              </p>
               <Clock className="h-4 w-4 text-amber-400" />
             </div>
             <p className="text-xl font-black text-amber-400 mt-1">{stats.processing}</p>
@@ -450,7 +530,9 @@ function AdminOrders() {
           </div>
           <div className="admin-card">
             <div className="flex items-center justify-between">
-              <p className="text-[11px] font-bold text-blue-500/80 uppercase tracking-wider">In Transit</p>
+              <p className="text-[11px] font-bold text-blue-500/80 uppercase tracking-wider">
+                In Transit
+              </p>
               <Zap className="h-4 w-4 text-blue-400" />
             </div>
             <p className="text-xl font-black text-blue-400 mt-1">{stats.shipped}</p>
@@ -458,7 +540,9 @@ function AdminOrders() {
           </div>
           <div className="admin-card">
             <div className="flex items-center justify-between">
-              <p className="text-[11px] font-bold text-emerald-500/80 uppercase tracking-wider">Completed</p>
+              <p className="text-[11px] font-bold text-emerald-500/80 uppercase tracking-wider">
+                Completed
+              </p>
               <CheckCircle2 className="h-4 w-4 text-emerald-400" />
             </div>
             <p className="text-xl font-black text-emerald-400 mt-1">{stats.delivered}</p>
@@ -485,7 +569,11 @@ function AdminOrders() {
                 { id: "Active", label: "Active", count: stats.processing + stats.shipped },
                 { id: "Processing", label: "Processing", count: stats.processing },
                 { id: "Shipped", label: "Shipped", count: stats.shipped },
-                { id: "Past Orders", label: "Past Orders", count: stats.delivered + stats.cancelled },
+                {
+                  id: "Past Orders",
+                  label: "Past Orders",
+                  count: stats.delivered + stats.cancelled,
+                },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -569,7 +657,10 @@ function AdminOrders() {
                                 <span className="rounded bg-orange-500/20 text-orange-400 text-[10px] font-bold px-1.5 py-0.5 shrink-0 leading-none">
                                   {item.qty}Ã—
                                 </span>
-                                <span className="text-zinc-200 text-xs font-semibold truncate max-w-[180px]" title={item.name}>
+                                <span
+                                  className="text-zinc-200 text-xs font-semibold truncate max-w-[180px]"
+                                  title={item.name}
+                                >
                                   {item.name}
                                 </span>
                                 {item.sku && item.sku !== "â€”" && (
@@ -584,7 +675,8 @@ function AdminOrders() {
                                 onClick={() => setSelectedOrder(o)}
                                 className="text-[10px] text-orange-400 hover:text-orange-300 font-semibold hover:underline block"
                               >
-                                +{o.lineItems.length - 2} more item{o.lineItems.length - 2 > 1 ? "s" : ""}
+                                +{o.lineItems.length - 2} more item
+                                {o.lineItems.length - 2 > 1 ? "s" : ""}
                               </button>
                             )}
                           </div>
@@ -593,14 +685,20 @@ function AdminOrders() {
                             <span className="shrink-0 mt-0.5 rounded bg-orange-500/20 text-orange-400 text-[10px] font-bold px-1.5 py-0.5 leading-none">
                               {o.items}
                             </span>
-                            <span className="text-zinc-300 text-xs leading-tight line-clamp-2">{o.product}</span>
+                            <span className="text-zinc-300 text-xs leading-tight line-clamp-2">
+                              {o.product}
+                            </span>
                           </div>
                         )}
                       </td>
-                      <td className={`p-3 font-bold ${o.status === "Cancelled" ? "text-zinc-500 line-through" : "text-white"}`}>
+                      <td
+                        className={`p-3 font-bold ${o.status === "Cancelled" ? "text-zinc-500 line-through" : "text-white"}`}
+                      >
                         {formatRupees(o.total)}
                       </td>
-                      <td className="p-3"><StatusBadge status={o.status} /></td>
+                      <td className="p-3">
+                        <StatusBadge status={o.status} />
+                      </td>
                       <td className="p-3 text-right">
                         <button
                           onClick={() => setSelectedOrder(o)}

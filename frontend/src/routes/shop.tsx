@@ -1,6 +1,24 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { Boxes, ChevronDown, ChevronLeft, ChevronRight, Cpu, FlaskConical, Lightbulb, Monitor, Package, Radio, Smartphone, SlidersHorizontal, Sun, Tv, Wrench, X, Zap } from "lucide-react";
+import {
+  Boxes,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Cpu,
+  FlaskConical,
+  Lightbulb,
+  Monitor,
+  Package,
+  Radio,
+  Smartphone,
+  SlidersHorizontal,
+  Sun,
+  Tv,
+  Wrench,
+  X,
+  Zap,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { attributeOptions, productsQuery, useCatalog } from "@/services/catalog";
 import type { Category, CategorySlug, SortKey } from "@/lib/types";
@@ -24,20 +42,69 @@ export interface ShopSearch {
 }
 
 const SHOP_SUBCATEGORIES: Record<string, Array<{ label: string; query: string }>> = {
-  lighting: [{ label: "LED panel & tube lights", query: "panel light tube light" }, { label: "Strip, track & spot lights", query: "strip light track light spot light" }, { label: "Solar & outdoor lighting", query: "solar light outdoor light" }, { label: "Chandeliers & bulbs", query: "chandelier bulb" }],
-  "home-appliances": [{ label: "TVs & projectors", query: "tv projector" }, { label: "Consumer appliances", query: "appliance" }],
-  "kitchen-appliances": [{ label: "Blenders", query: "blender" }, { label: "Cookers", query: "cooker" }],
-  "appliance-spare-parts": [{ label: "Washing machine parts", query: "washing machine" }, { label: "AC & microwave parts", query: "air conditioning microwave" }, { label: "Vacuum, blender & kettle parts", query: "vacuum blender kettle" }],
-  "electronic-components": [{ label: "ICs & IGBTs", query: "ic igbt" }, { label: "Resistors & capacitors", query: "resistor capacitor" }, { label: "Arduino, sensors & modules", query: "arduino sensor module" }],
-  "power-solar-batteries": [{ label: "Solar panels & controllers", query: "solar panel controller" }, { label: "Inverters & MPPT controllers", query: "inverter mppt" }, { label: "UPS & lithium batteries", query: "ups lithium battery" }, { label: "Generator spares", query: "generator" }],
-  audio: [{ label: "Speakers", query: "speaker" }, { label: "Microphones & mixers", query: "microphone mixer" }, { label: "Amplifiers & Bluetooth modules", query: "amplifier bluetooth" }],
-  mobile: [{ label: "Displays & repair parts", query: "display repair" }, { label: "Cables, chargers & power banks", query: "cable charger powerbank" }, { label: "Phone repair tools", query: "phone repair tool" }],
+  lighting: [
+    { label: "LED panel & tube lights", query: "panel light tube light" },
+    { label: "Strip, track & spot lights", query: "strip light track light spot light" },
+    { label: "Solar & outdoor lighting", query: "solar light outdoor light" },
+    { label: "Chandeliers & bulbs", query: "chandelier bulb" },
+  ],
+  "home-appliances": [
+    { label: "TVs & projectors", query: "tv projector" },
+    { label: "Consumer appliances", query: "appliance" },
+  ],
+  "kitchen-appliances": [
+    { label: "Blenders", query: "blender" },
+    { label: "Cookers", query: "cooker" },
+  ],
+  "appliance-spare-parts": [
+    { label: "Washing machine parts", query: "washing machine" },
+    { label: "AC & microwave parts", query: "air conditioning microwave" },
+    { label: "Vacuum, blender & kettle parts", query: "vacuum blender kettle" },
+  ],
+  "electronic-components": [
+    { label: "ICs & IGBTs", query: "ic igbt" },
+    { label: "Resistors & capacitors", query: "resistor capacitor" },
+    { label: "Arduino, sensors & modules", query: "arduino sensor module" },
+  ],
+  "power-solar-batteries": [
+    { label: "Solar panels & controllers", query: "solar panel controller" },
+    { label: "Inverters & MPPT controllers", query: "inverter mppt" },
+    { label: "UPS & lithium batteries", query: "ups lithium battery" },
+    { label: "Generator spares", query: "generator" },
+  ],
+  audio: [
+    { label: "Speakers", query: "speaker" },
+    { label: "Microphones & mixers", query: "microphone mixer" },
+    { label: "Amplifiers & Bluetooth modules", query: "amplifier bluetooth" },
+  ],
+  mobile: [
+    { label: "Displays & repair parts", query: "display repair" },
+    { label: "Cables, chargers & power banks", query: "cable charger powerbank" },
+    { label: "Phone repair tools", query: "phone repair tool" },
+  ],
   "tools-installation": [{ label: "Tools & installation supplies", query: "tool installation" }],
-  "laboratory-equipment": [{ label: "Oscilloscopes & multimeters", query: "oscilloscope multimeter" }, { label: "Microscopes & signal generators", query: "microscope signal generator" }],
-  "tv-repair-parts": [{ label: "LED backlights", query: "led backlight" }, { label: "TV LCD panels", query: "tv lcd" }, { label: "TV boards", query: "tv board" }],
-  "test-repair-equipment": [{ label: "Soldering stations", query: "solder station" }, { label: "Repair lamps & thermal mats", query: "repair lamp thermal mat" }],
-  "electrical-control-boxes": [{ label: "Enclosure boxes", query: "enclosure box" }, { label: "Distribution & control boxes", query: "distribution control box" }],
-  "led-displays-signage": [{ label: "P10 LED modules", query: "p10 led module" }, { label: "Indoor & outdoor LED displays", query: "led display" }, { label: "Name boards", query: "name board" }],
+  "laboratory-equipment": [
+    { label: "Oscilloscopes & multimeters", query: "oscilloscope multimeter" },
+    { label: "Microscopes & signal generators", query: "microscope signal generator" },
+  ],
+  "tv-repair-parts": [
+    { label: "LED backlights", query: "led backlight" },
+    { label: "TV LCD panels", query: "tv lcd" },
+    { label: "TV boards", query: "tv board" },
+  ],
+  "test-repair-equipment": [
+    { label: "Soldering stations", query: "solder station" },
+    { label: "Repair lamps & thermal mats", query: "repair lamp thermal mat" },
+  ],
+  "electrical-control-boxes": [
+    { label: "Enclosure boxes", query: "enclosure box" },
+    { label: "Distribution & control boxes", query: "distribution control box" },
+  ],
+  "led-displays-signage": [
+    { label: "P10 LED modules", query: "p10 led module" },
+    { label: "Indoor & outdoor LED displays", query: "led display" },
+    { label: "Name boards", query: "name board" },
+  ],
 };
 
 const SHOP_CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -356,7 +423,13 @@ function Filters({
           <li>
             <Link
               to="/shop"
-              search={(p) => ({ ...p, category: undefined, subcategory: undefined, attr: undefined, page: undefined })}
+              search={(p) => ({
+                ...p,
+                category: undefined,
+                subcategory: undefined,
+                attr: undefined,
+                page: undefined,
+              })}
               className={!search.category ? "font-bold text-primary" : "hover:text-primary"}
             >
               All categories
@@ -365,7 +438,10 @@ function Filters({
           {categories.map((c) => {
             const subcategories = c.subcategories?.length
               ? c.subcategories.map((label) => ({ label, subcategory: label }))
-              : (SHOP_SUBCATEGORIES[c.slug] ?? []).map(({ label }) => ({ label, subcategory: undefined }));
+              : (SHOP_SUBCATEGORIES[c.slug] ?? []).map(({ label }) => ({
+                  label,
+                  subcategory: undefined,
+                }));
             const isExpanded = expandedCategory === c.slug;
             return (
               <li key={c.slug}>
@@ -373,13 +449,23 @@ function Filters({
                   type="button"
                   onClick={() => {
                     setExpandedCategory(isExpanded ? undefined : c.slug);
-                    update({ category: c.slug, subcategory: undefined, q: undefined, attr: undefined });
+                    update({
+                      category: c.slug,
+                      subcategory: undefined,
+                      q: undefined,
+                      attr: undefined,
+                    });
                   }}
                   aria-expanded={isExpanded}
                   className={`flex w-full items-center justify-between gap-2 text-left ${search.category === c.slug ? "font-bold text-primary" : "hover:text-primary"}`}
                 >
-                  <span className="flex min-w-0 items-center gap-2"><CategoryIcon slug={c.slug} /><span>{c.name}</span></span>
-                  <ChevronDown className={`h-3.5 w-3.5 shrink-0 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                  <span className="flex min-w-0 items-center gap-2">
+                    <CategoryIcon slug={c.slug} />
+                    <span>{c.name}</span>
+                  </span>
+                  <ChevronDown
+                    className={`h-3.5 w-3.5 shrink-0 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                  />
                 </button>
                 {isExpanded && subcategories.length > 0 && (
                   <ul className="mt-1 space-y-1 border-l border-border pl-3 text-xs text-muted-foreground">
@@ -387,7 +473,14 @@ function Filters({
                       <li key={subcategory.label}>
                         <Link
                           to="/shop"
-                          search={(p) => ({ ...p, category: c.slug, subcategory: subcategory.subcategory, q: undefined, attr: undefined, page: undefined })}
+                          search={(p) => ({
+                            ...p,
+                            category: c.slug,
+                            subcategory: subcategory.subcategory,
+                            q: undefined,
+                            attr: undefined,
+                            page: undefined,
+                          })}
                           className="block py-0.5 hover:text-primary"
                         >
                           {subcategory.label}

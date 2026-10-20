@@ -29,7 +29,8 @@ const FACEBOOK_URL =
 const specialties = [
   {
     title: "ICs & repair components",
-    description: "ICs, IGBTs, resistors, capacitors, sensors, modules and tools for repair and projects.",
+    description:
+      "ICs, IGBTs, resistors, capacitors, sensors, modules and tools for repair and projects.",
     image: componentsImg,
   },
   {
@@ -158,7 +159,10 @@ function AboutPage() {
           ].map(([title, description]) => (
             <div key={title} className="flex gap-3">
               <ShieldCheck className="h-5 w-5 shrink-0 text-primary" />
-              <div><h3 className="font-display text-sm font-extrabold uppercase">{title}</h3><p className="mt-1 text-sm leading-6 text-muted-foreground">{description}</p></div>
+              <div>
+                <h3 className="font-display text-sm font-extrabold uppercase">{title}</h3>
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">{description}</p>
+              </div>
             </div>
           ))}
         </section>
@@ -227,7 +231,12 @@ function AboutPage() {
               >
                 View all contact details <ArrowRight className="h-4 w-4" />
               </Link>
-              <a href="/aec-company-profile.pdf" target="_blank" rel="noopener noreferrer" className="block font-bold hover:underline">
+              <a
+                href="/aec-company-profile.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block font-bold hover:underline"
+              >
                 Download company profile
               </a>
             </div>
@@ -235,10 +244,22 @@ function AboutPage() {
         </section>
 
         <section className="mt-10 bg-tile p-6 sm:p-9">
-          <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-primary">Our philosophy</p>
-          <h2 className="mt-2 font-display text-2xl font-black uppercase">Build trust. Deliver value. Grow together.</h2>
-          <p className="mt-4 max-w-3xl text-sm leading-7 text-muted-foreground">We continue to expand our range, improve sourcing and embrace new technologies so every customer can find reliable, practical products that offer value.</p>
-          <Link to="/wholesale" className="mt-6 inline-flex h-11 items-center gap-2 bg-primary px-5 text-xs font-extrabold uppercase text-primary-foreground">Wholesale & bulk enquiries <ArrowRight className="h-4 w-4" /></Link>
+          <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-primary">
+            Our philosophy
+          </p>
+          <h2 className="mt-2 font-display text-2xl font-black uppercase">
+            Build trust. Deliver value. Grow together.
+          </h2>
+          <p className="mt-4 max-w-3xl text-sm leading-7 text-muted-foreground">
+            We continue to expand our range, improve sourcing and embrace new technologies so every
+            customer can find reliable, practical products that offer value.
+          </p>
+          <Link
+            to="/wholesale"
+            className="mt-6 inline-flex h-11 items-center gap-2 bg-primary px-5 text-xs font-extrabold uppercase text-primary-foreground"
+          >
+            Wholesale & bulk enquiries <ArrowRight className="h-4 w-4" />
+          </Link>
         </section>
 
         <section className="mt-10 flex flex-col gap-5 border-t border-border pt-8 sm:flex-row sm:items-center sm:justify-between">

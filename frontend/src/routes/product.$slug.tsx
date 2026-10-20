@@ -1,6 +1,15 @@
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, Minus, Plus, ShieldCheck, ShoppingCart, Truck, Store } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Minus,
+  Plus,
+  ShieldCheck,
+  ShoppingCart,
+  Truck,
+  Store,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { productQuery, relatedQuery, categories } from "@/services/catalog";
@@ -63,7 +72,9 @@ function ProductNotFound() {
   return (
     <div className="container-shop py-20 text-center">
       <h1 className="font-display text-2xl font-extrabold">Product not found</h1>
-      <Link to="/shop" className="mt-4 inline-block font-bold text-primary hover:underline">Back to shop</Link>
+      <Link to="/shop" className="mt-4 inline-block font-bold text-primary hover:underline">
+        Back to shop
+      </Link>
     </div>
   );
 }
@@ -93,7 +104,8 @@ function ProductPage() {
   const variantLabel = product.variants?.map((v) => `${v.name}: ${variant[v.name]}`).join(", ");
 
   const add = () => {
-    if (missing.length) return toast.error(`Please choose ${missing.map((m) => m.name.toLowerCase()).join(" and ")}`);
+    if (missing.length)
+      return toast.error(`Please choose ${missing.map((m) => m.name.toLowerCase()).join(" and ")}`);
     const q = Math.min(qty, remaining);
     cart.add(product.id, q, variantLabel || undefined);
     toast.success(`Added ${q} × ${product.name}`);
@@ -101,7 +113,8 @@ function ProductPage() {
   };
 
   const handleBuyNow = () => {
-    if (missing.length) return toast.error(`Please choose ${missing.map((m) => m.name.toLowerCase()).join(" and ")}`);
+    if (missing.length)
+      return toast.error(`Please choose ${missing.map((m) => m.name.toLowerCase()).join(" and ")}`);
     const q = Math.min(qty, remaining);
     cart.add(product.id, q, variantLabel || undefined);
     navigate({ to: "/checkout" });
@@ -110,9 +123,14 @@ function ProductPage() {
   return (
     <div className="container-shop pt-1 sm:pt-4 lg:pt-6 pb-12 lg:pb-14 w-full">
       <nav aria-label="Breadcrumb" className="text-xs text-muted-foreground mb-2 sm:mb-4 lg:mb-5">
-        <Link to="/" className="hover:text-primary">Home</Link> /{" "}
-        <Link to="/shop" search={{ category: product.category }} className="hover:text-primary">{cat?.short || product.category}</Link> /{" "}
-        <span className="text-foreground font-medium">{product.name}</span>
+        <Link to="/" className="hover:text-primary">
+          Home
+        </Link>{" "}
+        /{" "}
+        <Link to="/shop" search={{ category: product.category }} className="hover:text-primary">
+          {cat?.short || product.category}
+        </Link>{" "}
+        / <span className="text-foreground font-medium">{product.name}</span>
       </nav>
 
       {/* Main 3-Column Layout Filling Full Width */}
@@ -132,7 +150,9 @@ function ProductPage() {
               <>
                 <button
                   type="button"
-                  onClick={() => setImg((prev) => (prev - 1 + product.images.length) % product.images.length)}
+                  onClick={() =>
+                    setImg((prev) => (prev - 1 + product.images.length) % product.images.length)
+                  }
                   aria-label="Previous image"
                   className="absolute left-3 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-white/90 dark:bg-zinc-800/90 shadow-md border border-border/80 flex items-center justify-center text-foreground hover:bg-white dark:hover:bg-zinc-700 hover:scale-110 transition-all opacity-80 group-hover:opacity-100 focus:outline-hidden"
                 >
@@ -221,7 +241,9 @@ function ProductPage() {
           {/* Variants */}
           {product.variants?.map((v) => (
             <fieldset key={v.name} className="mt-3">
-              <legend className="mb-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">{v.name}</legend>
+              <legend className="mb-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                {v.name}
+              </legend>
               <div className="flex flex-wrap gap-2">
                 {v.options.map((o) => (
                   <button
@@ -244,7 +266,11 @@ function ProductPage() {
 
           {/* Quantity and Action Buttons Row */}
           <div className="pt-2 flex flex-wrap items-center gap-2.5">
-            <div className="flex h-11 items-center border border-input rounded-md bg-background" role="group" aria-label="Quantity">
+            <div
+              className="flex h-11 items-center border border-input rounded-md bg-background"
+              role="group"
+              aria-label="Quantity"
+            >
               <button
                 type="button"
                 aria-label="Decrease quantity"
@@ -253,7 +279,9 @@ function ProductPage() {
               >
                 <Minus className="h-3.5 w-3.5" />
               </button>
-              <span className="w-9 text-center font-bold text-xs" aria-live="polite">{qty}</span>
+              <span className="w-9 text-center font-bold text-xs" aria-live="polite">
+                {qty}
+              </span>
               <button
                 type="button"
                 aria-label="Increase quantity"
@@ -271,7 +299,8 @@ function ProductPage() {
               disabled={isOutOfStock || isMaxInCart}
               className="h-11 px-5 rounded-md text-xs font-extrabold uppercase tracking-wider bg-rose-600 hover:bg-rose-700 text-white shadow-xs"
             >
-              <ShoppingCart className="h-4 w-4 mr-1.5" /> {isOutOfStock ? "Out of stock" : isMaxInCart ? "Max in cart" : "Add to Cart"}
+              <ShoppingCart className="h-4 w-4 mr-1.5" />{" "}
+              {isOutOfStock ? "Out of stock" : isMaxInCart ? "Max in cart" : "Add to Cart"}
             </Button>
 
             {/* BUY NOW */}
@@ -305,7 +334,10 @@ function ProductPage() {
           </div>
 
           {showAvail && product.stock > 0 && remaining < product.stock && (
-            <p className="text-[11px] text-muted-foreground">{product.stock - remaining} already in your cart {showQty ? `· ${remaining} more available` : ""}</p>
+            <p className="text-[11px] text-muted-foreground">
+              {product.stock - remaining} already in your cart{" "}
+              {showQty ? `· ${remaining} more available` : ""}
+            </p>
           )}
         </div>
 
@@ -313,15 +345,21 @@ function ProductPage() {
         <div className="lg:col-span-3 rounded-xl border border-border bg-card/60 p-4 space-y-4 shadow-xs">
           {/* Brand Header */}
           <div className="border border-border/80 rounded-lg p-3 bg-muted/20 text-center">
-            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-0.5">Brand</span>
-            <span className="text-base font-black tracking-wider text-foreground uppercase">{product.brand}</span>
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-0.5">
+              Brand
+            </span>
+            <span className="text-base font-black tracking-wider text-foreground uppercase">
+              {product.brand}
+            </span>
           </div>
 
           {/* Key Identifiers */}
           <div className="space-y-2 text-xs divide-y divide-border/60">
             <div className="flex justify-between py-1.5">
               <span className="text-muted-foreground">Model Number</span>
-              <span className="font-semibold text-foreground font-mono">{product.model || "Standard"}</span>
+              <span className="font-semibold text-foreground font-mono">
+                {product.model || "Standard"}
+              </span>
             </div>
             <div className="flex justify-between py-1.5">
               <span className="text-muted-foreground">SKU Code</span>
@@ -339,7 +377,10 @@ function ProductPage() {
               <Truck className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
               <div>
                 <p className="font-bold text-foreground">Standard Delivery</p>
-                <p className="text-[11px] text-muted-foreground">3 - 5 Working Days · <span className="text-emerald-500 font-semibold">Available</span></p>
+                <p className="text-[11px] text-muted-foreground">
+                  3 - 5 Working Days ·{" "}
+                  <span className="text-emerald-500 font-semibold">Available</span>
+                </p>
               </div>
             </div>
 
@@ -347,7 +388,10 @@ function ProductPage() {
               <Store className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
               <div>
                 <p className="font-bold text-foreground">Pickup In-Store</p>
-                <p className="text-[11px] text-muted-foreground">Available Today · <span className="text-blue-500 font-semibold">Ready in 2 hrs</span></p>
+                <p className="text-[11px] text-muted-foreground">
+                  Available Today ·{" "}
+                  <span className="text-blue-500 font-semibold">Ready in 2 hrs</span>
+                </p>
               </div>
             </div>
 
@@ -364,23 +408,45 @@ function ProductPage() {
 
       <Tabs defaultValue="specs" className="mt-14">
         <TabsList className="h-auto rounded-none bg-transparent p-0">
-          <TabsTrigger value="specs" className="rounded-none border-b-2 border-transparent px-5 py-3 font-bold data-[state=active]:border-primary data-[state=active]:shadow-none">Specifications</TabsTrigger>
-          <TabsTrigger value="compat" className="rounded-none border-b-2 border-transparent px-5 py-3 font-bold data-[state=active]:border-primary data-[state=active]:shadow-none">Compatibility</TabsTrigger>
+          <TabsTrigger
+            value="specs"
+            className="rounded-none border-b-2 border-transparent px-5 py-3 font-bold data-[state=active]:border-primary data-[state=active]:shadow-none"
+          >
+            Specifications
+          </TabsTrigger>
+          <TabsTrigger
+            value="compat"
+            className="rounded-none border-b-2 border-transparent px-5 py-3 font-bold data-[state=active]:border-primary data-[state=active]:shadow-none"
+          >
+            Compatibility
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="specs" className="mt-4">
           <dl className="divide-y divide-border border border-border text-sm">
-            {Object.entries({ Brand: product.brand, Model: product.model, SKU: product.sku, ...product.specs }).map(([k, v]) => (
+            {Object.entries({
+              Brand: product.brand,
+              Model: product.model,
+              SKU: product.sku,
+              ...product.specs,
+            }).map(([k, v]) => (
               <div key={k} className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-4 px-4 py-3">
-                <dt className="font-semibold text-muted-foreground">{k}</dt><dd>{v}</dd>
+                <dt className="font-semibold text-muted-foreground">{k}</dt>
+                <dd>{v}</dd>
               </div>
             ))}
           </dl>
         </TabsContent>
         <TabsContent value="compat" className="mt-4 text-sm">
           {product.compatibility?.length ? (
-            <ul className="list-inside list-disc space-y-1">{product.compatibility.map((c) => <li key={c}>{c}</li>)}</ul>
+            <ul className="list-inside list-disc space-y-1">
+              {product.compatibility.map((c) => (
+                <li key={c}>{c}</li>
+              ))}
+            </ul>
           ) : (
-            <p className="text-muted-foreground">No specific compatibility notes. Contact us to confirm fit for your device.</p>
+            <p className="text-muted-foreground">
+              No specific compatibility notes. Contact us to confirm fit for your device.
+            </p>
           )}
         </TabsContent>
       </Tabs>
@@ -388,7 +454,9 @@ function ProductPage() {
       {related.length > 0 && (
         <section className="mt-16">
           <h2 className="section-title">Related Products</h2>
-          <div className="mt-6"><ProductGrid products={related} /></div>
+          <div className="mt-6">
+            <ProductGrid products={related} />
+          </div>
         </section>
       )}
     </div>

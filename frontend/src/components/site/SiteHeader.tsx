@@ -40,27 +40,77 @@ export function Logo({ className = "" }: { className?: string }) {
   );
 }
 
-function ProductSuggestions({ products, query, onSelect }: { products: Product[]; query: string; onSelect?: () => void }) {
+function ProductSuggestions({
+  products,
+  query,
+  onSelect,
+}: {
+  products: Product[];
+  query: string;
+  onSelect?: () => void;
+}) {
   const suggestions = useMemo(() => {
     const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
     if (!terms.length) return [];
-    return products.filter((product) => {
-      const searchable = `${product.name} ${product.sku} ${product.brand} ${product.model} ${product.category}`.toLowerCase();
-      return terms.every((term) => searchable.includes(term));
-    }).slice(0, 6);
+    return products
+      .filter((product) => {
+        const searchable =
+          `${product.name} ${product.sku} ${product.brand} ${product.model} ${product.category}`.toLowerCase();
+        return terms.every((term) => searchable.includes(term));
+      })
+      .slice(0, 6);
   }, [products, query]);
 
   if (!query.trim()) return null;
   return (
     <div className="absolute left-0 right-0 top-[calc(100%+0.4rem)] z-50 overflow-hidden rounded-md border border-zinc-200 bg-white shadow-xl">
-      {suggestions.length > 0 ? <>
-        <p className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-zinc-500">Product suggestions</p>
-        {suggestions.map((product) => <Link key={product.id} to="/product/$slug" params={{ slug: product.slug }} onClick={onSelect} className="flex items-center gap-3 border-t border-zinc-100 px-3 py-2.5 hover:bg-zinc-50">
-          <img src={product.images[0] || "/assets/imgs/electronic-components.png"} alt="" className="h-10 w-10 shrink-0 rounded border border-zinc-100 object-cover" />
-          <span className="min-w-0 flex-1"><span className="block truncate text-xs font-semibold text-zinc-900">{product.name}</span><span className="block truncate text-[11px] text-zinc-500">{product.brand} · {product.sku}</span></span>
-        </Link>)}
-        <Link to="/shop" search={{ q: query.trim() }} onClick={onSelect} className="block border-t border-zinc-100 px-3 py-2.5 text-xs font-bold text-primary hover:bg-primary/5">View all results for “{query.trim()}”</Link>
-      </> : <Link to="/shop" search={{ q: query.trim() }} onClick={onSelect} className="block px-3 py-3 text-xs text-zinc-600 hover:bg-zinc-50">No matching products. Search the full catalogue for “{query.trim()}”.</Link>}
+      {suggestions.length > 0 ? (
+        <>
+          <p className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+            Product suggestions
+          </p>
+          {suggestions.map((product) => (
+            <Link
+              key={product.id}
+              to="/product/$slug"
+              params={{ slug: product.slug }}
+              onClick={onSelect}
+              className="flex items-center gap-3 border-t border-zinc-100 px-3 py-2.5 hover:bg-zinc-50"
+            >
+              <img
+                src={product.images[0] || "/assets/imgs/electronic-components.png"}
+                alt=""
+                className="h-10 w-10 shrink-0 rounded border border-zinc-100 object-cover"
+              />
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-xs font-semibold text-zinc-900">
+                  {product.name}
+                </span>
+                <span className="block truncate text-[11px] text-zinc-500">
+                  {product.brand} · {product.sku}
+                </span>
+              </span>
+            </Link>
+          ))}
+          <Link
+            to="/shop"
+            search={{ q: query.trim() }}
+            onClick={onSelect}
+            className="block border-t border-zinc-100 px-3 py-2.5 text-xs font-bold text-primary hover:bg-primary/5"
+          >
+            View all results for “{query.trim()}”
+          </Link>
+        </>
+      ) : (
+        <Link
+          to="/shop"
+          search={{ q: query.trim() }}
+          onClick={onSelect}
+          className="block px-3 py-3 text-xs text-zinc-600 hover:bg-zinc-50"
+        >
+          No matching products. Search the full catalogue for “{query.trim()}”.
+        </Link>
+      )}
     </div>
   );
 }
@@ -69,13 +119,35 @@ function SearchForm({ className = "", onClose }: { className?: string; onClose?:
   const navigate = useNavigate();
   const [q, setQ] = useState("");
   const { products } = useCatalog();
-  const submit = (e: FormEvent) => { e.preventDefault(); if (onClose) onClose(); navigate({ to: "/shop", search: { q: q.trim() || undefined } }); };
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    if (onClose) onClose();
+    navigate({ to: "/shop", search: { q: q.trim() || undefined } });
+  };
   return (
     <div className={`relative ${className}`}>
-      <form onSubmit={submit} role="search" className="flex h-10 items-center overflow-hidden rounded border border-zinc-300 bg-white shadow-xs transition-all focus-within:border-primary focus-within:ring-1 focus-within:ring-primary sm:h-11">
-        <label htmlFor="site-search" className="sr-only">Search products</label>
-        <input id="site-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search for products, categories and more" className="min-w-0 flex-1 bg-transparent px-3.5 text-xs text-zinc-900 outline-none placeholder:text-zinc-400 sm:px-4 sm:text-sm" />
-        <button type="submit" aria-label="Search" className="flex h-full shrink-0 cursor-pointer items-center justify-center bg-primary px-4 text-primary-foreground transition-colors hover:bg-primary/90 sm:px-5"><Search className="h-4 w-4" /></button>
+      <form
+        onSubmit={submit}
+        role="search"
+        className="flex h-10 items-center overflow-hidden rounded border border-zinc-300 bg-white shadow-xs transition-all focus-within:border-primary focus-within:ring-1 focus-within:ring-primary sm:h-11"
+      >
+        <label htmlFor="site-search" className="sr-only">
+          Search products
+        </label>
+        <input
+          id="site-search"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Search for products, categories and more"
+          className="min-w-0 flex-1 bg-transparent px-3.5 text-xs text-zinc-900 outline-none placeholder:text-zinc-400 sm:px-4 sm:text-sm"
+        />
+        <button
+          type="submit"
+          aria-label="Search"
+          className="flex h-full shrink-0 cursor-pointer items-center justify-center bg-primary px-4 text-primary-foreground transition-colors hover:bg-primary/90 sm:px-5"
+        >
+          <Search className="h-4 w-4" />
+        </button>
       </form>
       <ProductSuggestions products={products} query={q} onSelect={onClose} />
     </div>
@@ -184,7 +256,8 @@ export function SiteHeader() {
 
   // Case-insensitive lookups for uploaded logo images and built-in SVG logos
   const logoByName = useMemo(
-    () => new Map(Object.entries(brandLogos).map(([name, url]) => [name.toLowerCase(), url] as const)),
+    () =>
+      new Map(Object.entries(brandLogos).map(([name, url]) => [name.toLowerCase(), url] as const)),
     [brandLogos],
   );
   const svgByName = useMemo(

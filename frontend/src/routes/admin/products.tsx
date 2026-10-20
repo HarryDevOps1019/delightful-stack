@@ -30,20 +30,94 @@ import { StockBadge } from "@/components/admin/shared";
 import type { Category, Product } from "@/lib/types";
 
 const ADMIN_SUBCATEGORIES: Record<string, string[]> = {
-  lighting: ["LED Panel Lights", "Strip Lights", "Tube Lights", "Track Lights", "Spot Lights", "Indoor & Outdoor Lighting", "Solar Lights", "LED Modules", "Bulbs & Chandeliers"],
+  lighting: [
+    "LED Panel Lights",
+    "Strip Lights",
+    "Tube Lights",
+    "Track Lights",
+    "Spot Lights",
+    "Indoor & Outdoor Lighting",
+    "Solar Lights",
+    "LED Modules",
+    "Bulbs & Chandeliers",
+  ],
   "home-appliances": ["TVs", "Projectors", "Consumer Appliances"],
   "kitchen-appliances": ["Blenders", "Cookers", "Other Kitchen Appliances"],
-  "appliance-spare-parts": ["Washing Machine Parts", "AC Parts", "Microwave Oven Parts", "Vacuum Cleaner Parts", "Blender Parts", "Kettle Components"],
-  "electronic-components": ["ICs & IGBTs", "Resistors", "Capacitors", "Sensors", "Arduino & Robotics", "Modules", "Electronic Tools"],
-  "power-solar-batteries": ["Solar Panels", "Solar Controllers", "Inverters", "MPPT Controllers", "UPS Batteries", "Lithium-ion Batteries", "Generator Spares"],
-  audio: ["Bluetooth Speakers", "Wall & Ceiling Speakers", "Microphones", "Mixers", "Amplifiers", "Bluetooth Modules"],
-  mobile: ["Mobile Displays", "Mobile Repair Parts", "Phone Repair Tools", "Data Cables", "Chargers", "Power Banks", "Tripods"],
+  "appliance-spare-parts": [
+    "Washing Machine Parts",
+    "AC Parts",
+    "Microwave Oven Parts",
+    "Vacuum Cleaner Parts",
+    "Blender Parts",
+    "Kettle Components",
+  ],
+  "electronic-components": [
+    "ICs & IGBTs",
+    "Resistors",
+    "Capacitors",
+    "Sensors",
+    "Arduino & Robotics",
+    "Modules",
+    "Electronic Tools",
+  ],
+  "power-solar-batteries": [
+    "Solar Panels",
+    "Solar Controllers",
+    "Inverters",
+    "MPPT Controllers",
+    "UPS Batteries",
+    "Lithium-ion Batteries",
+    "Generator Spares",
+  ],
+  audio: [
+    "Bluetooth Speakers",
+    "Wall & Ceiling Speakers",
+    "Microphones",
+    "Mixers",
+    "Amplifiers",
+    "Bluetooth Modules",
+  ],
+  mobile: [
+    "Mobile Displays",
+    "Mobile Repair Parts",
+    "Phone Repair Tools",
+    "Data Cables",
+    "Chargers",
+    "Power Banks",
+    "Tripods",
+  ],
   "tools-installation": ["Installation Tools", "Repair Tools", "Supplies"],
-  "laboratory-equipment": ["Oscilloscopes", "Microscopes", "Signal Generators", "Multimeters", "Soldering Stations", "Repair Lamps", "Thermal Mats", "Transformers"],
+  "laboratory-equipment": [
+    "Oscilloscopes",
+    "Microscopes",
+    "Signal Generators",
+    "Multimeters",
+    "Soldering Stations",
+    "Repair Lamps",
+    "Thermal Mats",
+    "Transformers",
+  ],
   "tv-repair-parts": ["LED Backlights", "TV LCD Panels", "TV Boards"],
-  "test-repair-equipment": ["Oscilloscopes", "Microscopes", "Signal Generators", "Soldering Stations", "Multimeters", "Repair Lamps", "Thermal Mats"],
-  "electrical-control-boxes": ["Enclosure Boxes", "Distribution Boxes", "Electricity Control Boxes"],
-  "led-displays-signage": ["P10 LED Modules", "Indoor LED Displays", "Outdoor LED Displays", "Name Boards"],
+  "test-repair-equipment": [
+    "Oscilloscopes",
+    "Microscopes",
+    "Signal Generators",
+    "Soldering Stations",
+    "Multimeters",
+    "Repair Lamps",
+    "Thermal Mats",
+  ],
+  "electrical-control-boxes": [
+    "Enclosure Boxes",
+    "Distribution Boxes",
+    "Electricity Control Boxes",
+  ],
+  "led-displays-signage": [
+    "P10 LED Modules",
+    "Indoor LED Displays",
+    "Outdoor LED Displays",
+    "Name Boards",
+  ],
 };
 
 export const Route = createFileRoute("/admin/products")({
@@ -162,8 +236,11 @@ function ProductsPage() {
 
   const availableSubcategories = useMemo(() => {
     if (catFilter === "all") return [];
-    const savedSubcategories = categories.find((category) => category.slug === catFilter)?.subcategories;
-    if (savedSubcategories?.length) return [...savedSubcategories].sort((a, b) => a.localeCompare(b));
+    const savedSubcategories = categories.find(
+      (category) => category.slug === catFilter,
+    )?.subcategories;
+    if (savedSubcategories?.length)
+      return [...savedSubcategories].sort((a, b) => a.localeCompare(b));
 
     // Existing product values remain available until subcategories are configured on the category.
     return Array.from(
@@ -1079,13 +1156,15 @@ function ProductFormModal({
     editingProduct?.category || categories[0]?.slug || "lighting",
   );
   const [subcategory, setSubcategory] = useState(editingProduct?.attributes?.Subcategory || "");
-  const subcategoryOptions = Array.from(new Set([
-    ...(categories.find((item) => item.slug === category)?.subcategories ?? []),
-    ...(ADMIN_SUBCATEGORIES[category] ?? []),
-    ...products
-      .filter((product) => product.category === category && product.subcategory)
-      .map((product) => product.subcategory as string),
-  ])).sort((a, b) => a.localeCompare(b));
+  const subcategoryOptions = Array.from(
+    new Set([
+      ...(categories.find((item) => item.slug === category)?.subcategories ?? []),
+      ...(ADMIN_SUBCATEGORIES[category] ?? []),
+      ...products
+        .filter((product) => product.category === category && product.subcategory)
+        .map((product) => product.subcategory as string),
+    ]),
+  ).sort((a, b) => a.localeCompare(b));
   const [priceLKR, setPriceLKR] = useState(
     editingProduct ? String(editingProduct.priceCents / 100) : "2500",
   );
@@ -1414,13 +1493,21 @@ function ProductFormModal({
               value={subcategory}
               onChange={(e) => setSubcategory(e.target.value)}
               list="subcategory-suggestions"
-              placeholder={subcategoryOptions.length ? "Select or type a new subcategory" : "Type a new subcategory"}
+              placeholder={
+                subcategoryOptions.length
+                  ? "Select or type a new subcategory"
+                  : "Type a new subcategory"
+              }
               className="admin-input w-full text-xs"
             />
             <datalist id="subcategory-suggestions">
-              {subcategoryOptions.map((option) => <option key={option} value={option} />)}
+              {subcategoryOptions.map((option) => (
+                <option key={option} value={option} />
+              ))}
             </datalist>
-            <p className="mt-1 text-[10px] text-zinc-500">Choose a suggestion or type a new subcategory. It will be saved for this product.</p>
+            <p className="mt-1 text-[10px] text-zinc-500">
+              Choose a suggestion or type a new subcategory. It will be saved for this product.
+            </p>
           </div>
 
           {/* Row 3: Brand & Model */}
@@ -1907,7 +1994,13 @@ function CategoryManagerModal({
   }) => void;
   onUpdate?: (
     slug: string,
-    updates: { name?: string; short?: string; filterKey?: string; image?: string; subcategories?: string[] },
+    updates: {
+      name?: string;
+      short?: string;
+      filterKey?: string;
+      image?: string;
+      subcategories?: string[];
+    },
   ) => void;
   onDelete: (slug: string) => void;
 }) {
@@ -1975,9 +2068,14 @@ function CategoryManagerModal({
     const finalSlug = slug.trim() ? slugify(slug) : slugify(name);
     const finalShort = short.trim() || name.trim();
     const finalImage = customImage.trim() || image;
-    const finalSubcategories = [...new Set(
-      subcategories.split(",").map((item) => item.trim()).filter(Boolean),
-    )];
+    const finalSubcategories = [
+      ...new Set(
+        subcategories
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean),
+      ),
+    ];
 
     if (editingCategory) {
       if (onUpdate) {
@@ -2192,7 +2290,9 @@ function CategoryManagerModal({
                   placeholder="e.g. LED Panels, Strip Lights, Solar Lights"
                   className="admin-input text-xs w-full"
                 />
-                <p className="text-[10px] text-zinc-500">Separate subcategories with commas. These appear in the shop filter.</p>
+                <p className="text-[10px] text-zinc-500">
+                  Separate subcategories with commas. These appear in the shop filter.
+                </p>
               </div>
 
               {/* Row 3: Category Thumbnail Selection */}
@@ -2329,7 +2429,10 @@ function CategoryManagerModal({
                       {c.subcategories?.length ? (
                         <div className="flex flex-wrap gap-1">
                           {c.subcategories.map((subcategory) => (
-                            <span key={subcategory} className="rounded border border-orange-500/20 bg-orange-500/10 px-1.5 py-0.5 text-[10px] font-medium text-orange-300">
+                            <span
+                              key={subcategory}
+                              className="rounded border border-orange-500/20 bg-orange-500/10 px-1.5 py-0.5 text-[10px] font-medium text-orange-300"
+                            >
                               {subcategory}
                             </span>
                           ))}

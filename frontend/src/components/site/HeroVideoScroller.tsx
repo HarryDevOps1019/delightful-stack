@@ -22,9 +22,14 @@ const SLIDES = [
     badge: "SMART HOME ENTERTAINMENT",
     badgeIcon: Sparkles,
     title: "Cinematic 4K QLED & Smart Displays",
-    description: "Immerse yourself in vivid color clarity, Dolby Atmos audio, and ultra-thin bezel designs from top global brands.",
+    description:
+      "Immerse yourself in vivid color clarity, Dolby Atmos audio, and ultra-thin bezel designs from top global brands.",
     primaryCta: { text: "Shop TVs & Projectors", to: "/shop" as const, search: { category: "tv" } },
-    secondaryCta: { text: "View New Arrivals", to: "/shop" as const, search: { sort: "newest" as const } },
+    secondaryCta: {
+      text: "View New Arrivals",
+      to: "/shop" as const,
+      search: { sort: "newest" as const },
+    },
   },
   {
     id: "repair-components",
@@ -32,12 +37,17 @@ const SLIDES = [
     badge: "GENUINE ELECTRONICS & REPAIR",
     badgeIcon: Wrench,
     title: "Precision Parts & Component Repair",
-    description: "Certified semiconductors, capacitors, controller boards, and professional soldering equipment for technicians across Sri Lanka.",
-    primaryCta: { text: "Browse Components", to: "/shop" as const, search: { category: "components" } },
+    description:
+      "Certified semiconductors, capacitors, controller boards, and professional soldering equipment for technicians across Sri Lanka.",
+    primaryCta: {
+      text: "Browse Components",
+      to: "/shop" as const,
+      search: { category: "components" },
+    },
     whatsappCta: {
       text: "WhatsApp Parts Inquiry",
       url: `https://web.whatsapp.com/send?phone=${BUSINESS_WHATSAPP_NUMBER}&text=${encodeURIComponent(
-        "Hello Asia Electronics, I would like to inquire about television and circuit repair parts availability."
+        "Hello Asia Electronics, I would like to inquire about television and circuit repair parts availability.",
       )}`,
     },
   },
@@ -70,7 +80,6 @@ export function HeroVideoScroller() {
       if (timerRef.current) clearInterval(timerRef.current);
     };
   }, [isPlaying, nextSlide]);
-
 
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
@@ -132,7 +141,12 @@ export function HeroVideoScroller() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30" />
 
                 {/* Slide Content */}
-                <motion.div initial={{ opacity: 0, y: 22 }} animate={isActive ? { opacity: 1, y: 0 } : { opacity: 0, y: 22 }} transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }} className="relative z-20 flex h-full max-w-2xl flex-col justify-center px-5 py-8 text-white sm:px-12 sm:py-12 lg:px-16">
+                <motion.div
+                  initial={{ opacity: 0, y: 22 }}
+                  animate={isActive ? { opacity: 1, y: 0 } : { opacity: 0, y: 22 }}
+                  transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+                  className="relative z-20 flex h-full max-w-2xl flex-col justify-center px-5 py-8 text-white sm:px-12 sm:py-12 lg:px-16"
+                >
                   {/* Badge */}
                   <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-primary/90 text-primary-foreground text-[10px] sm:text-xs font-black uppercase tracking-widest shadow-sm w-fit mb-2 sm:mb-4">
                     <BadgeIcon className="h-3.5 w-3.5" />
@@ -167,7 +181,8 @@ export function HeroVideoScroller() {
                         className="inline-flex items-center justify-center gap-1 rounded bg-[#25D366] px-3 py-2 text-[10px] sm:gap-2 sm:px-5 sm:py-3 sm:text-sm text-white font-display font-bold uppercase tracking-wider transition-all hover:bg-[#20ba5a] hover:scale-102 shadow-md"
                       >
                         <WhatsAppIcon className="h-4 w-4" />
-                        <span className="sm:hidden">WhatsApp</span><span className="hidden sm:inline">{slide.whatsappCta.text}</span>
+                        <span className="sm:hidden">WhatsApp</span>
+                        <span className="hidden sm:inline">{slide.whatsappCta.text}</span>
                       </a>
                     ) : (
                       slide.secondaryCta && (
@@ -213,7 +228,11 @@ export function HeroVideoScroller() {
             aria-label={isPlaying ? "Pause autoplay" : "Start autoplay"}
             className="grid h-6 w-6 place-items-center rounded-full bg-black/60 text-white border border-white/20 backdrop-blur-xs hover:bg-black/90 cursor-pointer"
           >
-            {isPlaying ? <Pause className="h-2.5 w-2.5" /> : <Play className="h-2.5 w-2.5 ml-0.5" />}
+            {isPlaying ? (
+              <Pause className="h-2.5 w-2.5" />
+            ) : (
+              <Play className="h-2.5 w-2.5 ml-0.5" />
+            )}
           </button>
 
           <div className="flex items-center gap-2">
@@ -224,9 +243,7 @@ export function HeroVideoScroller() {
                 onClick={() => setCurrent(i)}
                 aria-label={`Go to slide ${i + 1}`}
                 className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
-                  i === current
-                    ? "w-8 bg-primary shadow-sm"
-                    : "w-2.5 bg-white/40 hover:bg-white/70"
+                  i === current ? "w-8 bg-primary shadow-sm" : "w-2.5 bg-white/40 hover:bg-white/70"
                 }`}
               />
             ))}

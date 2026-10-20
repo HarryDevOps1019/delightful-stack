@@ -1,4 +1,5 @@
 import express from "express";
+import { requireAdmin, requireAuth } from "../middleware/auth.js";
 import {
   readProducts,
   writeProducts,
@@ -138,7 +139,7 @@ router.get("/:identifier", async (req, res) => {
 });
 
 // POST /api/products (create)
-router.post("/", async (req, res) => {
+router.post("/", requireAuth, requireAdmin, async (req, res) => {
   try {
     const body = req.body;
     const name = body.name;
@@ -223,7 +224,7 @@ router.post("/", async (req, res) => {
 });
 
 // PUT /api/products/:id (update)
-router.put("/:id", async (req, res) => {
+router.put("/:id", requireAuth, requireAdmin, async (req, res) => {
   try {
     const updated = await updateProduct(req.params.id, req.body);
     res.json({ success: true, data: updated, message: "Product updated successfully" });
@@ -233,7 +234,7 @@ router.put("/:id", async (req, res) => {
 });
 
 // DELETE /api/products/clear-all (Clears all products from database)
-router.delete("/clear-all", async (req, res) => {
+router.delete("/clear-all", requireAuth, requireAdmin, async (req, res) => {
   try {
     await writeProducts([]);
     res.json({ success: true, message: "All products cleared successfully" });
@@ -243,7 +244,7 @@ router.delete("/clear-all", async (req, res) => {
 });
 
 // DELETE /api/products/:id
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", requireAuth, requireAdmin, async (req, res) => {
   try {
     await deleteProduct(req.params.id);
     res.json({ success: true, message: "Product deleted successfully" });
@@ -253,7 +254,7 @@ router.delete("/:id", async (req, res) => {
 });
 
 // POST /api/products/seed-800
-router.post("/seed-800", async (req, res) => {
+router.post("/seed-800", requireAuth, requireAdmin, async (req, res) => {
   try {
     const fresh = generate850Products();
     await writeProducts(fresh);

@@ -1,10 +1,11 @@
 import { supabase } from "../data/supabase.js";
 
-const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || "admin@gmail.com").trim().toLowerCase();
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "123456";
+const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || "").trim().toLowerCase();
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "";
 const ADMIN_NAME = "Store Administrator";
 
 async function seedAdmin() {
+  if (!ADMIN_EMAIL || !ADMIN_PASSWORD) throw new Error("ADMIN_EMAIL and ADMIN_PASSWORD are required");
   console.log(`🔐 Setting up Admin in Supabase Auth (${ADMIN_EMAIL})...`);
 
   try {
@@ -42,7 +43,6 @@ async function seedAdmin() {
       console.log("✅ Admin user successfully updated in Supabase!");
       console.log("-----------------------------------------");
       console.log(`Email:    ${ADMIN_EMAIL}`);
-      console.log(`Password: ${ADMIN_PASSWORD}`);
       console.log(`Role:     admin`);
       console.log("-----------------------------------------");
     } else {
@@ -67,7 +67,6 @@ async function seedAdmin() {
       console.log("-----------------------------------------");
       console.log(`ID:       ${newUser.user.id}`);
       console.log(`Email:    ${ADMIN_EMAIL}`);
-      console.log(`Password: ${ADMIN_PASSWORD}`);
       console.log(`Role:     admin`);
       console.log("-----------------------------------------");
     }
@@ -82,7 +81,7 @@ async function seedAdmin() {
       console.warn("⚠️ Verification sign-in warning:", loginError.message);
     } else {
       console.log("✅ Supabase sign-in verification verified successfully!");
-      console.log(`Token received: ${loginData.session.access_token.slice(0, 20)}...`);
+      console.log("Supabase sign-in verification succeeded.");
     }
 
     process.exit(0);

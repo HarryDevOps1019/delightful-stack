@@ -7,7 +7,10 @@ interface MobileBottomNavProps {
   onBrandsDrawerOpen: () => void;
 }
 
-export function MobileBottomNav({ onCategoryDrawerOpen, onBrandsDrawerOpen }: MobileBottomNavProps) {
+export function MobileBottomNav({
+  onCategoryDrawerOpen,
+  onBrandsDrawerOpen,
+}: MobileBottomNavProps) {
   const { count } = useCart();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
@@ -22,7 +25,10 @@ export function MobileBottomNav({ onCategoryDrawerOpen, onBrandsDrawerOpen }: Mo
   return (
     <>
       {/* Safe-area spacer so content isn't hidden behind the bar */}
-      <div className="h-[calc(56px+env(safe-area-inset-bottom,0px))] lg:hidden" aria-hidden="true" />
+      <div
+        className="h-[calc(56px+env(safe-area-inset-bottom,0px))] lg:hidden"
+        aria-hidden="true"
+      />
 
       <nav
         aria-label="Mobile bottom navigation"

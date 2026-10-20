@@ -4,9 +4,20 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useRef } from "react";
 import {
-  ImageIcon, Plus, Edit2, Trash2, ToggleLeft, ToggleRight,
-  Calendar, ArrowUpDown, Link2, FileImage, Eye,
-  Loader2, X, Upload,
+  ImageIcon,
+  Plus,
+  Edit2,
+  Trash2,
+  ToggleLeft,
+  ToggleRight,
+  Calendar,
+  ArrowUpDown,
+  Link2,
+  FileImage,
+  Eye,
+  Loader2,
+  X,
+  Upload,
 } from "lucide-react";
 import { toast } from "sonner";
 import { bannerSchema } from "@/lib/bannerTypes";
@@ -91,14 +102,13 @@ function ImageUploader({ label, value, onChange, error, id, hint }: ImageUploade
 
         {value ? (
           <div className="relative">
-            <img
-              src={value}
-              alt="Preview"
-              className="w-full max-h-36 object-cover rounded-lg"
-            />
+            <img src={value} alt="Preview" className="w-full max-h-36 object-cover rounded-lg" />
             <button
               type="button"
-              onClick={(e) => { e.stopPropagation(); onChange(""); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onChange("");
+              }}
               className="absolute top-2 right-2 rounded-full bg-black/60 p-1 text-white hover:bg-red-600 transition-colors"
             >
               <X className="h-3 w-3" />
@@ -385,15 +395,23 @@ function BannerRow({ banner, onEdit, onDelete, onToggle, isDeleting, isToggling 
         </div>
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-zinc-500">
           {banner.ctaText && (
-            <span>CTA: <span className="text-zinc-300">{banner.ctaText}</span></span>
+            <span>
+              CTA: <span className="text-zinc-300">{banner.ctaText}</span>
+            </span>
           )}
           {banner.startDate && (
-            <span>From: <span className="text-zinc-300">{banner.startDate}</span></span>
+            <span>
+              From: <span className="text-zinc-300">{banner.startDate}</span>
+            </span>
           )}
           {banner.endDate && (
-            <span>To: <span className="text-zinc-300">{banner.endDate}</span></span>
+            <span>
+              To: <span className="text-zinc-300">{banner.endDate}</span>
+            </span>
           )}
-          <span>Order: <span className="text-zinc-300">#{banner.displayOrder}</span></span>
+          <span>
+            Order: <span className="text-zinc-300">#{banner.displayOrder}</span>
+          </span>
         </div>
         <p className="text-[10px] text-zinc-600">
           {banner.mobileImageUrl ? "✓ Mobile image" : "No mobile image"}
@@ -427,7 +445,11 @@ function BannerRow({ banner, onEdit, onDelete, onToggle, isDeleting, isToggling 
           title="Delete"
           className="p-1.5 rounded-lg text-zinc-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
         >
-          {isDeleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+          {isDeleting ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <Trash2 className="h-3.5 w-3.5" />
+          )}
         </button>
       </div>
     </div>
@@ -519,9 +541,10 @@ function OffersPage() {
       {/* Info banner */}
       <div className="rounded-lg border border-zinc-800 bg-zinc-900/40 p-3.5 text-[11px] text-zinc-400 space-y-1">
         <p>
-          <span className="font-bold text-white">How it works:</span> Active banners with
-          matching dates appear at the very top of the homepage. Lower display-order number = shown first.
-          Dates use the <span className="font-semibold text-orange-400">Asia/Colombo</span> timezone.
+          <span className="font-bold text-white">How it works:</span> Active banners with matching
+          dates appear at the very top of the homepage. Lower display-order number = shown first.
+          Dates use the <span className="font-semibold text-orange-400">Asia/Colombo</span>{" "}
+          timezone.
         </p>
         <p>
           <span className="font-bold text-white">Images:</span> Upload a file (stored in Supabase
@@ -571,7 +594,10 @@ function OffersPage() {
           <div className="flex flex-col items-center justify-center py-20 gap-4 text-zinc-500 border border-dashed border-zinc-800 rounded-xl">
             <ImageIcon className="h-10 w-10 text-zinc-700" />
             <p className="text-sm font-semibold">No offer banners yet</p>
-            <button onClick={() => setMode("create")} className="admin-btn-primary flex items-center gap-2">
+            <button
+              onClick={() => setMode("create")}
+              className="admin-btn-primary flex items-center gap-2"
+            >
               <Plus className="h-3.5 w-3.5" /> Create your first banner
             </button>
           </div>

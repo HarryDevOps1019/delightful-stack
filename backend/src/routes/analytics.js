@@ -1,10 +1,11 @@
 import express from "express";
+import { requireAdmin, requireAuth } from "../middleware/auth.js";
 import { readProducts, readOrders, readCategories } from "../data/db.js";
 
 const router = express.Router();
 
 // GET /api/analytics
-router.get("/", async (req, res) => {
+router.get("/", requireAuth, requireAdmin, async (req, res) => {
   try {
     const products = await readProducts();
     const orders = await readOrders();

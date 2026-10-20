@@ -79,7 +79,9 @@ function AdminInventory() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="admin-card">
           <div className="flex items-center justify-between">
-            <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Total SKUs</p>
+            <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
+              Total SKUs
+            </p>
             <CheckCircle2 className="h-4 w-4 text-emerald-400" />
           </div>
           <p className="text-2xl font-black text-white mt-1">{stockStats.totalItems}</p>
@@ -90,7 +92,9 @@ function AdminInventory() {
 
         <div className="admin-card">
           <div className="flex items-center justify-between">
-            <p className="text-[11px] font-bold text-amber-500 uppercase tracking-wider">Low Stock</p>
+            <p className="text-[11px] font-bold text-amber-500 uppercase tracking-wider">
+              Low Stock
+            </p>
             <AlertTriangle className="h-4 w-4 text-amber-400" />
           </div>
           <p className="text-2xl font-black text-amber-400 mt-1">{stockStats.lowStock.length}</p>
@@ -99,7 +103,9 @@ function AdminInventory() {
 
         <div className="admin-card">
           <div className="flex items-center justify-between">
-            <p className="text-[11px] font-bold text-red-500 uppercase tracking-wider">Out of Stock</p>
+            <p className="text-[11px] font-bold text-red-500 uppercase tracking-wider">
+              Out of Stock
+            </p>
             <XCircle className="h-4 w-4 text-red-400" />
           </div>
           <p className="text-2xl font-black text-red-400 mt-1">{stockStats.outOfStock.length}</p>
@@ -108,23 +114,34 @@ function AdminInventory() {
 
         <div className="admin-card">
           <div className="flex items-center justify-between">
-            <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Inventory Valuation</p>
+            <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
+              Inventory Valuation
+            </p>
             <RefreshCw className="h-4 w-4 text-orange-400" />
           </div>
-          <p className="text-2xl font-black text-white mt-1">{formatLKR(stockStats.totalInventoryValue)}</p>
+          <p className="text-2xl font-black text-white mt-1">
+            {formatLKR(stockStats.totalInventoryValue)}
+          </p>
           <p className="text-xs text-zinc-400 mt-1">Current total stock valuation</p>
         </div>
       </div>
 
       {/* Category Stock Level Breakdown */}
       <div className="admin-card space-y-4">
-        <h2 className="text-sm font-bold text-white uppercase tracking-wider">Category Stock Breakdown</h2>
+        <h2 className="text-sm font-bold text-white uppercase tracking-wider">
+          Category Stock Breakdown
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {categoryStock.map((cat) => (
-            <div key={cat.slug} className="p-3.5 rounded-lg bg-zinc-900/60 border border-zinc-800 space-y-2">
+            <div
+              key={cat.slug}
+              className="p-3.5 rounded-lg bg-zinc-900/60 border border-zinc-800 space-y-2"
+            >
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-white">{cat.name}</span>
-                <span className="text-[10px] font-semibold text-zinc-400">{cat.totalStock} units</span>
+                <span className="text-[10px] font-semibold text-zinc-400">
+                  {cat.totalStock} units
+                </span>
               </div>
               <div className="w-full bg-zinc-800 h-2 rounded-full overflow-hidden">
                 <div
@@ -136,7 +153,9 @@ function AdminInventory() {
               </div>
               <div className="flex items-center justify-between text-[10px] text-zinc-500">
                 <span>{cat.count} SKUs</span>
-                {cat.lowCount > 0 && <span className="text-amber-400 font-semibold">{cat.lowCount} low stock</span>}
+                {cat.lowCount > 0 && (
+                  <span className="text-amber-400 font-semibold">{cat.lowCount} low stock</span>
+                )}
               </div>
             </div>
           ))}
@@ -166,7 +185,9 @@ function AdminInventory() {
                 setPage(1);
               }}
               className={`px-3 py-1.5 rounded-md text-xs font-bold transition-colors ${
-                filter === "all" ? "bg-orange-500/20 text-orange-400 border border-orange-500/40" : "bg-zinc-800/60 text-zinc-400"
+                filter === "all"
+                  ? "bg-orange-500/20 text-orange-400 border border-orange-500/40"
+                  : "bg-zinc-800/60 text-zinc-400"
               }`}
             >
               All Items ({products.length})
@@ -177,7 +198,9 @@ function AdminInventory() {
                 setPage(1);
               }}
               className={`px-3 py-1.5 rounded-md text-xs font-bold transition-colors ${
-                filter === "low" ? "bg-amber-500/20 text-amber-400 border border-amber-500/40" : "bg-zinc-800/60 text-zinc-400"
+                filter === "low"
+                  ? "bg-amber-500/20 text-amber-400 border border-amber-500/40"
+                  : "bg-zinc-800/60 text-zinc-400"
               }`}
             >
               Low Stock ({stockStats.lowStock.length})
@@ -188,7 +211,9 @@ function AdminInventory() {
                 setPage(1);
               }}
               className={`px-3 py-1.5 rounded-md text-xs font-bold transition-colors ${
-                filter === "out" ? "bg-red-500/20 text-red-400 border border-red-500/40" : "bg-zinc-800/60 text-zinc-400"
+                filter === "out"
+                  ? "bg-red-500/20 text-red-400 border border-red-500/40"
+                  : "bg-zinc-800/60 text-zinc-400"
               }`}
             >
               Out of Stock ({stockStats.outOfStock.length})
@@ -213,7 +238,11 @@ function AdminInventory() {
                 <tr key={p.id} className="hover:bg-zinc-800/40 transition-colors">
                   <td className="p-3">
                     <div className="flex items-center gap-3">
-                      <img src={p.images[0]} alt={p.name} className="h-8 w-8 rounded object-cover bg-zinc-800 shrink-0" />
+                      <img
+                        src={p.images[0]}
+                        alt={p.name}
+                        className="h-8 w-8 rounded object-cover bg-zinc-800 shrink-0"
+                      />
                       <div className="min-w-0">
                         <p className="text-white font-semibold truncate max-w-[240px]">{p.name}</p>
                         <p className="text-[10px] text-zinc-500">{p.brand}</p>
@@ -223,7 +252,9 @@ function AdminInventory() {
                   <td className="p-3 font-mono text-zinc-400">{p.sku}</td>
                   <td className="p-3 font-bold text-white">{formatLKR(p.priceCents)}</td>
                   <td className="p-3 font-bold text-white">{p.stock} units</td>
-                  <td className="p-3"><StockBadge stock={p.stock} /></td>
+                  <td className="p-3">
+                    <StockBadge stock={p.stock} />
+                  </td>
                   <td className="p-3 text-right">
                     <button
                       onClick={() => handleQuickRestock(p.id, p.name, p.stock)}
@@ -248,7 +279,9 @@ function AdminInventory() {
         {totalPages > 1 && (
           <div className="p-3 border-t border-zinc-800 bg-zinc-900/40 flex items-center justify-between text-xs text-zinc-400">
             <span>
-              Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, filteredProducts.length)} of {filteredProducts.length} items
+              Showing {(currentPage - 1) * pageSize + 1} to{" "}
+              {Math.min(currentPage * pageSize, filteredProducts.length)} of{" "}
+              {filteredProducts.length} items
             </span>
             <div className="flex items-center gap-1">
               <button

@@ -14,22 +14,19 @@ import { toast } from "sonner";
 import { useSettings } from "@/context/settings";
 import { useAuth } from "@/context/auth";
 
-const schema = z.object({
+export const checkoutSchema = z.object({
   fullName: z.string().trim().min(2, "Enter your full name").max(80),
   phone: z
     .string()
     .trim()
-    .regex(
-      /^(?:\+94|0094|0)?[1-9]\d{8}$/,
-      "Enter a valid phone number, e.g. 0771234567"
-    ),
+    .regex(/^(?:\+94|0094|0)?[1-9]\d{8}$/, "Enter a valid phone number, e.g. 0771234567"),
   email: z.string().trim().email("Enter a valid email").or(z.literal("")).optional(),
   address: z.string().trim().min(3, "Enter your delivery address").max(200),
   city: z.string().trim().min(2, "Enter your city").max(60),
   notes: z.string().max(500).optional(),
 });
 
-type Values = z.infer<typeof schema>;
+type Values = z.infer<typeof checkoutSchema>;
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({
@@ -49,13 +46,10 @@ export const Route = createFileRoute("/checkout")({
 function buildWhatsAppMessage(
   orderId: string,
   customerName: string,
-  items: Array<{ name: string; sku: string; qty: number }>
+  items: Array<{ name: string; sku: string; qty: number }>,
 ): string {
   const itemLines = items
-    .map(
-      (it, i) =>
-        `${i + 1}. ${it.name}\n   Item Code: ${it.sku}\n   Qty: ${it.qty}`
-    )
+    .map((it, i) => `${i + 1}. ${it.name}\n   Item Code: ${it.sku}\n   Qty: ${it.qty}`)
     .join("\n\n");
 
   return (
@@ -71,7 +65,7 @@ function openWhatsApp(
   orderId: string,
   customerName: string,
   cartItems: Array<{ name: string; sku: string; qty: number }>,
-  whatsappDigits: string
+  whatsappDigits: string,
 ) {
   const message = buildWhatsAppMessage(orderId, customerName, cartItems);
   const encoded = encodeURIComponent(message);
@@ -92,7 +86,7 @@ function CheckoutPage() {
     handleSubmit,
     formState: { errors },
   } = useForm<Values>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(checkoutSchema),
     values: {
       fullName: user?.name || "",
       email: user?.email || "",
@@ -140,7 +134,7 @@ function CheckoutPage() {
         saved.id,
         v.fullName,
         items.map((it) => ({ name: it.name, sku: it.sku, qty: it.qty })),
-        whatsappDigits
+        whatsappDigits,
       );
 
       navigate({
@@ -172,10 +166,8 @@ function CheckoutPage() {
     <>
       <PageHeading title="Request Quotation" />
       <div className="container-shop grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
-
         {/* ── Customer Details Form ── */}
         <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-8">
-
           {/* Info banner */}
           <div className="flex items-start gap-3 rounded border border-green-200 bg-green-50 p-4 dark:border-green-900/40 dark:bg-green-950/30">
             <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-green-600 dark:text-green-400" />
@@ -184,9 +176,9 @@ function CheckoutPage() {
                 Quotation-based ordering
               </p>
               <p className="mt-0.5 text-xs text-green-700 dark:text-green-400">
-                Fill your details and click <strong>"Place Order / Request Quotation"</strong>.
-                Your request will be saved and we'll contact you via WhatsApp with pricing
-                and availability. No payment is collected online.
+                Fill your details and click <strong>"Place Order / Request Quotation"</strong>. Your
+                request will be saved and we'll contact you via WhatsApp with pricing and
+                availability. No payment is collected online.
               </p>
             </div>
           </div>
@@ -276,9 +268,7 @@ function CheckoutPage() {
                 <span className="min-w-0 truncate">
                   {l.qty} × {l.product.name}
                 </span>
-                <span className="shrink-0 text-muted-foreground italic">
-                  Price TBD
-                </span>
+                <span className="shrink-0 text-muted-foreground italic">Price TBD</span>
               </li>
             ))}
           </ul>

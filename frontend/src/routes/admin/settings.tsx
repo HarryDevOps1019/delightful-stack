@@ -1,6 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { Store, Shield, Bell, Save, Check, MessageSquare, Mail, Phone, MapPin, DollarSign, KeyRound, Eye, EyeOff, Lock } from "lucide-react";
+import {
+  Store,
+  Shield,
+  Bell,
+  Save,
+  Check,
+  MessageSquare,
+  Mail,
+  Phone,
+  MapPin,
+  DollarSign,
+  KeyRound,
+  Eye,
+  EyeOff,
+  Lock,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useSettings } from "@/context/settings";
 import { useAuth } from "@/context/auth";
@@ -71,7 +86,9 @@ function AdminSettings() {
       <div className="bg-gradient-to-r from-orange-500/10 via-zinc-900 to-zinc-900 border border-orange-500/20 rounded-xl p-5">
         <h1 className="text-lg font-black text-white">Store & Business Contact Settings</h1>
         <p className="text-xs text-zinc-400 mt-1">
-          Configure the official AEC WhatsApp number, official office email, and storefront defaults. All changes persist in the database and update the customer storefront immediately.
+          Configure the official AEC WhatsApp number, official office email, and storefront
+          defaults. All changes persist in the database and update the customer storefront
+          immediately.
         </p>
       </div>
 
@@ -103,7 +120,8 @@ function AdminSettings() {
                 className="admin-input w-full font-mono text-emerald-300 font-bold border-emerald-500/30 focus:border-emerald-500"
               />
               <p className="text-[11px] text-zinc-400">
-                Used for the <strong>Request Quotation via WhatsApp</strong> customer flow and floating chat button.
+                Used for the <strong>Request Quotation via WhatsApp</strong> customer flow and
+                floating chat button.
               </p>
             </div>
 
@@ -132,7 +150,9 @@ function AdminSettings() {
         <div className="admin-card space-y-4">
           <div className="flex items-center gap-2 border-b border-zinc-800 pb-3">
             <Store className="h-4 w-4 text-orange-400" />
-            <h2 className="text-sm font-bold text-white uppercase tracking-wider">Store Profile Information</h2>
+            <h2 className="text-sm font-bold text-white uppercase tracking-wider">
+              Store Profile Information
+            </h2>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
@@ -188,14 +208,18 @@ function AdminSettings() {
         <div className="admin-card space-y-4">
           <div className="flex items-center gap-2 border-b border-zinc-800 pb-3">
             <Bell className="h-4 w-4 text-orange-400" />
-            <h2 className="text-sm font-bold text-white uppercase tracking-wider">Notification Preferences</h2>
+            <h2 className="text-sm font-bold text-white uppercase tracking-wider">
+              Notification Preferences
+            </h2>
           </div>
 
           <div className="space-y-3">
             <label className="flex items-center justify-between p-3 rounded-lg bg-zinc-900/50 border border-zinc-800 cursor-pointer hover:border-zinc-700 transition-colors">
               <div>
                 <p className="text-xs font-bold text-white">New Quotation / Order Notifications</p>
-                <p className="text-[10px] text-zinc-500">Receive instant alerts when a customer requests a quotation or order</p>
+                <p className="text-[10px] text-zinc-500">
+                  Receive instant alerts when a customer requests a quotation or order
+                </p>
               </div>
               <input
                 type="checkbox"
@@ -208,7 +232,9 @@ function AdminSettings() {
             <label className="flex items-center justify-between p-3 rounded-lg bg-zinc-900/50 border border-zinc-800 cursor-pointer hover:border-zinc-700 transition-colors">
               <div>
                 <p className="text-xs font-bold text-white">Low Stock Alerts</p>
-                <p className="text-[10px] text-zinc-500">Alert in admin when product stock falls below 5 units</p>
+                <p className="text-[10px] text-zinc-500">
+                  Alert in admin when product stock falls below 5 units
+                </p>
               </div>
               <input
                 type="checkbox"
@@ -221,12 +247,16 @@ function AdminSettings() {
             <label className="flex items-center justify-between p-3 rounded-lg bg-zinc-900/50 border border-zinc-800 cursor-pointer hover:border-zinc-700 transition-colors">
               <div>
                 <p className="text-xs font-bold text-white">Weekly Performance Digest</p>
-                <p className="text-[10px] text-zinc-500">Receive weekly summary digest of quotation inquiries</p>
+                <p className="text-[10px] text-zinc-500">
+                  Receive weekly summary digest of quotation inquiries
+                </p>
               </div>
               <input
                 type="checkbox"
                 checked={notifications.weeklyReport}
-                onChange={(e) => setNotifications((n) => ({ ...n, weeklyReport: e.target.checked }))}
+                onChange={(e) =>
+                  setNotifications((n) => ({ ...n, weeklyReport: e.target.checked }))
+                }
                 className="accent-orange-500 h-4 w-4 rounded"
               />
             </label>
@@ -347,7 +377,9 @@ function AdminCredentialsCard() {
       <div className="flex items-center justify-between gap-2 border-b border-zinc-800 pb-3">
         <div className="flex items-center gap-2">
           <Shield className="h-4 w-4 text-orange-400" />
-          <h2 className="text-sm font-bold text-white uppercase tracking-wider">Security & Admin Login</h2>
+          <h2 className="text-sm font-bold text-white uppercase tracking-wider">
+            Security & Admin Login
+          </h2>
         </div>
         <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
           Active Session
@@ -364,7 +396,10 @@ function AdminCredentialsCard() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
         <div className="space-y-1.5 sm:col-span-2">
-          <label htmlFor="admin-new-email" className="flex items-center gap-1.5 font-bold text-zinc-300">
+          <label
+            htmlFor="admin-new-email"
+            className="flex items-center gap-1.5 font-bold text-zinc-300"
+          >
             <Mail className="h-3.5 w-3.5 text-orange-400" />
             Admin Login Email
           </label>
@@ -379,7 +414,10 @@ function AdminCredentialsCard() {
         </div>
 
         <div className="space-y-1.5">
-          <label htmlFor="admin-new-password" className="flex items-center gap-1.5 font-bold text-zinc-300">
+          <label
+            htmlFor="admin-new-password"
+            className="flex items-center gap-1.5 font-bold text-zinc-300"
+          >
             <KeyRound className="h-3.5 w-3.5 text-orange-400" />
             New Password
           </label>
@@ -393,7 +431,10 @@ function AdminCredentialsCard() {
         </div>
 
         <div className="space-y-1.5">
-          <label htmlFor="admin-confirm-password" className="flex items-center gap-1.5 font-bold text-zinc-300">
+          <label
+            htmlFor="admin-confirm-password"
+            className="flex items-center gap-1.5 font-bold text-zinc-300"
+          >
             <KeyRound className="h-3.5 w-3.5 text-orange-400" />
             Confirm New Password
           </label>
@@ -407,9 +448,13 @@ function AdminCredentialsCard() {
         </div>
 
         <div className="space-y-1.5 sm:col-span-2">
-          <label htmlFor="admin-current-password" className="flex items-center gap-1.5 font-bold text-zinc-300">
+          <label
+            htmlFor="admin-current-password"
+            className="flex items-center gap-1.5 font-bold text-zinc-300"
+          >
             <Lock className="h-3.5 w-3.5 text-emerald-400" />
-            Current Password <span className="text-zinc-500 font-normal">(required to confirm)</span>
+            Current Password{" "}
+            <span className="text-zinc-500 font-normal">(required to confirm)</span>
           </label>
           <PasswordInput
             id="admin-current-password"

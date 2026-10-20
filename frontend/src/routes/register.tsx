@@ -14,7 +14,9 @@ export const Route = createFileRoute("/register")({
   component: () => (
     <>
       <PageHeading title="Create Account" />
-      <div className="container-shop"><AuthForm mode="register" /></div>
+      <div className="container-shop">
+        <AuthForm mode="register" />
+      </div>
     </>
   ),
 });

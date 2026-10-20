@@ -29,6 +29,15 @@ export function getApiBaseUrl(): string {
 }
 
 const API_BASE = getApiBaseUrl();
+const AUTH_TOKEN_KEY = "ae_auth_token_v1";
+
+function authHeaders(includeContentType = true): HeadersInit {
+  const token = typeof window === "undefined" ? null : localStorage.getItem(AUTH_TOKEN_KEY);
+  return {
+    ...(includeContentType ? { "Content-Type": "application/json" } : {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
 
 export interface ApiOrder {
   id: string;
@@ -105,7 +114,7 @@ export async function fetchProductsApi(params?: {
     }
 
     const res = await fetch(url.toString(), {
-      headers: { "Content-Type": "application/json" },
+      headers: authHeaders(),
     });
     if (!res.ok) return null;
     const json = await res.json();
@@ -126,7 +135,7 @@ export async function createProductApi(
   try {
     const res = await fetch(`${API_BASE}/products`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: authHeaders(),
       body: JSON.stringify({
         ...data,
         priceLKR: data.priceLKR ?? (data.priceCents ? data.priceCents / 100 : 0),
@@ -155,7 +164,7 @@ export async function updateProductApi(
   try {
     const res = await fetch(`${API_BASE}/products/${encodeURIComponent(id)}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: authHeaders(),
       body: JSON.stringify(updates),
     });
     if (!res.ok) {
@@ -178,6 +187,7 @@ export async function deleteProductApi(id: string): Promise<boolean> {
   try {
     const res = await fetch(`${API_BASE}/products/${encodeURIComponent(id)}`, {
       method: "DELETE",
+      headers: authHeaders(false),
     });
     return res.ok;
   } catch (err) {
@@ -190,6 +200,7 @@ export async function clearAllProductsApi(): Promise<boolean> {
   try {
     const res = await fetch(`${API_BASE}/products/clear-all`, {
       method: "DELETE",
+      headers: authHeaders(false),
     });
     return res.ok;
   } catch (err) {
@@ -216,7 +227,7 @@ export async function createCategoryApi(category: Partial<Category>): Promise<Ca
   try {
     const res = await fetch(`${API_BASE}/categories`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: authHeaders(),
       body: JSON.stringify(category),
     });
     if (!res.ok) return null;
@@ -235,7 +246,7 @@ export async function updateCategoryApi(
   try {
     const res = await fetch(`${API_BASE}/categories/${encodeURIComponent(slug)}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: authHeaders(),
       body: JSON.stringify(updates),
     });
     if (!res.ok) return null;
@@ -251,6 +262,7 @@ export async function deleteCategoryApi(slug: string): Promise<boolean> {
   try {
     const res = await fetch(`${API_BASE}/categories/${encodeURIComponent(slug)}`, {
       method: "DELETE",
+      headers: authHeaders(false),
     });
     return res.ok;
   } catch (err) {
@@ -282,7 +294,7 @@ export async function upsertBrandApi(input: {
   try {
     const res = await fetch(`${API_BASE}/brands`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: authHeaders(),
       body: JSON.stringify(input),
     });
     const json = await res.json().catch(() => ({}));
@@ -298,6 +310,7 @@ export async function deleteBrandApi(slug: string): Promise<boolean> {
   try {
     const res = await fetch(`${API_BASE}/brands/${encodeURIComponent(slug)}`, {
       method: "DELETE",
+      headers: authHeaders(false),
     });
     return res.ok;
   } catch (err) {
@@ -310,7 +323,7 @@ export async function deleteBrandApi(slug: string): Promise<boolean> {
 
 export async function fetchOrdersApi(): Promise<ApiOrder[] | null> {
   try {
-    const res = await fetch(`${API_BASE}/orders`);
+    const res = await fetch(`${API_BASE}/orders`, { headers: authHeaders(false) });
     if (!res.ok) return null;
     const json = await res.json();
     return json.data || null;
@@ -332,7 +345,7 @@ export async function createOrderApi(order: {
   try {
     const res = await fetch(`${API_BASE}/orders`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: authHeaders(),
       body: JSON.stringify(order),
     });
     if (!res.ok) {
@@ -364,11 +377,14 @@ export interface OrderStatusUpdateResult {
   emailReason?: string;
 }
 
-export async function updateOrderStatusApi(id: string, status: string): Promise<OrderStatusUpdateResult | null> {
+export async function updateOrderStatusApi(
+  id: string,
+  status: string,
+): Promise<OrderStatusUpdateResult | null> {
   try {
     const res = await fetch(`${API_BASE}/orders/${encodeURIComponent(id)}/status`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: authHeaders(),
       body: JSON.stringify({ status }),
     });
     if (!res.ok) return null;
@@ -398,7 +414,7 @@ export async function updateOrderDetailsApi(
   try {
     const res = await fetch(`${API_BASE}/orders/${encodeURIComponent(id)}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: authHeaders(),
       body: JSON.stringify(details),
     });
     const json = await res.json().catch(() => ({}));
@@ -416,7 +432,7 @@ export async function updateOrderDetailsApi(
 
 export async function fetchAnalyticsApi(): Promise<ApiAnalytics | null> {
   try {
-    const res = await fetch(`${API_BASE}/analytics`);
+    const res = await fetch(`${API_BASE}/analytics`, { headers: authHeaders(false) });
     if (!res.ok) return null;
     const json = await res.json();
     return json.data || null;
@@ -478,7 +494,7 @@ export async function updateSettingsApi(
   try {
     const res = await fetch(`${API_BASE}/settings`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: authHeaders(),
       body: JSON.stringify(settings),
     });
     if (!res.ok) return null;
@@ -515,7 +531,7 @@ export async function loginApi(credentials: {
   try {
     const res = await fetch(`${API_BASE}/auth/login`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: authHeaders(),
       body: JSON.stringify(credentials),
     });
 
@@ -538,7 +554,7 @@ export async function registerApi(data: {
   try {
     const res = await fetch(`${API_BASE}/auth/register`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: authHeaders(),
       body: JSON.stringify(data),
     });
 

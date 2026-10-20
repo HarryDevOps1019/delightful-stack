@@ -152,9 +152,23 @@ function AdminAnalytics() {
                     tickLine={false}
                     axisLine={false}
                   />
-                  <YAxis allowDecimals={false} tick={{ fill: "#a1a1aa", fontSize: 11 }} tickLine={false} axisLine={false} />
-                  <Tooltip contentStyle={tooltipStyle} itemStyle={{ color: "#18181b" }} cursor={{ fill: "#27272a" }} />
-                  <Bar dataKey="products" name="Products" fill={CATEGORY_COLOR} radius={[5, 5, 0, 0]} />
+                  <YAxis
+                    allowDecimals={false}
+                    tick={{ fill: "#a1a1aa", fontSize: 11 }}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <Tooltip
+                    contentStyle={tooltipStyle}
+                    itemStyle={{ color: "#18181b" }}
+                    cursor={{ fill: "#27272a" }}
+                  />
+                  <Bar
+                    dataKey="products"
+                    name="Products"
+                    fill={CATEGORY_COLOR}
+                    radius={[5, 5, 0, 0]}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -174,7 +188,17 @@ const tooltipStyle = {
   fontSize: 12,
 };
 
-function MetricCard({ label, value, note, icon }: { label: string; value: string; note: string; icon: React.ReactNode }) {
+function MetricCard({
+  label,
+  value,
+  note,
+  icon,
+}: {
+  label: string;
+  value: string;
+  note: string;
+  icon: React.ReactNode;
+}) {
   return (
     <div className="admin-card">
       <div className="flex items-center justify-between">
@@ -187,7 +211,15 @@ function MetricCard({ label, value, note, icon }: { label: string; value: string
   );
 }
 
-function ChartHeading({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
+function ChartHeading({
+  icon,
+  title,
+  description,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}) {
   return (
     <div className="flex items-start gap-2">
       <span className="mt-0.5">{icon}</span>

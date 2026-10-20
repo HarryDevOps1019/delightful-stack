@@ -30,17 +30,27 @@ describe("delivery rules", () => {
 });
 
 describe("search", () => {
-  it.each([["Soundbar", "AE-AUD-2002"], ["AE-MOB-4003", "AE-MOB-4003"], ["xgimi", "AE-TV-5003"], ["FX-888D", "AE-CMP-1003"]])(
-    "%s finds %s",
-    async (q, sku) => {
-      const r = await listProducts({ q, pageSize: 50 });
-      expect(r.items.map((p) => p.sku)).toContain(sku);
-    },
-  );
+  it.each([
+    ["Soundbar", "AE-AUD-2002"],
+    ["AE-MOB-4003", "AE-MOB-4003"],
+    ["xgimi", "AE-TV-5003"],
+    ["FX-888D", "AE-CMP-1003"],
+  ])("%s finds %s", async (q, sku) => {
+    const r = await listProducts({ q, pageSize: 50 });
+    expect(r.items.map((p) => p.sku)).toContain(sku);
+  });
 });
 
 describe("checkout validation", () => {
-  const ok = { fullName: "Nimal Perera", email: "n@example.lk", phone: "0771234567", address: "12 Galle Road", city: "Colombo", payment: "cod" };
+  const ok = {
+    fullName: "Nimal Perera",
+    email: "n@example.lk",
+    phone: "0771234567",
+    address: "12 Galle Road",
+    city: "Colombo",
+    payment: "cod",
+  };
   it("accepts a Sri Lankan mobile", () => expect(checkoutSchema.safeParse(ok).success).toBe(true));
-  it("rejects a bad mobile number", () => expect(checkoutSchema.safeParse({ ...ok, phone: "12345" }).success).toBe(false));
+  it("rejects a bad mobile number", () =>
+    expect(checkoutSchema.safeParse({ ...ok, phone: "12345" }).success).toBe(false));
 });
