@@ -21,6 +21,7 @@ import {
   updateCategoryApi,
   deleteCategoryApi,
   fetchProductsApi,
+  fetchProductApi,
   fetchCategoriesApi,
   clearAllProductsApi,
   fetchBrandsApi,
@@ -148,7 +149,7 @@ function slugify(s: string) {
     .replace(/(^-|-$)/g, "");
 }
 
-// ─── Storage Accessors ────────────────────────────────────────────────────────
+// â”€â”€â”€ Storage Accessors â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export function getStoredProducts(): Product[] {
   if (typeof window === "undefined") return defaultProducts;
@@ -301,7 +302,7 @@ export async function deleteBrandLogo(brand: string) {
   }
 }
 
-// ─── Product CRUD Operations ──────────────────────────────────────────────────
+// â”€â”€â”€ Product CRUD Operations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface CreateProductInput {
   name: string;
@@ -520,7 +521,7 @@ export function deleteProduct(id: string): boolean {
   return true;
 }
 
-// ─── Category CRUD Operations ─────────────────────────────────────────────────
+// â”€â”€â”€ Category CRUD Operations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface CreateCategoryInput {
   name: string;
@@ -591,7 +592,7 @@ export function deleteCategory(slug: string): boolean {
   return true;
 }
 
-// ─── 800+ SKU Bulk Generator ──────────────────────────────────────────────────
+// â”€â”€â”€ 800+ SKU Bulk Generator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export function generate800SKUs(): { count: number; total: number } {
   const existing = getStoredProducts();
@@ -962,7 +963,7 @@ export async function clearAllProducts(): Promise<void> {
   window.dispatchEvent(new CustomEvent(CATALOG_UPDATED_EVENT));
 }
 
-// ─── Query & List Functions ───────────────────────────────────────────────────
+// â”€â”€â”€ Query & List Functions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export async function listProducts(query: ProductQuery = {}): Promise<ProductPage> {
   await delay(60);
@@ -1054,7 +1055,7 @@ export function attributeOptions(category: string) {
   return { key: cat.filterKey, options: opts.sort() };
 }
 
-// ─── React Hook for Live Catalog Updates ──────────────────────────────────────
+// â”€â”€â”€ React Hook for Live Catalog Updates â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export function useCatalog() {
   const [products, setProducts] = useState<Product[]>(() => getStoredProducts());
