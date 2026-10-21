@@ -14,16 +14,16 @@ export function SiteFooter() {
   const { settings, whatsappDigits } = useSettings();
 
   return (
-    <footer className="mt-12 border-t border-border sm:mt-16">
-      <div className="container-shop grid gap-7 py-8 sm:grid-cols-2 sm:gap-8 sm:py-10 lg:grid-cols-4">
-        <div>
+    <footer className="mt-10 w-full max-w-full border-t border-border sm:mt-16">
+      <div className="container-shop grid grid-cols-1 gap-x-8 gap-y-7 py-8 sm:grid-cols-2 sm:py-10 lg:grid-cols-4">
+        <div className="min-w-0">
           <Logo />
-          <div className="mt-4 space-y-1.5 text-xs text-muted-foreground">
+          <div className="mt-4 space-y-1.5 text-sm text-muted-foreground sm:text-xs">
             <p>
               Email:{" "}
               <a
                 href={`mailto:${settings.officeEmail}`}
-                className="text-foreground hover:text-primary font-medium"
+                className="text-foreground hover:text-primary font-medium [overflow-wrap:anywhere]"
               >
                 {settings.officeEmail}
               </a>
@@ -76,15 +76,15 @@ export function SiteFooter() {
             </Link>
           ))}
         </FooterCol>
-        <div>
+        <div className="min-w-0">
           <h3 className="text-xs font-extrabold uppercase tracking-wider">Store location</h3>
-          <div className="relative mt-3 h-28 overflow-hidden border border-border bg-tile transition-colors hover:border-primary">
+          <div className="relative mt-3 h-44 w-full max-w-full overflow-hidden border border-border bg-tile transition-colors hover:border-primary sm:h-32 lg:h-28">
             <iframe
               src="https://www.google.com/maps?q=29%2C+2nd+Rohini+Lane%2C+Colombo+01100%2C+Sri+Lanka&output=embed"
               title="Asia Electronics store location"
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
-              className="pointer-events-none h-full w-full border-0"
+              className="pointer-events-none block h-full w-full max-w-full border-0"
             />
             <a
               href="https://www.google.com/maps/search/?api=1&query=29%2C+2nd+Rohini+Lane%2C+Colombo+01100%2C+Sri+Lanka"
@@ -94,7 +94,7 @@ export function SiteFooter() {
               aria-label="Open Asia Electronics store location in Google Maps"
             />
           </div>
-          <p className="mt-1.5 text-[11px] leading-4 text-muted-foreground">
+          <p className="mt-2 text-xs leading-5 text-muted-foreground sm:mt-1.5 sm:text-[11px] sm:leading-4">
             29, 2nd Rohini Lane, Colombo 01100
           </p>
         </div>
@@ -110,9 +110,11 @@ export function SiteFooter() {
 
 function FooterCol({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div>
+    <div className="min-w-0">
       <h3 className="text-xs font-extrabold uppercase tracking-wider">{title}</h3>
-      <div className="mt-3 flex flex-col gap-1.5 text-sm text-muted-foreground">{children}</div>
+      <div className="mt-3 flex flex-col items-start gap-2.5 text-sm text-muted-foreground sm:gap-1.5">
+        {children}
+      </div>
     </div>
   );
 }

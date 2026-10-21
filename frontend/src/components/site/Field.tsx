@@ -10,7 +10,7 @@ export const Field = forwardRef<HTMLInputElement, Props>(function Field(
   const id = useId();
   return (
     <div className={cn("min-w-0", className)}>
-      <label htmlFor={id} className="mb-1.5 block text-xs font-bold uppercase tracking-wider">
+      <label htmlFor={id} className="mb-2 block text-xs font-bold uppercase tracking-wider">
         {label}
       </label>
       <input
@@ -19,7 +19,7 @@ export const Field = forwardRef<HTMLInputElement, Props>(function Field(
         aria-invalid={!!error}
         aria-describedby={error ? `${id}-err` : undefined}
         className={cn(
-          "h-11 w-full min-w-0 max-w-full border bg-background px-3 text-sm outline-none focus:border-primary",
+          "h-12 w-full min-w-0 max-w-full border bg-background px-3.5 text-base outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm",
           error ? "border-destructive" : "border-input",
         )}
         {...rest}

@@ -86,6 +86,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { title: "Asia Electronics & Cellular — Demo Store" },
       {
         name: "description",
@@ -171,14 +172,19 @@ function RootComponent() {
                 Skip to content
               </a>
               {/* Sticky top bar: site header */}
-              <div className="sticky top-0 z-40">
+              <div className="sticky top-0 z-40 w-full max-w-full">
                 <SiteHeader />
               </div>
-              <main id="main">
+              <main id="main" className="w-full min-w-0 max-w-full">
                 {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
                 <Outlet />
               </main>
               <SiteFooter />
+              {/* Spacer so the footer isn't hidden behind the fixed mobile bottom nav */}
+              <div
+                className="h-[calc(56px+env(safe-area-inset-bottom,0px))] lg:hidden"
+                aria-hidden="true"
+              />
 
               <FloatingWhatsAppButton />
 
