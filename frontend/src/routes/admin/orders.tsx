@@ -27,6 +27,7 @@ import {
   type OrderStatus,
 } from "@/components/admin/shared";
 import { fetchOrdersApi, updateOrderStatusApi } from "@/services/api";
+import { syncCatalogWithBackend } from "@/services/catalog";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/orders")({
@@ -488,6 +489,12 @@ function AdminOrders() {
 
     setOrders((prev) => prev.map((order) => (order.id === id ? { ...order, status } : order)));
     setSelectedOrder((current) => (current?.id === id ? { ...current, status } : current));
+
+    // When status changes to Shipped or Cancelled, re-sync catalog so inventory changes update immediately
+    if (status === "Shipped" || status === "Cancelled") {
+      void syncCatalogWithBackend();
+    }
+
     return { updated: true, emailSent: result.emailSent, emailReason: result.emailReason };
   };
 

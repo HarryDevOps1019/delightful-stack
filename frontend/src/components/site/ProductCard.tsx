@@ -132,8 +132,9 @@ export function ProductCard({ product }: { product: Product }) {
   const cart = useCart();
   const { whatsappDigits } = useSettings();
   const remaining = cart.remainingFor(product.id);
+  const isOutOfStock = product.stock <= 0;
   const disabled =
-    (product.showAvailability !== false && product.stock <= 0) ||
+    (product.showAvailability !== false && isOutOfStock) ||
     (remaining <= 0 && product.stock > 0);
   const needsVariant = !!product.variants?.length;
 
@@ -155,7 +156,7 @@ export function ProductCard({ product }: { product: Product }) {
         )}
       </div>
       <Link to="/product/$slug" params={{ slug: product.slug }} className="mt-2 block sm:mt-3">
-        <div className="aspect-square overflow-hidden bg-tile">
+        <div className="relative aspect-square overflow-hidden bg-tile">
           <img
             src={product.images[0] || "/assets/imgs/electronic-components.png"}
             alt={product.name}
@@ -165,8 +166,18 @@ export function ProductCard({ product }: { product: Product }) {
             onError={(e) => {
               e.currentTarget.src = "/assets/imgs/electronic-components.png";
             }}
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105 motion-reduce:transition-none"
+            className={cn(
+              "h-full w-full object-cover transition-transform duration-300 group-hover:scale-105 motion-reduce:transition-none",
+              isOutOfStock && "grayscale contrast-75 opacity-70",
+            )}
           />
+          {isOutOfStock && (
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[0.5px]">
+              <span className="rotate-[-12deg] rounded-sm border-2 border-red-500 bg-red-600/95 px-2.5 py-1 font-display text-[11px] font-black uppercase tracking-widest text-white shadow-xl sm:px-3 sm:text-xs">
+                OUT OF STOCK
+              </span>
+            </div>
+          )}
         </div>
         <h3 className="mt-2 line-clamp-2 min-h-[2.25rem] text-[13px] font-bold leading-[1.1rem] text-foreground sm:mt-3 sm:min-h-[2.5rem] sm:text-sm sm:leading-tight">
           {product.name}

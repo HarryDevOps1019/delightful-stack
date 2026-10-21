@@ -1,5 +1,5 @@
 import express from "express";
-import { readOrders, readProducts, insertOrder, updateOrderStatus, updateOrder } from "../data/db.js";
+import { readOrders, readProducts, insertOrder, updateOrderStatus, updateOrder, updateProduct } from "../data/db.js";
 import { sendOrderStatusEmail } from "../services/orderStatusEmail.js";
 import { requireAdmin, requireAuth } from "../middleware/auth.js";
 
@@ -181,7 +181,57 @@ router.patch("/:id/status", requireAuth, requireAdmin, async (req, res) => {
       return res.status(404).json({ success: false, error: "Order not found" });
     }
 
+    const prevStatus = order.status;
     const updated = await updateOrderStatus(req.params.id, status);
+
+    // If order transitions to "Shipped" (e.g. from Processing to Shipped), decrease inventory
+    if (status === "Shipped" && prevStatus !== "Shipped") {
+      try {
+        const allProducts = await readProducts();
+        if (Array.isArray(order.items)) {
+          for (const item of order.items) {
+            const sku = String(item.sku || "").trim().toUpperCase();
+            const product = allProducts.find(
+              (p) => (p.sku || "").toUpperCase() === sku || (p.name || "").toLowerCase() === (item.name || "").toLowerCase(),
+            );
+            if (product) {
+              const currentStock = Number(product.stock) || 0;
+              const deductQty = Math.max(1, Number(item.qty) || 1);
+              const newStock = Math.max(0, currentStock - deductQty);
+              await updateProduct(product.id, { stock: newStock });
+              console.log(`[Inventory] Decreased stock for product ${product.name} (${product.sku}): ${currentStock} -> ${newStock} (-${deductQty})`);
+            }
+          }
+        }
+      } catch (stockErr) {
+        console.error(`Failed to deduct inventory for order ${order.id}:`, stockErr.message);
+      }
+    }
+
+    // If order was Shipped and is subsequently Cancelled, restore inventory
+    if (status === "Cancelled" && prevStatus === "Shipped") {
+      try {
+        const allProducts = await readProducts();
+        if (Array.isArray(order.items)) {
+          for (const item of order.items) {
+            const sku = String(item.sku || "").trim().toUpperCase();
+            const product = allProducts.find(
+              (p) => (p.sku || "").toUpperCase() === sku || (p.name || "").toLowerCase() === (item.name || "").toLowerCase(),
+            );
+            if (product) {
+              const currentStock = Number(product.stock) || 0;
+              const restoreQty = Math.max(1, Number(item.qty) || 1);
+              const newStock = currentStock + restoreQty;
+              await updateProduct(product.id, { stock: newStock });
+              console.log(`[Inventory] Restored stock for product ${product.name} (${product.sku}): ${currentStock} -> ${newStock} (+${restoreQty})`);
+            }
+          }
+        }
+      } catch (stockErr) {
+        console.error(`Failed to restore inventory for order ${order.id}:`, stockErr.message);
+      }
+    }
+
     const notification = await sendOrderStatusEmail(updated || order, status);
 
     res.json({

@@ -20,6 +20,7 @@ import { ProductGrid, StockBadge } from "@/components/site/ProductCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 /* ------------------------------------------------------------------ */
 /*  Inline WhatsApp SVG icon (brand logo — not available in lucide)   */
@@ -138,12 +139,24 @@ function ProductPage() {
         {/* Column 1: Product Image Gallery (Increased size, 5 cols) */}
         <div className="lg:col-span-5 flex flex-col items-center sm:items-start w-full">
           {/* Main Display Image */}
-          <div className="relative h-[380px] sm:h-[460px] lg:h-[500px] w-full rounded-2xl border border-border bg-white dark:bg-zinc-900/60 p-4 sm:p-8 flex items-center justify-center group shadow-xs">
+          <div className="relative h-[380px] sm:h-[460px] lg:h-[500px] w-full rounded-2xl border border-border bg-white dark:bg-zinc-900/60 p-4 sm:p-8 flex items-center justify-center group shadow-xs overflow-hidden">
             <img
               src={product.images[img] || product.images[0]}
               alt={product.name}
-              className="h-full w-full object-contain max-h-[360px] sm:max-h-[430px] lg:max-h-[470px] transition-transform duration-300 group-hover:scale-105 drop-shadow-sm"
+              className={cn(
+                "h-full w-full object-contain max-h-[360px] sm:max-h-[430px] lg:max-h-[470px] transition-transform duration-300 group-hover:scale-105 drop-shadow-sm",
+                product.stock <= 0 && "grayscale contrast-75 opacity-70",
+              )}
             />
+
+            {/* Out of Stock Watermark Overlay */}
+            {product.stock <= 0 && (
+              <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-black/35 backdrop-blur-[0.5px]">
+                <span className="rotate-[-12deg] rounded-md border-2 border-red-500 bg-red-600/95 px-6 py-2.5 font-display text-base sm:text-xl font-black uppercase tracking-widest text-white shadow-2xl">
+                  OUT OF STOCK
+                </span>
+              </div>
+            )}
 
             {/* Previous / Next Arrow Buttons */}
             {product.images.length > 1 && (
