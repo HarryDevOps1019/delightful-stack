@@ -165,21 +165,21 @@ function CheckoutPage() {
   return (
     <>
       <PageHeading title="Request Quotation" />
-      <div className="container-shop grid min-w-0 gap-6 pb-12 sm:gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="container-shop mx-auto grid w-full min-w-0 max-w-[1440px] grid-cols-[minmax(0,1fr)] gap-5 pb-10 sm:gap-8 sm:pb-16 lg:grid-cols-[minmax(0,1fr)_390px]">
         {/* ── Customer Details Form ── */}
         <form
           onSubmit={handleSubmit(onSubmit)}
           noValidate
-          className="min-w-0 space-y-6 sm:space-y-8"
+          className="order-1 w-full min-w-0 space-y-6 border border-border bg-card p-4 shadow-sm min-[375px]:p-5 [&_input]:h-14 [&_input]:px-4 [&_input]:text-base [&_label]:text-[11px] sm:space-y-8 sm:p-8 sm:[&_input]:h-12 sm:[&_input]:text-sm lg:p-10"
         >
           {/* Info banner */}
-          <div className="flex min-w-0 overflow-hidden items-start gap-3 rounded border border-green-200 bg-green-50 p-4 dark:border-green-900/40 dark:bg-green-950/30">
+          <div className="flex min-w-0 items-start gap-3 border border-emerald-200 bg-emerald-50 p-4 sm:p-5 dark:border-emerald-900/40 dark:bg-emerald-950/30">
             <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-green-600 dark:text-green-400" />
             <div className="min-w-0">
-              <p className="text-sm font-bold text-green-800 dark:text-green-300">
+              <p className="text-base font-bold text-green-800 dark:text-green-300">
                 Quotation-based ordering
               </p>
-              <p className="mt-0.5 min-w-0 [overflow-wrap:anywhere] text-xs leading-5 text-green-700 dark:text-green-400">
+              <p className="mt-1 min-w-0 [overflow-wrap:anywhere] text-sm leading-6 text-green-700 dark:text-green-400">
                 Fill your details and click{" "}
                 <strong className="[overflow-wrap:anywhere]">
                   "Place Order / Request Quotation"
@@ -190,8 +190,8 @@ function CheckoutPage() {
             </div>
           </div>
 
-          <section className="grid min-w-0 gap-4 sm:grid-cols-2">
-            <h2 className="font-display text-sm font-extrabold uppercase sm:col-span-2">
+          <section className="grid min-w-0 grid-cols-1 gap-x-5 gap-y-5 border-t border-border pt-7 sm:grid-cols-2 sm:gap-y-5 sm:pt-8">
+            <h2 className="flex items-center gap-3 font-display text-base font-extrabold uppercase sm:col-span-2">
               Customer Details
             </h2>
 
@@ -251,7 +251,7 @@ function CheckoutPage() {
             type="submit"
             disabled={submitting}
             id="place-quotation-btn"
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-none font-bold uppercase sm:w-auto sm:px-10"
+            className="flex h-auto min-h-[3.25rem] w-full max-w-full items-center justify-center gap-2 whitespace-normal rounded-none px-4 py-3 text-center leading-tight font-bold uppercase shadow-sm sm:w-auto sm:px-10"
           >
             {submitting ? (
               <>
@@ -268,21 +268,25 @@ function CheckoutPage() {
         </form>
 
         {/* ── Order Summary ── */}
-        <OrderSummary>
-          <ul className="mt-4 space-y-2 border-t border-border pt-4 text-xs">
-            {cart.lines.map((l) => (
-              <li key={l.key} className="flex justify-between gap-3">
-                <span className="min-w-0 truncate">
-                  {l.qty} × {l.product.name}
-                </span>
-                <span className="shrink-0 text-muted-foreground italic">Price TBD</span>
-              </li>
-            ))}
-          </ul>
-          <p className="mt-3 text-xs text-muted-foreground">
-            AEC will confirm pricing via WhatsApp after you submit your request.
-          </p>
-        </OrderSummary>
+        <aside className="order-2 w-full min-w-0 self-start lg:sticky lg:top-24">
+          <OrderSummary>
+            <ul className="mt-5 space-y-3 border-t border-border pt-5 text-sm">
+              {cart.lines.map((l) => (
+                <li key={l.key} className="flex min-w-0 items-start justify-between gap-3">
+                  <span className="min-w-0 flex-1 leading-snug [overflow-wrap:anywhere]">
+                    <span className="font-semibold">{l.qty} ×</span> {l.product.name}
+                  </span>
+                  <span className="shrink-0 whitespace-nowrap text-muted-foreground italic">
+                    Price TBD
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-3 text-xs text-muted-foreground">
+              AEC will confirm pricing via WhatsApp after you submit your request.
+            </p>
+          </OrderSummary>
+        </aside>
       </div>
     </>
   );

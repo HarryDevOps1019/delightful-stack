@@ -1,4 +1,4 @@
-﻿import { useState, useRef, useEffect, useMemo, type FormEvent } from "react";
+import { useState, useRef, useEffect, useMemo, type FormEvent } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   ChevronDown,
@@ -391,13 +391,13 @@ export function SiteHeader() {
       {/* â”€â”€â”€ Brands drawer (triggered from bottom nav) â”€â”€â”€ */}
       {BrandsDrawer}
 
-      <header ref={headerRef} className="relative z-40 bg-white border-b border-zinc-200">
+      <header ref={headerRef} className="relative z-40 w-full max-w-full bg-white border-b border-zinc-200">
         {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
             MOBILE TOP HEADER  (hidden on lg+)
             Hamburger | Logo | Search icon | Cart | Account | Lang
         â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
-        <div className="lg:hidden bg-white">
-          <div className="flex h-14 items-center gap-1 px-2.5 sm:gap-2 sm:px-3">
+        <div className="lg:hidden w-full bg-white">
+          <div className="flex h-14 w-full min-w-0 items-center gap-1 px-2 sm:gap-2 sm:px-3">
             {/* Hamburger â†’ opens categories drawer */}
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>

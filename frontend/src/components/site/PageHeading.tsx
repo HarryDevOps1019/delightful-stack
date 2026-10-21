@@ -18,7 +18,9 @@ export function PageHeading({
         </Link>{" "}
         <span aria-hidden>/</span> <span>{crumb ?? title}</span>
       </nav>
-      <h1 className="mt-2 font-display text-2xl font-extrabold uppercase sm:text-3xl">{title}</h1>
+      <h1 className="mt-2 font-display text-2xl font-extrabold uppercase leading-tight [overflow-wrap:anywhere] min-[375px]:text-3xl min-[375px]:leading-none">
+        {title}
+      </h1>
       {children}
     </div>
   );

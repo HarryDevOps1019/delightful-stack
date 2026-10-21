@@ -24,12 +24,7 @@ export function MobileBottomNav({
 
   return (
     <>
-      {/* Safe-area spacer so content isn't hidden behind the bar */}
-      <div
-        className="h-[calc(56px+env(safe-area-inset-bottom,0px))] lg:hidden"
-        aria-hidden="true"
-      />
-
+      {/* Spacer for the fixed bar is rendered in the root layout after the footer */}
       <nav
         aria-label="Mobile bottom navigation"
         className="fixed bottom-0 inset-x-0 z-50 lg:hidden bg-white border-t border-zinc-200 shadow-[0_-2px_8px_rgba(0,0,0,0.08)]"

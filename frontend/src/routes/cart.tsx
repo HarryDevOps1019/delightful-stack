@@ -21,20 +21,20 @@ export function OrderSummary({ children }: { children?: React.ReactNode }) {
   const cart = useCart();
   const hasHiddenPrice = cart.lines.some((l) => l.product.showPrice === false);
   return (
-    <div className="h-fit border border-border bg-tile p-6">
-      <h2 className="font-display text-sm font-extrabold uppercase">Order summary</h2>
-      <dl className="mt-4 space-y-2 text-sm">
-        <div className="flex justify-between">
-          <dt>Subtotal ({cart.count} items)</dt>
-          <dd>{hasHiddenPrice ? "Pending Quote" : formatLKR(cart.subtotal)}</dd>
+    <div className="h-fit w-full min-w-0 border border-border bg-tile p-4 min-[375px]:p-5 sm:p-6">
+      <h2 className="font-display text-base font-extrabold uppercase">Order summary</h2>
+      <dl className="mt-5 space-y-3 text-sm">
+        <div className="flex items-start justify-between gap-3">
+          <dt className="min-w-0">Subtotal ({cart.count} items)</dt>
+          <dd className="text-right">{hasHiddenPrice ? "Pending Quote" : formatLKR(cart.subtotal)}</dd>
         </div>
-        <div className="flex justify-between">
-          <dt>Delivery</dt>
-          <dd>{cart.delivery ? formatLKR(cart.delivery) : "Free"}</dd>
+        <div className="flex items-start justify-between gap-3">
+          <dt className="min-w-0">Delivery</dt>
+          <dd className="text-right">{cart.delivery ? formatLKR(cart.delivery) : "Free"}</dd>
         </div>
-        <div className="flex justify-between border-t border-border pt-3 text-base font-extrabold">
-          <dt>Total</dt>
-          <dd>{hasHiddenPrice ? "Price on Request" : formatLKR(cart.total)}</dd>
+        <div className="flex items-start justify-between gap-3 border-t border-border pt-4 text-base font-extrabold sm:text-lg">
+          <dt className="min-w-0">Total</dt>
+          <dd className="text-right">{hasHiddenPrice ? "Price on Request" : formatLKR(cart.total)}</dd>
         </div>
       </dl>
       {hasHiddenPrice ? (
@@ -65,12 +65,12 @@ function CartPage() {
             </Button>
           </div>
         ) : (
-          <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
-            <ul className="divide-y border border-border">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-6 sm:gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
+            <ul className="min-w-0 divide-y border border-border">
               {cart.lines.map((l) => (
                 <li
                   key={l.key}
-                  className="grid grid-cols-[80px_minmax(0,1fr)] gap-4 p-4 sm:grid-cols-[96px_minmax(0,1fr)_auto]"
+                  className="grid grid-cols-[64px_minmax(0,1fr)] gap-3 p-3 min-[375px]:grid-cols-[80px_minmax(0,1fr)] min-[375px]:gap-4 min-[375px]:p-4 sm:grid-cols-[96px_minmax(0,1fr)_auto]"
                 >
                   <img
                     src={l.product.images[0]}
@@ -81,11 +81,11 @@ function CartPage() {
                     <Link
                       to="/product/$slug"
                       params={{ slug: l.product.slug }}
-                      className="font-bold hover:text-primary"
+                      className="font-bold leading-snug [overflow-wrap:anywhere] hover:text-primary"
                     >
                       {l.product.name}
                     </Link>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-muted-foreground [overflow-wrap:anywhere]">
                       {l.product.brand} · {l.product.sku}
                     </p>
                     {l.variant && <p className="text-xs text-muted-foreground">{l.variant}</p>}
@@ -94,7 +94,7 @@ function CartPage() {
                     ) : (
                       <p className="mt-1 text-sm font-semibold text-primary">Price on Request</p>
                     )}
-                    <div className="mt-3 flex items-center gap-3">
+                    <div className="mt-3 flex flex-wrap items-center gap-3">
                       <div
                         className="flex h-10 items-center border border-input"
                         role="group"

@@ -115,11 +115,20 @@
     border-color: var(--color-border);
   }
 
+  html,
+  body {
+    max-width: 100%;
+  }
+
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
+    /* Final safeguard only — real overflow sources are fixed at the component level. */
     overflow-x: hidden;
+  }
+  iframe {
+    max-width: 100%;
   }
   h1, h2, h3, h4 {
     font-family: var(--font-display);
