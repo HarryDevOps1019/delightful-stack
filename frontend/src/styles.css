@@ -162,3 +162,53 @@
   letter-spacing: 0.02em;
   font-size: 1.125rem;
 }
+
+/* ─── AEC Full-Screen Orbital Loader ────────────────────────────────────────── */
+@keyframes aec-orbital-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes aec-dot-pulse {
+  0%, 100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+
+.aec-loader-ring {
+  animation: aec-orbital-spin 1.6s linear infinite;
+  transform-origin: center center;
+  will-change: transform;
+}
+
+.aec-arc-primary {
+  filter: drop-shadow(0 0 8px oklch(0.58 0.235 22 / 0.55));
+}
+
+.aec-arc-secondary {
+  filter: drop-shadow(0 0 4px rgba(220, 225, 235, 0.45));
+}
+
+.aec-loading-dot {
+  animation: aec-dot-pulse 1.3s infinite ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aec-loader-ring {
+    animation: aec-orbital-spin 6s linear infinite !important;
+  }
+  .aec-loading-dot {
+    animation: none !important;
+    opacity: 0.8 !important;
+    transform: none !important;
+  }
+}

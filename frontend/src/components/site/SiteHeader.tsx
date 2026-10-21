@@ -34,7 +34,7 @@ export function Logo({ className = "" }: { className?: string }) {
       <img
         src={logoImg}
         alt="Asia Electronic & Cellular"
-        className="h-10 sm:h-12 w-auto object-contain transition-transform duration-200 hover:opacity-95"
+        className="h-10 sm:h-12 w-auto rounded-lg object-contain transition-transform duration-200 hover:opacity-95"
       />
     </Link>
   );

@@ -46,10 +46,21 @@ export const Route = createFileRoute("/checkout")({
 function buildWhatsAppMessage(
   orderId: string,
   customerName: string,
-  items: Array<{ name: string; sku: string; qty: number }>,
+  items: Array<{
+    name: string;
+    sku: string;
+    qty: number;
+    productUrl: string;
+  }>,
 ): string {
   const itemLines = items
-    .map((it, i) => `${i + 1}. ${it.name}\n   Item Code: ${it.sku}\n   Qty: ${it.qty}`)
+    .map(
+      (it, i) =>
+        `${i + 1}. ${it.name}\n` +
+        `   Item Code: ${it.sku}\n` +
+        `   Qty: ${it.qty}\n` +
+        `   Product Link: ${it.productUrl}`,
+    )
     .join("\n\n");
 
   return (
@@ -64,7 +75,12 @@ function buildWhatsAppMessage(
 function openWhatsApp(
   orderId: string,
   customerName: string,
-  cartItems: Array<{ name: string; sku: string; qty: number }>,
+  cartItems: Array<{
+    name: string;
+    sku: string;
+    qty: number;
+    productUrl: string;
+  }>,
   whatsappDigits: string,
 ) {
   const message = buildWhatsAppMessage(orderId, customerName, cartItems);
@@ -103,10 +119,12 @@ function CheckoutPage() {
 
     try {
       // Build items payload from cart
+      const origin = typeof window !== "undefined" ? window.location.origin : "";
       const items = cart.lines.map((l) => ({
         sku: l.product.sku,
         name: l.product.name,
         qty: l.qty,
+        productUrl: `${origin}/product/${l.product.slug}`,
         priceLKR: l.product.showPrice !== false ? Math.round(l.product.priceCents / 100) : 0, // Quotation-based
       }));
 
@@ -117,7 +135,12 @@ function CheckoutPage() {
         address: v.address,
         city: v.city,
         notes: v.notes || "",
-        items,
+        items: items.map((it) => ({
+          sku: it.sku,
+          name: it.name,
+          qty: it.qty,
+          priceLKR: it.priceLKR,
+        })),
       });
 
       if (!saved) {
@@ -133,7 +156,12 @@ function CheckoutPage() {
       openWhatsApp(
         saved.id,
         v.fullName,
-        items.map((it) => ({ name: it.name, sku: it.sku, qty: it.qty })),
+        items.map((it) => ({
+          name: it.name,
+          sku: it.sku,
+          qty: it.qty,
+          productUrl: it.productUrl,
+        })),
         whatsappDigits,
       );
 
