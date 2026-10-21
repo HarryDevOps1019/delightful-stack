@@ -91,6 +91,13 @@ router.post("/", async (req, res) => {
 
     const saved = await insertOrder(newOrder);
 
+    // Send confirmation email to customer if email was provided
+    if (newOrder.email) {
+      void sendOrderStatusEmail(saved || newOrder, "Quotation Requested").catch((err) => {
+        console.warn("Initial quotation email notification skipped:", err?.message);
+      });
+    }
+
     res.status(201).json({
       success: true,
       data: saved,

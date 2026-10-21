@@ -32,9 +32,22 @@ function getTransporter() {
 }
 
 function getStoreUrl() {
-  return (process.env.STORE_URL || process.env.FRONTEND_URL || "https://delightful-stack.vercel.app")
-    .split(",")[0]
-    .replace(/\/$/, "");
+  if (process.env.STORE_URL) {
+    return process.env.STORE_URL.trim().replace(/\/$/, "");
+  }
+
+  const configured = (process.env.FRONTEND_URL || "")
+    .split(",")
+    .map((item) => item.trim().replace(/\/$/, ""))
+    .filter(Boolean);
+
+  // Prioritize public/production URLs (https or non-localhost) so links in emails work on mobile devices
+  const publicUrl = configured.find(
+    (url) => !url.includes("localhost") && !url.includes("127.0.0.1") && !url.includes("::1"),
+  );
+  if (publicUrl) return publicUrl;
+
+  return "https://delightful-stack.vercel.app";
 }
 
 function renderItems(items = []) {
