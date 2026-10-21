@@ -9,8 +9,8 @@ const SETTINGS_FILE = process.env.VERCEL
   ? path.join("/tmp", "settings.json")
   : path.join(__dirname, "../../data/settings.json");
 
-// ─── Column mapping helpers ────────────────────────────────
-// JS camelCase ↔ Postgres snake_case
+// â”€â”€â”€ Column mapping helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// JS camelCase â†” Postgres snake_case
 function toDbProduct(p) {
   const showPrice = p.showPrice !== false;
   const showQuantity = p.showQuantity !== false;
@@ -188,7 +188,7 @@ function fromDbOrder(row) {
   };
 }
 
-// ─── Default starter categories ────────────────────────────
+// â”€â”€â”€ Default starter categories â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const defaultCategories = [
   // Active categories (10)
   {
@@ -285,7 +285,7 @@ const defaultCategories = [
   },
 ];
 
-// ─── Seed generator for 850 realistic electronics SKUs ─────
+// â”€â”€â”€ Seed generator for 850 realistic electronics SKUs â”€â”€â”€â”€â”€
 export function generate850Products() {
   const subcats = [
     {
@@ -408,9 +408,9 @@ export function generate850Products() {
         description: `Industrial grade ${group.type.toLowerCase()} engineered for electronics repair, manufacturing, and maintenance. Tested and quality-assured by Asia Electronics.`,
         specs: {
           Standard: "RoHS Compliant",
-          Tolerance: "±1% / Grade A",
+          Tolerance: "Â±1% / Grade A",
           "SKU Code": sku,
-          "Operating Range": "-40°C to +85°C",
+          "Operating Range": "-40Â°C to +85Â°C",
         },
         attributes: {
           "Component Type": group.type,
@@ -428,7 +428,7 @@ export function generate850Products() {
   return prods;
 }
 
-// ─── PRODUCTS ──────────────────────────────────────────────
+// â”€â”€â”€ PRODUCTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export async function readProducts() {
   const { data, error } = await supabase
     .from("products")
@@ -635,7 +635,7 @@ export async function findProduct(identifier) {
   }
   return null;
 }
-// ─── CATEGORIES ────────────────────────────────────────────
+// â”€â”€â”€ CATEGORIES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export async function readCategories() {
   const { data, error } = await supabase.from("categories").select("*");
 
@@ -729,7 +729,7 @@ export async function updateCategoryInDb(slug, updates) {
   return saved;
 }
 
-// ─── BRANDS ────────────────────────────────────────────────
+// â”€â”€â”€ BRANDS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export async function readBrands() {
   const { data, error } = await supabase
     .from("brands")
@@ -768,7 +768,7 @@ export async function deleteBrand(slug) {
   return true;
 }
 
-// ─── ORDERS ────────────────────────────────────────────────
+// â”€â”€â”€ ORDERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export async function readOrders() {
   const { data, error } = await supabase
     .from("orders")
@@ -844,7 +844,7 @@ export async function updateOrder(id, fields) {
   return fromDbOrder(data);
 }
 
-// ─── SETTINGS ──────────────────────────────────────────────
+// â”€â”€â”€ SETTINGS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const defaultSettings = {
   id: "default",
   storeName: "Asia Electronics & Cellular",
@@ -961,4 +961,36 @@ export async function updateSettings(updates) {
   }
 
   return merged;
+}
+
+export async function adjustInventory(productId, { mode, quantity, reason, reference = null }) {
+  const { data, error } = await supabase.rpc('adjust_inventory', {
+    p_product_id: productId,
+    p_mode: mode,
+    p_quantity: quantity,
+    p_reason: reason,
+    p_reference: reference,
+  });
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+export async function readInventoryHistory(productId) {
+  const { data, error } = await supabase
+    .from('inventory_history')
+    .select('id, quantity_change, previous_quantity, new_quantity, reason, reference, created_at')
+    .eq('product_id', productId)
+    .order('created_at', { ascending: false });
+  if (error) throw new Error(error.message);
+  return data || [];
+}
+
+export async function createOrderWithInventory(order) {
+  const { data, error } = await supabase.rpc('create_order_with_inventory', { p_order: order });
+  if (error) throw new Error(error.message);
+  return data;
+}
+export async function restoreOrderInventory(orderId) {
+  const { error } = await supabase.rpc('restore_order_inventory', { p_order_id: orderId });
+  if (error) throw new Error(error.message);
 }

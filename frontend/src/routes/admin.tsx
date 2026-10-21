@@ -25,7 +25,7 @@ import { useAuth } from "@/context/auth";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
-    meta: [{ title: "Admin — Asia Electronics" }, { name: "robots", content: "noindex, nofollow" }],
+    meta: [{ title: "Admin â€” Asia Electronics" }, { name: "robots", content: "noindex, nofollow" }],
     links: [
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
       { rel: "icon", href: "/favicon-32x32.png", type: "image/png" },
@@ -109,7 +109,7 @@ function AdminLayout() {
     return null;
   }
 
-  if (isMobile) {
+  if (isMobile && pathname !== "/admin/inventory") {
     return (
       <main className="flex min-h-screen items-center justify-center bg-zinc-950 px-6 text-center text-white">
         <div className="max-w-sm space-y-4">
@@ -144,7 +144,7 @@ function AdminLayout() {
         }}
       >
         <div className="flex h-screen overflow-hidden">
-          {/* ── Sidebar ── */}
+          {/* â”€â”€ Sidebar â”€â”€ */}
           <aside
             className={`fixed inset-y-0 left-0 z-50 w-64 flex flex-col lg:static lg:flex transition-transform duration-300 ${
               sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
@@ -341,7 +341,7 @@ function AdminLayout() {
             />
           )}
 
-          {/* ── Main ── */}
+          {/* â”€â”€ Main â”€â”€ */}
           <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
             {/* Top bar */}
             <header
@@ -374,7 +374,7 @@ function AdminLayout() {
                     {title}
                   </h1>
                   <p className="text-[10px] text-zinc-500">
-                    Asia Electronics & Cellular · Admin Portal
+                    Asia Electronics & Cellular Â· Admin Portal
                   </p>
                 </div>
               </div>

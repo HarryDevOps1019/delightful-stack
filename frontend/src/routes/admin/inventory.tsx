@@ -1,310 +1,81 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
-import {
-  Search,
-  AlertTriangle,
-  CheckCircle2,
-  XCircle,
-  Plus,
-  RefreshCw,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { AlertTriangle, ArrowDownUp, Boxes, CheckCircle2, ChevronLeft, ChevronRight, Eye, EyeOff, Filter, PackagePlus, RefreshCw, Search, SlidersHorizontal, X, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useCatalog } from "@/services/catalog";
 import { formatLKR } from "@/lib/format";
-import { StockBadge } from "@/components/admin/shared";
+import type { Product } from "@/lib/types";
+import { adjustInventoryApi } from "@/services/api";
 
 export const Route = createFileRoute("/admin/inventory")({
-  head: () => ({ meta: [{ title: "Inventory & Stock — Admin" }] }),
+  head: () => ({ meta: [{ title: "Inventory Management â€” Admin" }] }),
   component: AdminInventory,
 });
 
+const LOW_STOCK_THRESHOLD = 5;
+type StockFilter = "all" | "in" | "low" | "out";
+type AdjustmentMode = "add" | "remove" | "set";
+
+function stockState(stock: number): StockFilter { return stock === 0 ? "out" : stock <= LOW_STOCK_THRESHOLD ? "low" : "in"; }
+function StockBadge({ stock }: { stock: number }) {
+  const state = stockState(stock);
+  const config = state === "in" ? ["bg-emerald-500/10 text-emerald-400 border-emerald-500/25", "In Stock"] : state === "low" ? ["bg-amber-500/10 text-amber-400 border-amber-500/25", "Low Stock"] : ["bg-red-500/10 text-red-400 border-red-500/25", "Out of Stock"];
+  return <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[10px] font-bold ${config[0]}`}><span className="h-1.5 w-1.5 rounded-full bg-current" />{config[1]}</span>;
+}
+function Visibility({ product }: { product: Product }) {
+  const cells = [["Price", product.showPrice !== false], ["Qty", product.showQuantity !== false], ["Availability", product.showAvailability !== false], ["Active", product.isNew !== false]];
+  return <div className="flex items-center gap-1">{cells.map(([label, visible]) => <span key={String(label)} title={`${label}: ${visible ? "shown" : "hidden"}`} className={`rounded p-1 ${visible ? "text-zinc-300" : "text-zinc-600"}`}>{visible ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}</span>)}</div>;
+}
+
 function AdminInventory() {
   const { products, categories, updateProduct } = useCatalog();
-  const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<"all" | "low" | "out">("all");
-  const [page, setPage] = useState(1);
-  const pageSize = 30;
-
-  const stockStats = useMemo(() => {
-    const totalItems = products.length;
-    const lowStock = products.filter((p) => p.stock > 0 && p.stock <= 5);
-    const outOfStock = products.filter((p) => p.stock === 0);
-    const totalInventoryValue = products.reduce((sum, p) => sum + p.priceCents * p.stock, 0);
-    return { totalItems, lowStock, outOfStock, totalInventoryValue };
-  }, [products]);
-
-  const categoryStock = useMemo(() => {
-    return categories.map((cat) => {
-      const catProducts = products.filter((p) => p.category === cat.slug);
-      const totalStock = catProducts.reduce((sum, p) => sum + p.stock, 0);
-      const lowCount = catProducts.filter((p) => p.stock <= 5).length;
-      return { ...cat, count: catProducts.length, totalStock, lowCount };
-    });
-  }, [categories, products]);
-
-  const filteredProducts = useMemo(() => {
-    return products.filter((p) => {
-      const q = search.trim().toLowerCase();
-      const matchSearch =
-        !q ||
-        p.name.toLowerCase().includes(q) ||
-        p.sku.toLowerCase().includes(q) ||
-        p.brand.toLowerCase().includes(q);
-      const matchFilter =
-        filter === "all" ||
-        (filter === "low" && p.stock > 0 && p.stock <= 5) ||
-        (filter === "out" && p.stock === 0);
-      return matchSearch && matchFilter;
-    });
-  }, [products, search, filter]);
-
-  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / pageSize));
-  const currentPage = Math.min(Math.max(1, page), totalPages);
-  const paginated = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
-    return filteredProducts.slice(start, start + pageSize);
-  }, [filteredProducts, currentPage, pageSize]);
-
-  const handleQuickRestock = (id: string, name: string, currentStock: number) => {
-    const newStock = currentStock + 10;
-    updateProduct(id, { stock: newStock });
-    toast.success(`Restocked ${name} (+10 units). New stock: ${newStock}`);
+  const [hydrated, setHydrated] = useState(false);
+  const [search, setSearch] = useState(""); const [query, setQuery] = useState("");
+  const [category, setCategory] = useState("all"); const [subcategory, setSubcategory] = useState("all");
+  const [brand, setBrand] = useState("all"); const [status, setStatus] = useState<StockFilter>("all");
+  const [sort, setSort] = useState<"name" | "stock" | "price" | "category" | "updated">("name"); const [ascending, setAscending] = useState(true);
+  const [page, setPage] = useState(1); const [pageSize, setPageSize] = useState(25); const [selected, setSelected] = useState<string[]>([]);
+  const [adjusting, setAdjusting] = useState<Product | null>(null); const [detail, setDetail] = useState<Product | null>(null);
+  const [adjustmentMode, setAdjustmentMode] = useState<AdjustmentMode>("add"); const [adjustmentQuantity, setAdjustmentQuantity] = useState(""); const [adjustmentReason, setAdjustmentReason] = useState("");
+  const [lastUpdated, setLastUpdated] = useState(new Date());
+  useEffect(() => { const id = window.setTimeout(() => setQuery(search), 250); return () => window.clearTimeout(id); }, [search]);
+  useEffect(() => { setHydrated(true); }, []);
+  useEffect(() => { setPage(1); }, [query, category, subcategory, brand, status, pageSize]);
+  const stats = useMemo(() => ({ total: products.length, in: products.filter(p => stockState(p.stock) === "in").length, low: products.filter(p => stockState(p.stock) === "low").length, out: products.filter(p => p.stock === 0).length }), [products]);
+  const categoryCards = useMemo(() => categories.map(c => { const list = products.filter(p => p.category === c.slug); const inStock = list.filter(p => stockState(p.stock) === "in").length; const low = list.filter(p => stockState(p.stock) === "low").length; const out = list.filter(p => p.stock === 0).length; return { ...c, list, inStock, low, out, units: list.reduce((n,p) => n + p.stock,0) }; }), [categories, products]);
+  const brands = useMemo(() => Array.from(new Set(products.map(p => p.brand).filter(Boolean))).sort(), [products]);
+  const subcategories = useMemo(() => category === "all" ? [] : Array.from(new Set(products.filter(p => p.category === category).map(p => p.subcategory).filter(Boolean) as string[])).sort(), [products, category]);
+  const matching = useMemo(() => { const q = query.trim().toLowerCase(); const comparator = (a: Product,b: Product) => { const value = sort === "stock" ? a.stock - b.stock : sort === "price" ? a.priceCents - b.priceCents : sort === "category" ? a.category.localeCompare(b.category) : sort === "updated" ? a.createdAt.localeCompare(b.createdAt) : a.name.localeCompare(b.name); return ascending ? value : -value; }; return products.filter(p => (!q || [p.name,p.sku,p.model,p.brand].some(v => v?.toLowerCase().includes(q))) && (category === "all" || p.category === category) && (subcategory === "all" || p.subcategory === subcategory) && (brand === "all" || p.brand === brand) && (status === "all" || stockState(p.stock) === status)).sort(comparator); }, [products, query, category, subcategory, brand, status, sort, ascending]);
+  const pages = Math.max(1, Math.ceil(matching.length / pageSize)); const currentPage = Math.min(page, pages); const rows = matching.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const reset = () => { setSearch(""); setCategory("all"); setSubcategory("all"); setBrand("all"); setStatus("all"); setPage(1); };
+  const refresh = () => { setLastUpdated(new Date()); toast.success("Inventory refreshed"); };
+  const selectCategory = (slug: string) => { setCategory(slug); setSubcategory("all"); document.getElementById("inventory-table")?.scrollIntoView({ behavior: "smooth", block: "start" }); };
+  const commitAdjustment = async (): Promise<void> => {
+    const product = adjusting;
+    if (!product) return;
+    const qty = Number(adjustmentQuantity);
+    if (!Number.isInteger(qty) || qty < 0 || !adjustmentReason.trim()) { toast.error("Enter a valid quantity and adjustment reason."); return; }
+    const next = adjustmentMode === "add" ? product.stock + qty : adjustmentMode === "remove" ? product.stock - qty : qty;
+    if (next < 0) { toast.error("Stock cannot become negative."); return; }
+    const saved = await adjustInventoryApi(product.id, { mode: adjustmentMode, quantity: qty, reason: adjustmentReason.trim() });
+    if (!saved) return;
+    updateProduct(product.id, { stock: saved.newQuantity });
+    setLastUpdated(new Date()); toast.success(`${product.name}: ${product.stock} → ${saved.newQuantity} units`);
+    setAdjusting(null); setAdjustmentQuantity(""); setAdjustmentReason("");
   };
-
-  return (
-    <div className="space-y-6">
-      {/* Stock Overview Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="admin-card">
-          <div className="flex items-center justify-between">
-            <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
-              Total SKUs
-            </p>
-            <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-          </div>
-          <p className="text-2xl font-black text-white mt-1">{stockStats.totalItems}</p>
-          <p className="text-xs text-zinc-400 mt-1">
-            Across {categories.length} active departments
-          </p>
-        </div>
-
-        <div className="admin-card">
-          <div className="flex items-center justify-between">
-            <p className="text-[11px] font-bold text-amber-500 uppercase tracking-wider">
-              Low Stock
-            </p>
-            <AlertTriangle className="h-4 w-4 text-amber-400" />
-          </div>
-          <p className="text-2xl font-black text-amber-400 mt-1">{stockStats.lowStock.length}</p>
-          <p className="text-xs text-zinc-400 mt-1">Items ≤ 5 units left</p>
-        </div>
-
-        <div className="admin-card">
-          <div className="flex items-center justify-between">
-            <p className="text-[11px] font-bold text-red-500 uppercase tracking-wider">
-              Out of Stock
-            </p>
-            <XCircle className="h-4 w-4 text-red-400" />
-          </div>
-          <p className="text-2xl font-black text-red-400 mt-1">{stockStats.outOfStock.length}</p>
-          <p className="text-xs text-zinc-400 mt-1">Immediate restock required</p>
-        </div>
-
-        <div className="admin-card">
-          <div className="flex items-center justify-between">
-            <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
-              Inventory Valuation
-            </p>
-            <RefreshCw className="h-4 w-4 text-orange-400" />
-          </div>
-          <p className="text-2xl font-black text-white mt-1">
-            {formatLKR(stockStats.totalInventoryValue)}
-          </p>
-          <p className="text-xs text-zinc-400 mt-1">Current total stock valuation</p>
-        </div>
-      </div>
-
-      {/* Category Stock Level Breakdown */}
-      <div className="admin-card space-y-4">
-        <h2 className="text-sm font-bold text-white uppercase tracking-wider">
-          Category Stock Breakdown
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {categoryStock.map((cat) => (
-            <div
-              key={cat.slug}
-              className="p-3.5 rounded-lg bg-zinc-900/60 border border-zinc-800 space-y-2"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-white">{cat.name}</span>
-                <span className="text-[10px] font-semibold text-zinc-400">
-                  {cat.totalStock} units
-                </span>
-              </div>
-              <div className="w-full bg-zinc-800 h-2 rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full ${cat.lowCount > 0 ? "bg-amber-500" : "bg-emerald-500"}`}
-                  style={{
-                    width: `${Math.min(100, Math.max(10, (cat.totalStock / Math.max(1, stockStats.totalItems * 10)) * 100))}%`,
-                  }}
-                />
-              </div>
-              <div className="flex items-center justify-between text-[10px] text-zinc-500">
-                <span>{cat.count} SKUs</span>
-                {cat.lowCount > 0 && (
-                  <span className="text-amber-400 font-semibold">{cat.lowCount} low stock</span>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Inventory Table */}
-      <div className="admin-card p-0 overflow-hidden space-y-0">
-        <div className="p-4 border-b border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-zinc-900/40">
-          <div className="relative w-full sm:w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-500" />
-            <input
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
-              placeholder="Search by product name, SKU or brand..."
-              className="admin-input pl-8 w-full text-xs"
-            />
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => {
-                setFilter("all");
-                setPage(1);
-              }}
-              className={`px-3 py-1.5 rounded-md text-xs font-bold transition-colors ${
-                filter === "all"
-                  ? "bg-orange-500/20 text-orange-400 border border-orange-500/40"
-                  : "bg-zinc-800/60 text-zinc-400"
-              }`}
-            >
-              All Items ({products.length})
-            </button>
-            <button
-              onClick={() => {
-                setFilter("low");
-                setPage(1);
-              }}
-              className={`px-3 py-1.5 rounded-md text-xs font-bold transition-colors ${
-                filter === "low"
-                  ? "bg-amber-500/20 text-amber-400 border border-amber-500/40"
-                  : "bg-zinc-800/60 text-zinc-400"
-              }`}
-            >
-              Low Stock ({stockStats.lowStock.length})
-            </button>
-            <button
-              onClick={() => {
-                setFilter("out");
-                setPage(1);
-              }}
-              className={`px-3 py-1.5 rounded-md text-xs font-bold transition-colors ${
-                filter === "out"
-                  ? "bg-red-500/20 text-red-400 border border-red-500/40"
-                  : "bg-zinc-800/60 text-zinc-400"
-              }`}
-            >
-              Out of Stock ({stockStats.outOfStock.length})
-            </button>
-          </div>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-zinc-900/80 text-zinc-400 uppercase text-[10px] font-bold border-b border-zinc-800">
-              <tr>
-                <th className="p-3">Product Name</th>
-                <th className="p-3">SKU</th>
-                <th className="p-3">Unit Price</th>
-                <th className="p-3">Stock Count</th>
-                <th className="p-3">Stock Status</th>
-                <th className="p-3 text-right">Quick Restock</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-zinc-800/60 font-medium">
-              {paginated.map((p) => (
-                <tr key={p.id} className="hover:bg-zinc-800/40 transition-colors">
-                  <td className="p-3">
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={p.images[0]}
-                        alt={p.name}
-                        className="h-8 w-8 rounded object-cover bg-zinc-800 shrink-0"
-                      />
-                      <div className="min-w-0">
-                        <p className="text-white font-semibold truncate max-w-[240px]">{p.name}</p>
-                        <p className="text-[10px] text-zinc-500">{p.brand}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="p-3 font-mono text-zinc-400">{p.sku}</td>
-                  <td className="p-3 font-bold text-white">{formatLKR(p.priceCents)}</td>
-                  <td className="p-3 font-bold text-white">{p.stock} units</td>
-                  <td className="p-3">
-                    <StockBadge stock={p.stock} />
-                  </td>
-                  <td className="p-3 text-right">
-                    <button
-                      onClick={() => handleQuickRestock(p.id, p.name, p.stock)}
-                      className="admin-btn-ghost text-[11px] inline-flex items-center gap-1 hover:border-emerald-500/40 hover:text-emerald-400"
-                      title="Add 10 units to stock"
-                    >
-                      <Plus className="h-3 w-3" /> +10 Stock
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {filteredProducts.length === 0 && (
-            <div className="py-12 text-center text-zinc-500 text-xs">
-              No products match your inventory filter.
-            </div>
-          )}
-        </div>
-
-        {/* Pagination Footer */}
-        {totalPages > 1 && (
-          <div className="p-3 border-t border-zinc-800 bg-zinc-900/40 flex items-center justify-between text-xs text-zinc-400">
-            <span>
-              Showing {(currentPage - 1) * pageSize + 1} to{" "}
-              {Math.min(currentPage * pageSize, filteredProducts.length)} of{" "}
-              {filteredProducts.length} items
-            </span>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="p-1 rounded hover:bg-zinc-800 disabled:opacity-30 text-zinc-400 hover:text-white"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <span className="px-2 py-0.5 rounded bg-zinc-800 text-xs font-bold text-white">
-                {currentPage} / {totalPages}
-              </span>
-              <button
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="p-1 rounded hover:bg-zinc-800 disabled:opacity-30 text-zinc-400 hover:text-white"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+  const changeSort = (next: typeof sort) => { if (next === sort) setAscending(v => !v); else { setSort(next); setAscending(true); } };
+  const skeleton = <div className="animate-pulse rounded-xl border border-zinc-800 bg-zinc-900/70 h-28" />;
+  return <div className="space-y-6 pb-8">
+    <header className="flex flex-col gap-4 border-b border-zinc-800 pb-5 xl:flex-row xl:items-end xl:justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-red-400">AEC Operations</p><h1 className="mt-1 text-2xl font-black tracking-tight text-white">Inventory Management</h1><p className="mt-1 text-sm text-zinc-400">Track stock levels, manage inventory and view detailed product information.</p></div><div className="flex flex-wrap items-center gap-2"><span className="mr-1 text-xs text-zinc-500">Updated {lastUpdated.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span><button onClick={refresh} className="admin-btn-ghost inline-flex items-center gap-2"><RefreshCw className="h-3.5 w-3.5" />Refresh</button><button onClick={() => toast.message("Choose a product below to adjust its stock.")} className="admin-btn-primary inline-flex items-center gap-2"><PackagePlus className="h-4 w-4" />Add Stock</button></div></header>
+    <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">{!hydrated ? <>{skeleton}{skeleton}{skeleton}{skeleton}</> : ([["Total Products",stats.total,"text-white","text-zinc-400"],["In Stock",stats.in,"text-emerald-400","text-emerald-400"],["Low Stock",stats.low,"text-amber-400","text-amber-400"],["Out of Stock",stats.out,"text-red-400","text-red-400"]] as Array<[string, number, string, string]>).map(([label,value,color,accent]: [string, number, string, string]) => <div key={String(label)} className="admin-card relative overflow-hidden p-4"><div className={`absolute left-0 top-0 h-full w-1 ${accent.replace("text","bg")}`} /><p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">{label}</p><p className={`mt-2 text-3xl font-black ${color}`}>{value}</p><p className="mt-1 text-xs text-zinc-500">{label === "Low Stock" ? `â‰¤ ${LOW_STOCK_THRESHOLD} units` : label === "Out of Stock" ? "Needs attention" : "Live product count"}</p></div>)}</section>
+    <section className="admin-card p-4"><div className="mb-4 flex flex-wrap items-center justify-between gap-2"><div><h2 className="text-sm font-bold text-white">Category Stock Breakdown</h2><p className="mt-1 text-xs text-zinc-500">Select a category to filter the existing inventory table.</p></div>{category !== "all" && <button onClick={() => {setCategory("all");setSubcategory("all")}} className="admin-btn-ghost text-xs">All Categories <X className="ml-1 inline h-3 w-3" /></button>}</div><div className="grid grid-cols-1 gap-3 sm:grid-cols-2 2xl:grid-cols-3">{categoryCards.map(c => { const health = c.list.length ? Math.round((c.inStock / c.list.length) * 100) : 0; return <button key={c.slug} onClick={() => selectCategory(c.slug)} className={`group rounded-xl border p-3.5 text-left transition ${category === c.slug ? "border-red-500/70 bg-red-500/10 ring-1 ring-red-500/30" : "border-zinc-800 bg-zinc-900/50 hover:border-zinc-700 hover:bg-zinc-900"}`}><div className="flex gap-3"><img src={c.image} alt="" className="h-10 w-10 rounded-lg bg-zinc-800 object-cover" loading="lazy"/><div className="min-w-0 flex-1"><div className="flex justify-between gap-2"><p className="truncate text-xs font-bold text-white">{c.name}</p><span className="text-[10px] text-zinc-500">{c.units} units</span></div><p className="mt-0.5 text-[11px] text-zinc-400">{c.list.length} Products</p><p className="mt-2 text-[10px]"><span className="text-emerald-400">{c.inStock} In Stock</span><span className="text-zinc-600"> Â· </span><span className="text-amber-400">{c.low} Low</span><span className="text-zinc-600"> Â· </span><span className="text-red-400">{c.out} Out</span></p><div className="mt-2 h-1.5 overflow-hidden rounded-full bg-zinc-800"><div className="h-full rounded-full bg-emerald-500" style={{width: `${health}%`}} /></div></div></div></button>})}</div></section>
+    <section id="inventory-table" className="admin-card scroll-mt-4 p-0 overflow-hidden"><div className="border-b border-zinc-800 bg-zinc-900/30 p-4"><div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between"><div className="relative w-full xl:max-w-sm"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500"/><input value={search} onChange={e=>setSearch(e.target.value)} className="admin-input w-full pl-9" placeholder="Search name, SKU, model or brandâ€¦"/></div><div className="flex flex-wrap gap-2"><select value={category} onChange={e=>{setCategory(e.target.value);setSubcategory("all")}} className="admin-input"><option value="all">All categories</option>{categories.map(c=><option key={c.slug} value={c.slug}>{c.name}</option>)}</select><select value={subcategory} disabled={!subcategories.length} onChange={e=>setSubcategory(e.target.value)} className="admin-input"><option value="all">All subcategories</option>{subcategories.map(s=><option key={s}>{s}</option>)}</select><select value={brand} onChange={e=>setBrand(e.target.value)} className="admin-input"><option value="all">All brands</option>{brands.map(b=><option key={b}>{b}</option>)}</select><select value={status} onChange={e=>setStatus(e.target.value as StockFilter)} className="admin-input"><option value="all">All stock</option><option value="in">In stock</option><option value="low">Low stock</option><option value="out">Out of stock</option></select><button onClick={reset} className="admin-btn-ghost inline-flex items-center gap-1"><Filter className="h-3.5 w-3.5"/>Reset</button></div></div></div>
+    <div className="overflow-x-auto"><table className="min-w-[1180px] w-full text-left text-xs"><thead className="border-b border-zinc-800 bg-zinc-900/80 text-[10px] uppercase tracking-wider text-zinc-500"><tr><th className="p-3"><input type="checkbox" checked={rows.length>0 && rows.every(p=>selected.includes(p.id))} onChange={e=>setSelected(e.target.checked ? Array.from(new Set([...selected,...rows.map(p=>p.id)])) : selected.filter(id=>!rows.some(p=>p.id===id)))}/></th><th className="p-3">Product</th>{[["SKU / Item Code",null],["Model",null],["Category","category"],["Brand",null],["Stock","stock"],["Status",null],["Price","price"],["Visibility",null],["Last Updated","updated"]].map(([label,key])=><th key={String(label)} className="p-3">{key ? <button onClick={()=>changeSort(key as typeof sort)} className="inline-flex items-center gap-1 hover:text-white">{label}<ArrowDownUp className="h-3 w-3"/></button> : label}</th>)}<th className="p-3 text-right">Actions</th></tr></thead><tbody className="divide-y divide-zinc-800/70">{rows.map(p=><tr key={p.id} className="transition hover:bg-zinc-800/30"><td className="p-3"><input type="checkbox" checked={selected.includes(p.id)} onChange={e=>setSelected(v=>e.target.checked?[...v,p.id]:v.filter(id=>id!==p.id))}/></td><td className="p-3"><button onClick={()=>setDetail(p)} className="flex max-w-[240px] items-center gap-2 text-left"><img src={p.images[0]} alt="" loading="lazy" className="h-9 w-9 rounded-lg bg-zinc-800 object-cover"/><span className="min-w-0"><span className="block truncate font-semibold text-white hover:text-red-300">{p.name}</span><span className="block truncate text-[10px] text-zinc-500">{p.subcategory || "No subcategory"}</span></span></button></td><td className="p-3 font-mono text-zinc-400">{p.sku}</td><td className="p-3 text-zinc-400">{p.model || "â€”"}</td><td className="p-3 text-zinc-400">{categories.find(c=>c.slug===p.category)?.name || p.category}</td><td className="p-3 text-zinc-400">{p.brand}</td><td className="p-3 font-bold text-white">{p.stock} <span className="font-normal text-zinc-500">units</span></td><td className="p-3"><StockBadge stock={p.stock}/></td><td className="p-3 font-semibold text-white">{formatLKR(p.priceCents)}</td><td className="p-3"><Visibility product={p}/></td><td className="p-3 text-zinc-500">{new Date(p.createdAt).toLocaleDateString()}</td><td className="p-3 text-right"><div className="inline-flex gap-1"><button onClick={()=>setDetail(p)} className="admin-btn-ghost px-2 py-1 text-[10px]">View</button><button onClick={()=>setAdjusting(p)} className="rounded-md border border-red-500/30 bg-red-500/10 px-2 py-1 text-[10px] font-bold text-red-300 hover:bg-red-500/20">Adjust</button></div></td></tr>)}</tbody></table>{rows.length===0 && <div className="py-14 text-center"><Boxes className="mx-auto h-7 w-7 text-zinc-700"/><p className="mt-3 text-sm font-semibold text-zinc-400">No products found</p><p className="mt-1 text-xs text-zinc-600">Try changing or resetting your inventory filters.</p></div>}</div>
+    <footer className="flex flex-col gap-3 border-t border-zinc-800 bg-zinc-900/30 p-3 text-xs text-zinc-500 sm:flex-row sm:items-center sm:justify-between"><span>{matching.length ? `Showing ${(currentPage-1)*pageSize+1}â€“${Math.min(currentPage*pageSize,matching.length)} of ${matching.length} products` : "No products to show"}</span><div className="flex items-center gap-2"><select value={pageSize} onChange={e=>setPageSize(Number(e.target.value))} className="admin-input py-1 text-xs">{[10,25,50,100].map(n=><option key={n}>{n}</option>)}</select><button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={currentPage===1} className="admin-btn-ghost p-1.5 disabled:opacity-40"><ChevronLeft className="h-4 w-4"/></button>{Array.from({length: Math.min(pages,3)},(_,i)=>i+1).map(n=><button key={n} onClick={()=>setPage(n)} className={`h-7 w-7 rounded text-xs ${n===currentPage?"bg-red-500 text-white":"hover:bg-zinc-800"}`}>{n}</button>)}{pages>3&&<span>â€¦</span>}<button onClick={()=>setPage(p=>Math.min(pages,p+1))} disabled={currentPage===pages} className="admin-btn-ghost p-1.5 disabled:opacity-40"><ChevronRight className="h-4 w-4"/></button></div></footer></section>
+    {adjusting && <InventoryDialog title="Adjust Stock" onClose={()=>setAdjusting(null)}><ProductSnapshot product={adjusting}/><div className="grid grid-cols-3 gap-2">{(["add","remove","set"] as AdjustmentMode[]).map(mode=><button key={mode} onClick={()=>setAdjustmentMode(mode)} className={`rounded-lg border px-2 py-2 text-xs font-bold capitalize ${adjustmentMode===mode?"border-red-500 bg-red-500/15 text-red-300":"border-zinc-700 text-zinc-400"}`}>{mode === "set" ? "Set exact" : `${mode} stock`}</button>)}</div><input value={adjustmentQuantity} onChange={e=>setAdjustmentQuantity(e.target.value)} type="number" min="0" className="admin-input w-full" placeholder="Quantity"/><textarea value={adjustmentReason} onChange={e=>setAdjustmentReason(e.target.value)} className="admin-input min-h-20 w-full" placeholder="Reason / note (required)"/><button onClick={commitAdjustment} className="admin-btn-primary w-full">Save stock adjustment</button></InventoryDialog>}
+    {detail && <InventoryDialog title="Inventory Details" onClose={()=>setDetail(null)}><ProductSnapshot product={detail}/><div className="grid grid-cols-3 gap-2 rounded-lg border border-zinc-800 bg-zinc-900/50 p-3 text-center"><div><p className="text-[10px] uppercase text-zinc-500">Current</p><p className="font-bold text-white">{detail.stock}</p></div><div><p className="text-[10px] uppercase text-zinc-500">Reserved</p><p className="font-bold text-white">â€”</p></div><div><p className="text-[10px] uppercase text-zinc-500">Available</p><p className="font-bold text-white">{detail.stock}</p></div></div><div><p className="mb-2 text-xs font-bold text-white">Visibility settings</p><Visibility product={detail}/></div><div className="rounded-lg border border-zinc-800 p-3"><p className="text-xs font-bold text-white">Inventory History</p><p className="mt-2 text-xs text-zinc-500">Stock history is recorded for adjustments and order movements after the database migration is applied.</p></div><button onClick={()=>{setDetail(null);setAdjusting(detail)}} className="admin-btn-primary w-full">Adjust stock</button></InventoryDialog>}
+  </div>;
 }
+function ProductSnapshot({product}:{product:Product}) { return <div className="flex items-center gap-3 rounded-lg border border-zinc-800 bg-zinc-900/50 p-3"><img src={product.images[0]} alt="" className="h-12 w-12 rounded-lg bg-zinc-800 object-cover"/><div className="min-w-0"><p className="truncate text-sm font-bold text-white">{product.name}</p><p className="font-mono text-[11px] text-zinc-500">{product.sku} Â· {product.stock} units</p></div></div>; }
+function InventoryDialog({title,onClose,children}:{title:string;onClose:()=>void;children:React.ReactNode}) { return <div className="fixed inset-0 z-[70] flex items-end bg-black/70 p-0 backdrop-blur-sm sm:items-center sm:justify-center sm:p-4"><div className="w-full max-w-md space-y-4 rounded-t-2xl border border-zinc-700 bg-zinc-950 p-5 shadow-2xl sm:rounded-2xl"><div className="flex items-center justify-between"><h2 className="font-bold text-white">{title}</h2><button onClick={onClose} className="rounded p-1 text-zinc-500 hover:bg-zinc-800 hover:text-white"><X className="h-5 w-5"/></button></div>{children}</div></div>; }
+

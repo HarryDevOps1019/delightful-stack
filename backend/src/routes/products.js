@@ -8,6 +8,8 @@ import {
   updateProduct,
   deleteProduct,
   findProduct,
+  adjustInventory,
+  readInventoryHistory,
 } from "../data/db.js";
 
 const router = express.Router();
@@ -123,6 +125,25 @@ router.get("/stats", async (req, res) => {
   }
 });
 
+// Inventory actions are protected server-side; the SQL function locks the SKU
+// row and writes the audit record in the same transaction.
+router.post('/:id/adjust-inventory', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { mode, quantity, reason, reference } = req.body || {};
+    if (!['add', 'remove', 'set'].includes(mode) || !Number.isInteger(Number(quantity)) || Number(quantity) < 0 || !String(reason || '').trim()) {
+      return res.status(400).json({ success: false, error: 'Mode, non-negative integer quantity, and reason are required' });
+    }
+    const result = await adjustInventory(req.params.id, { mode, quantity: Number(quantity), reason: String(reason).trim(), reference: reference || null });
+    res.json({ success: true, data: result });
+  } catch (err) {
+    res.status(err.message.includes('Insufficient stock') ? 409 : 500).json({ success: false, error: err.message });
+  }
+});
+
+router.get('/:id/inventory-history', requireAuth, requireAdmin, async (req, res) => {
+  try { res.json({ success: true, data: await readInventoryHistory(req.params.id) }); }
+  catch (err) { res.status(500).json({ success: false, error: err.message }); }
+});
 // GET /api/products/:identifier (by id or slug or sku)
 router.get("/:identifier", async (req, res) => {
   try {
@@ -269,4 +290,3 @@ router.post("/seed-800", requireAuth, requireAdmin, async (req, res) => {
 });
 
 export default router;
-
