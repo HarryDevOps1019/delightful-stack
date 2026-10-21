@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { ChevronRight } from "lucide-react";
 import { Logo } from "./SiteHeader";
 import { useSettings } from "@/context/settings";
 
@@ -23,7 +24,7 @@ export function SiteFooter() {
               Email:{" "}
               <a
                 href={`mailto:${settings.officeEmail}`}
-                className="text-foreground hover:text-primary font-medium [overflow-wrap:anywhere]"
+                className="text-foreground hover:text-primary font-medium transition-colors [overflow-wrap:anywhere]"
               >
                 {settings.officeEmail}
               </a>
@@ -42,38 +43,28 @@ export function SiteFooter() {
           </div>
           <Link
             to="/contact"
-            className="mt-3 inline-block text-sm font-bold text-primary hover:underline"
+            className="group mt-3.5 inline-flex items-center gap-1.5 text-sm font-bold text-primary transition-all duration-200 hover:translate-x-1 active:scale-95"
           >
-            Contact page →
+            <span>Contact page</span>
+            <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
           </Link>
         </div>
         <FooterCol title="Customer service">
-          <Link to="/account" className="hover:text-primary">
-            My account
-          </Link>
-          <Link to="/cart" className="hover:text-primary">
-            Cart
-          </Link>
-          <Link to="/contact" className="hover:text-primary">
-            Contact us
-          </Link>
-          <Link to="/about" className="hover:text-primary">
-            About us
-          </Link>
-          <Link to="/wholesale" className="hover:text-primary">
-            Wholesale & bulk orders
-          </Link>
+          <FooterNavLink to="/account">My account</FooterNavLink>
+          <FooterNavLink to="/cart">Cart</FooterNavLink>
+          <FooterNavLink to="/contact">Contact us</FooterNavLink>
+          <FooterNavLink to="/about">About us</FooterNavLink>
+          <FooterNavLink to="/wholesale">Wholesale & bulk orders</FooterNavLink>
         </FooterCol>
         <FooterCol title="Policies">
           {policies.map((p) => (
-            <Link
+            <FooterNavLink
               key={p.slug}
               to="/policy/$slug"
               params={{ slug: p.slug }}
-              className="hover:text-primary"
             >
               {p.label}
-            </Link>
+            </FooterNavLink>
           ))}
         </FooterCol>
         <div className="min-w-0">
@@ -116,5 +107,32 @@ function FooterCol({ title, children }: { title: string; children: React.ReactNo
         {children}
       </div>
     </div>
+  );
+}
+
+function FooterNavLink({
+  to,
+  params,
+  children,
+}: {
+  to: string;
+  params?: Record<string, string>;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      to={to as any}
+      params={params as any}
+      className="group relative inline-flex items-center gap-1.5 py-0.5 text-sm text-muted-foreground transition-all duration-200 ease-out hover:text-primary hover:translate-x-1.5 active:scale-[0.96] active:translate-x-2"
+    >
+      <ChevronRight
+        className="h-3.5 w-3.5 -ml-4 opacity-0 transition-all duration-200 ease-out group-hover:ml-0 group-hover:opacity-100 text-primary shrink-0"
+        aria-hidden="true"
+      />
+      <span className="relative">
+        {children}
+        <span className="absolute bottom-0 left-0 h-[1.5px] w-0 bg-primary transition-all duration-300 ease-out group-hover:w-full" />
+      </span>
+    </Link>
   );
 }
