@@ -72,7 +72,7 @@ function buildWhatsAppMessage(
   );
 }
 
-function openWhatsApp(
+function getWhatsAppUrl(
   orderId: string,
   customerName: string,
   cartItems: Array<{
@@ -84,9 +84,7 @@ function openWhatsApp(
   whatsappDigits: string,
 ) {
   const message = buildWhatsAppMessage(orderId, customerName, cartItems);
-  const encoded = encodeURIComponent(message);
-  const url = `https://wa.me/${whatsappDigits}?text=${encoded}`;
-  window.open(url, "_blank", "noopener,noreferrer");
+  return `https://wa.me/${whatsappDigits}?text=${encodeURIComponent(message)}`;
 }
 
 // ─── Page ──────────────────────────────────────────────────────────────────────
@@ -116,6 +114,10 @@ function CheckoutPage() {
   const onSubmit = async (v: Values) => {
     if (submitting) return; // prevent double-submit
     setSubmitting(true);
+    // Reserve the tab while this click is still a user gesture. Opening it only
+    // after the API call is complete is commonly blocked as a popup by browsers.
+    const whatsappWindow = window.open("about:blank", "_blank");
+    if (whatsappWindow) whatsappWindow.opener = null;
 
     try {
       // Build items payload from cart
@@ -144,6 +146,7 @@ function CheckoutPage() {
       });
 
       if (!saved) {
+        whatsappWindow?.close();
         toast.error("Could not save your quotation request. Please try again.");
         setSubmitting(false);
         return;
@@ -153,7 +156,7 @@ function CheckoutPage() {
       cart.clear();
       toast.success(`Quotation #${saved.id} submitted! Opening WhatsApp…`);
 
-      openWhatsApp(
+      const whatsappUrl = getWhatsAppUrl(
         saved.id,
         v.fullName,
         items.map((it) => ({
@@ -164,12 +167,18 @@ function CheckoutPage() {
         })),
         whatsappDigits,
       );
+      if (whatsappWindow) {
+        whatsappWindow.location.replace(whatsappUrl);
+      } else {
+        window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+      }
 
       navigate({
         to: "/order-confirmation",
         search: { order: saved.id, items: cart.count },
       });
     } catch (err: unknown) {
+      whatsappWindow?.close();
       const msg = err instanceof Error ? err.message : "Unknown error";
       toast.error(`Failed to submit quotation: ${msg}`);
       setSubmitting(false);
