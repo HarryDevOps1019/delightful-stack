@@ -11,6 +11,7 @@ import analyticsRouter from "./routes/analytics.js";
 import settingsRouter from "./routes/settings.js";
 import authRouter from "./routes/auth.js";
 import brandsRouter from "./routes/brands.js";
+import bannersRouter from "./routes/banners.js";
 
 dotenv.config();
 
@@ -70,7 +71,9 @@ app.use("/settings", settingsRouter);
 app.use("/api/auth", authRouter);
 app.use("/auth", authRouter);
 app.use("/api/brands", brandsRouter);
+app.use("/api/banners", bannersRouter);
 app.use("/brands", brandsRouter);
+app.use("/banners", bannersRouter);
 
 // 404 handler for undefined API routes
 app.use("/api/*", (req, res) => {

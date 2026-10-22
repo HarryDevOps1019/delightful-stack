@@ -55,8 +55,8 @@ function ImageUploader({ label, value, onChange, error, id, hint }: ImageUploade
       toast.error("Only image files are allowed");
       return;
     }
-    if (file.size > 8 * 1024 * 1024) {
-      toast.error("Image must be smaller than 8 MB");
+    if (file.size > 300 * 1024) {
+      toast.error("Image must be smaller than 300 KB");
       return;
     }
     setUploading(true);
@@ -124,7 +124,7 @@ function ImageUploader({ label, value, onChange, error, id, hint }: ImageUploade
             <p className="text-xs font-semibold">
               {uploading ? "Uploading…" : "Click or drag & drop"}
             </p>
-            <p className="text-[10px]">PNG, JPG, WebP up to 8 MB</p>
+            <p className="text-[10px]">PNG, JPG, WebP up to 300 KB</p>
           </div>
         )}
       </div>
