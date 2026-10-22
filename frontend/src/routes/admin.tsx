@@ -6,7 +6,6 @@ import {
   ShoppingBag,
   BarChart3,
   Settings,
-  Layers,
   Eye,
   LogOut,
   ChevronDown,
@@ -39,12 +38,6 @@ const NAV = [
   { to: "/admin", label: "Overview", icon: <LayoutDashboard className="h-4 w-4" />, exact: true },
   { to: "/admin/products", label: "Products", icon: <Package className="h-4 w-4" />, exact: false },
   { to: "/admin/orders", label: "Orders", icon: <ShoppingBag className="h-4 w-4" />, exact: false },
-  {
-    to: "/admin/inventory",
-    label: "Inventory",
-    icon: <Layers className="h-4 w-4" />,
-    exact: false,
-  },
   {
     to: "/admin/analytics",
     label: "Analytics",
