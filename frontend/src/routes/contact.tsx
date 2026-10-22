@@ -99,7 +99,7 @@ function Contact() {
                 <MapPin className="h-4 w-4 text-muted-foreground" /> Location
               </dt>
               <dd className="max-w-sm text-muted-foreground sm:text-right">
-                {settings.address || "29, 2nd Rohini Lane, Colombo 01100, Sri Lanka"}
+                {settings.address || "60 1st Cross St, Colombo 01100, Sri Lanka"}
               </dd>
             </div>
           </dl>
@@ -140,7 +140,7 @@ function Contact() {
             </p>
 
             <a
-              href="https://www.google.com/maps/search/?api=1&query=29%2C+2nd+Rohini+Lane%2C+Colombo+01100%2C+Sri+Lanka"
+              href="https://www.google.com/maps/search/?api=1&query=60%201st%20Cross%20St%2C%20Colombo%2001100%2C%20Sri%20Lanka"
               target="_blank"
               rel="noopener noreferrer"
               className="mt-5 inline-flex h-11 items-center gap-2 bg-ink px-5 text-xs font-bold uppercase text-ink-foreground transition-colors hover:bg-primary"

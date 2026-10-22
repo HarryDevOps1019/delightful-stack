@@ -483,7 +483,7 @@ export const DEFAULT_SETTINGS: ApiSettings = {
   phone: "+94 74 106 6017",
   currency: "LKR (Rs.)",
   taxRate: "0%",
-  address: "29, 2nd Rohini Lane, Colombo 01100, Sri Lanka",
+  address: "60 1st Cross St, Colombo 01100, Sri Lanka",
   notifications: {
     newOrders: true,
     lowStock: true,

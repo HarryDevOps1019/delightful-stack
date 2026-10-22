@@ -155,7 +155,7 @@ CREATE TABLE IF NOT EXISTS store_settings (
   whatsapp_number TEXT NOT NULL DEFAULT '+94 74 106 6017',
   office_email    TEXT NOT NULL DEFAULT 'aecpvt60@gmail.com',
   phone           TEXT NOT NULL DEFAULT '+94 74 106 6017',
-  address         TEXT NOT NULL DEFAULT '29, 2nd Rohini Lane, Colombo 01100, Sri Lanka',
+  address         TEXT NOT NULL DEFAULT '60 1st Cross St, Colombo 01100, Sri Lanka',
   currency        TEXT NOT NULL DEFAULT 'LKR (Rs.)',
   tax_rate        TEXT NOT NULL DEFAULT '0%',
   notifications   JSONB NOT NULL DEFAULT '{"newOrders":true,"lowStock":true,"weeklyReport":false}'::jsonb,
@@ -186,7 +186,7 @@ VALUES (
   '+94 74 106 6017',
   'aecpvt60@gmail.com',
   '+94 74 106 6017',
-  '29, 2nd Rohini Lane, Colombo 01100, Sri Lanka',
+  '60 1st Cross St, Colombo 01100, Sri Lanka',
   'LKR (Rs.)',
   '0%',
   '{"newOrders":true,"lowStock":true,"weeklyReport":false}'::jsonb

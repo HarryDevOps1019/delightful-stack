@@ -71,14 +71,14 @@ export function SiteFooter() {
           <h3 className="text-xs font-extrabold uppercase tracking-wider">Store location</h3>
           <div className="relative mt-3 h-44 w-full max-w-full overflow-hidden border border-border bg-tile transition-colors hover:border-primary sm:h-32 lg:h-28">
             <iframe
-              src="https://www.google.com/maps?q=29%2C+2nd+Rohini+Lane%2C+Colombo+01100%2C+Sri+Lanka&output=embed"
+              src="https://www.google.com/maps?q=60%201st%20Cross%20St%2C%20Colombo%2001100%2C%20Sri%20Lanka&output=embed"
               title="Asia Electronics store location"
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
               className="pointer-events-none block h-full w-full max-w-full border-0"
             />
             <a
-              href="https://www.google.com/maps/search/?api=1&query=29%2C+2nd+Rohini+Lane%2C+Colombo+01100%2C+Sri+Lanka"
+              href="https://www.google.com/maps/search/?api=1&query=60%201st%20Cross%20St%2C%20Colombo%2001100%2C%20Sri%20Lanka"
               target="_blank"
               rel="noopener noreferrer"
               className="absolute inset-0"
@@ -86,7 +86,7 @@ export function SiteFooter() {
             />
           </div>
           <p className="mt-2 text-xs leading-5 text-muted-foreground sm:mt-1.5 sm:text-[11px] sm:leading-4">
-            29, 2nd Rohini Lane, Colombo 01100
+            60 1st Cross St, Colombo 01100
           </p>
         </div>
       </div>

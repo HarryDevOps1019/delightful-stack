@@ -174,7 +174,7 @@ function AboutPage() {
             </p>
             <h2 className="mt-2 font-display text-2xl font-black uppercase">Find us in Colombo</h2>
             <p className="mt-4 max-w-xl text-sm leading-6 text-muted-foreground">
-              Visit our Rohini Lane store to explore the range and speak with our team, or contact
+              Visit our 1st Cross Street store to explore the range and speak with our team, or contact
               us before your visit to confirm availability. Islandwide delivery is also available
               for selected orders.
             </p>
@@ -185,7 +185,7 @@ function AboutPage() {
                 <div>
                   <p className="text-xs font-extrabold uppercase">Address</p>
                   <address className="mt-1 text-sm not-italic leading-6 text-muted-foreground">
-                    29, 2nd Rohini Lane
+                    60 1st Cross St
                     <br />
                     Colombo 01100, Sri Lanka
                   </address>
