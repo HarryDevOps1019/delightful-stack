@@ -622,7 +622,7 @@ export async function deleteProduct(id) {
 
 export async function findProduct(identifier) {
   const value = String(identifier || "").trim();
-  if (!/^[a-zA-Z0-9_-]{1,160}$/.test(value)) return null;
+  if (!/^[a-zA-Z0-9_-]{1,300}$/.test(value)) return null;
 
   // Safe PostgREST filters: user input is never interpolated into a filter string.
   for (const [column, operator] of [["id", "eq"], ["slug", "eq"], ["sku", "ilike"]]) {
