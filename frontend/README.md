@@ -48,3 +48,7 @@ cd <repository-name>
 npm i
 npm run dev
 ```
+
+## Production API configuration
+
+Set `VITE_API_URL` in the frontend Vercel project's environment variables to the public backend API URL (for example, `https://your-backend.vercel.app/api`). Redeploy the frontend after changing it. This is required for direct product links to load product data during server-side rendering.

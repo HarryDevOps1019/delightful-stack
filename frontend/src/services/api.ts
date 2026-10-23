@@ -2,6 +2,11 @@ import type { Product, Category, Brand } from "@/lib/types";
 import { toast } from "sonner";
 
 export function getApiBaseUrl(): string {
+  // A configured API URL must win in every runtime, including SSR. This is
+  // required for pasted product links, which load their data on the server.
+  const envUrl = (import.meta.env.VITE_API_URL || "").trim();
+  if (envUrl) return envUrl;
+
   if (typeof window !== "undefined") {
     const { hostname, origin } = window.location;
     const isLocalhost = hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
@@ -11,21 +16,11 @@ export function getApiBaseUrl(): string {
       if (/^(\d{1,3}\.){3}\d{1,3}$/.test(hostname)) {
         return `http://${hostname}:5000/api`;
       }
-      // Production domain / Vercel (Mobile data, cellular network, or public domain)
       return `${origin}/api`;
     }
   }
 
-  const envUrl = (import.meta.env.VITE_API_URL || "").trim();
-  if (
-    envUrl &&
-    typeof window !== "undefined" &&
-    !envUrl.includes("localhost") &&
-    !envUrl.includes("127.0.0.1")
-  ) {
-    return envUrl;
-  }
-  return envUrl || "http://localhost:5000/api";
+  return "http://localhost:5000/api";
 }
 
 const API_BASE = getApiBaseUrl();
