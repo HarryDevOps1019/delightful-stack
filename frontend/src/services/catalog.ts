@@ -1026,17 +1026,81 @@ export async function listProducts(query: ProductQuery = {}): Promise<ProductPag
   };
 }
 
-export async function getProduct(slug: string) {
-  await delay(50);
-  return getStoredProducts().find((p) => p.slug === slug) ?? null;
+export async function getProduct(slug: string): Promise<Product | null> {
+  const normalized = (slug || "").trim();
+  if (!normalized) return null;
+
+  // 1. Check local cached products first
+  const local = getStoredProducts().find(
+    (p) =>
+      p.slug === normalized ||
+      p.id === normalized ||
+      p.sku.toLowerCase() === normalized.toLowerCase(),
+  );
+
+  // 2. Fetch fresh product data from backend API
+  try {
+    const apiProduct = await fetchProductApi(normalized);
+    if (apiProduct) {
+      const sanitized: Product = {
+        ...apiProduct,
+        images:
+          Array.isArray(apiProduct.images) && apiProduct.images.length > 0
+            ? apiProduct.images.map((img) => sanitizeAssetPath(img))
+            : ["/assets/imgs/electronic-components.png"],
+      };
+
+      if (typeof window !== "undefined") {
+        try {
+          const current = getStoredProducts();
+          const idx = current.findIndex(
+            (p) => p.id === sanitized.id || p.slug === sanitized.slug,
+          );
+          if (idx >= 0) {
+            current[idx] = sanitized;
+          } else {
+            current.unshift(sanitized);
+          }
+          saveStoredProducts(current);
+        } catch {
+          // ignore localStorage write errors
+        }
+      }
+
+      return sanitized;
+    }
+  } catch (err) {
+    console.warn("fetchProductApi failed in getProduct:", err);
+  }
+
+  // 3. Fall back to local product if API was unreachable or returned 404
+  return local ?? null;
 }
 
-export async function getRelated(slug: string) {
+export async function getRelated(slug: string): Promise<Product[]> {
   await delay(50);
   const products = getStoredProducts();
-  const p = products.find((x) => x.slug === slug);
+  let p = products.find(
+    (x) =>
+      x.slug === slug ||
+      x.id === slug ||
+      x.sku.toLowerCase() === slug.toLowerCase(),
+  );
+
+  if (!p) {
+    try {
+      p = (await getProduct(slug)) ?? undefined;
+    } catch {
+      // ignore
+    }
+  }
+
   if (!p) return [];
-  return products.filter((x) => x.category === p.category && x.slug !== slug).slice(0, 4);
+
+  const pool = products.length > 0 ? products : defaultProducts;
+  return pool
+    .filter((x) => x.category === p.category && x.slug !== p.slug && x.id !== p.id)
+    .slice(0, 4);
 }
 
 export function attributeOptions(category: string) {

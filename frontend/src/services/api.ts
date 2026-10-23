@@ -2,11 +2,15 @@ import type { Product, Category, Brand } from "@/lib/types";
 import { toast } from "sonner";
 
 export function getApiBaseUrl(): string {
-  // A configured API URL must win in every runtime, including SSR. This is
-  // required for pasted product links, which load their data on the server.
-  const envUrl = (import.meta.env.VITE_API_URL || "").trim();
+  // 1. Explicitly configured VITE_API_URL wins in every environment
+  const envUrl = (
+    (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) ||
+    (typeof process !== "undefined" && process.env?.VITE_API_URL) ||
+    ""
+  ).trim();
   if (envUrl) return envUrl;
 
+  // 2. Client-side browser runtime: use relative /api or window.location.origin/api
   if (typeof window !== "undefined") {
     const { hostname, origin } = window.location;
     const isLocalhost = hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
@@ -17,6 +21,17 @@ export function getApiBaseUrl(): string {
         return `http://${hostname}:5000/api`;
       }
       return `${origin}/api`;
+    }
+  }
+
+  // 3. Server-side SSR runtime on Vercel: automatically resolve host from Vercel system env vars
+  if (typeof process !== "undefined" && process.env) {
+    const vercelHost =
+      process.env.VERCEL_PROJECT_PRODUCTION_URL ||
+      process.env.VERCEL_URL;
+    if (vercelHost) {
+      const cleanHost = vercelHost.replace(/^https?:\/\//, "").replace(/\/+$/, "");
+      return `https://${cleanHost}/api`;
     }
   }
 
