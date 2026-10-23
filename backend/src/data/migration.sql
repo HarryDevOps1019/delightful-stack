@@ -313,7 +313,9 @@ CREATE TABLE IF NOT EXISTS banners (
   end_date DATE,
   active BOOLEAN NOT NULL DEFAULT true,
   display_order INTEGER NOT NULL DEFAULT 0,
+  size TEXT NOT NULL DEFAULT 'medium',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_banners_display_order ON banners(display_order);
+ALTER TABLE banners ADD COLUMN IF NOT EXISTS size TEXT NOT NULL DEFAULT 'medium';

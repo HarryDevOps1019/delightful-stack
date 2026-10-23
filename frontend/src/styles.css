@@ -185,7 +185,7 @@
 }
 
 .aec-loader-ring {
-  animation: aec-orbital-spin 1.6s linear infinite;
+  animation: aec-orbital-spin 1s linear infinite;
   transform-origin: center center;
   will-change: transform;
 }
@@ -199,7 +199,7 @@
 }
 
 .aec-loading-dot {
-  animation: aec-dot-pulse 1.3s infinite ease-in-out;
+  animation: aec-dot-pulse 0.9s infinite ease-in-out;
 }
 
 @media (prefers-reduced-motion: reduce) {

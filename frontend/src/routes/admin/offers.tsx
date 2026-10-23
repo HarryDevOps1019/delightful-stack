@@ -18,10 +18,11 @@ import {
   Loader2,
   X,
   Upload,
+  Maximize2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { bannerSchema } from "@/lib/bannerTypes";
-import type { Banner, BannerFormValues } from "@/lib/bannerTypes";
+import type { Banner, BannerFormValues, BannerSize } from "@/lib/bannerTypes";
 import {
   bannersQuery,
   uploadBannerImage,
@@ -169,6 +170,7 @@ const DEFAULT_FORM: BannerFormValues = {
   endDate: "",
   active: true,
   displayOrder: 0,
+  size: "medium",
 };
 
 function BannerForm({ defaultValues, onSubmit, onCancel, isLoading, mode }: BannerFormProps) {
@@ -231,6 +233,67 @@ function BannerForm({ defaultValues, onSubmit, onCancel, isLoading, mode }: Bann
           value={mobileImageUrl ?? ""}
           onChange={(url) => setValue("mobileImageUrl", url)}
           error={errors.mobileImageUrl?.message}
+        />
+      </div>
+
+      {/* Banner Size Selection */}
+      <div className="space-y-2">
+        <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider flex items-center justify-between">
+          <span className="flex items-center gap-1.5">
+            <Maximize2 className="h-3.5 w-3.5 text-orange-400" /> Banner Display Size
+          </span>
+          <span className="text-[10px] text-zinc-500 font-normal lowercase">adjusts height & layout</span>
+        </label>
+        <Controller
+          name="size"
+          control={control}
+          render={({ field }) => {
+            const currentSize: BannerSize = (field.value as BannerSize) || "medium";
+            const SIZES: Array<{
+              id: BannerSize;
+              label: string;
+              height: string;
+              desc: string;
+            }> = [
+              { id: "compact", label: "Compact", height: "260px", desc: "Slim bar / subtle notice" },
+              { id: "medium", label: "Medium", height: "380px", desc: "Standard balanced banner" },
+              { id: "large", label: "Large", height: "480px", desc: "Prominent high impact" },
+              { id: "hero", label: "Hero", height: "580px", desc: "Full cinematic showcase" },
+            ];
+
+            return (
+              <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+                {SIZES.map((s) => {
+                  const isSelected = currentSize === s.id;
+                  return (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => field.onChange(s.id)}
+                      className={`relative flex flex-col items-start p-3 rounded-xl border text-left transition-all ${
+                        isSelected
+                          ? "border-orange-500 bg-orange-500/10 ring-1 ring-orange-500/50"
+                          : "border-zinc-800 bg-zinc-900/40 hover:border-zinc-700 hover:bg-zinc-800/40"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <span className={`text-xs font-bold ${isSelected ? "text-orange-400" : "text-zinc-200"}`}>
+                          {s.label}
+                        </span>
+                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-800/80 text-zinc-400 border border-zinc-700/50">
+                          {s.height}
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-zinc-500 mt-1 leading-tight">{s.desc}</span>
+                      {isSelected && (
+                        <div className="absolute top-2 right-2 h-1.5 w-1.5 rounded-full bg-orange-500" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          }}
         />
       </div>
 
@@ -411,6 +474,9 @@ function BannerRow({ banner, onEdit, onDelete, onToggle, isDeleting, isToggling 
           )}
           <span>
             Order: <span className="text-zinc-300">#{banner.displayOrder}</span>
+          </span>
+          <span className="capitalize">
+            Size: <span className="text-zinc-300 font-semibold">{banner.size || "medium"}</span>
           </span>
         </div>
         <p className="text-[10px] text-zinc-600">

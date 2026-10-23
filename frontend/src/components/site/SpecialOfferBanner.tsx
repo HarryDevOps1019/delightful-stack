@@ -1,18 +1,63 @@
-﻿import { useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "motion/react";
 import { ArrowRight, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { activeBannersQuery } from "@/services/banners";
-import type { Banner } from "@/lib/bannerTypes";
+import type { Banner, BannerSize } from "@/lib/bannerTypes";
 
-// â”€â”€â”€ Single banner slide â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+const BANNER_SIZES: Record<
+  BannerSize,
+  {
+    heightClass: string;
+    maxWClass: string;
+    titleClass: string;
+    subtitleClass: string;
+    contentPadding: string;
+  }
+> = {
+  compact: {
+    heightClass: "min-h-[220px] sm:min-h-[260px] lg:min-h-[280px]",
+    maxWClass: "max-w-3xl",
+    titleClass: "text-lg sm:text-2xl lg:text-3xl",
+    subtitleClass: "text-[10px] mb-2 px-2 py-0.5",
+    contentPadding: "px-5 py-6 sm:px-8 lg:px-10",
+  },
+  medium: {
+    heightClass: "min-h-[260px] sm:min-h-[340px] lg:min-h-[380px]",
+    maxWClass: "max-w-4xl",
+    titleClass: "text-xl sm:text-3xl lg:text-4xl",
+    subtitleClass: "text-[11px] mb-3 px-2.5 py-0.5",
+    contentPadding: "px-6 py-8 sm:px-10 lg:px-14",
+  },
+  large: {
+    heightClass: "min-h-[320px] sm:min-h-[420px] lg:min-h-[480px]",
+    maxWClass: "max-w-5xl",
+    titleClass: "text-2xl sm:text-4xl lg:text-5xl",
+    subtitleClass: "text-xs mb-3.5 px-3 py-1",
+    contentPadding: "px-6 py-10 sm:px-12 lg:px-16",
+  },
+  hero: {
+    heightClass: "min-h-[360px] sm:min-h-[500px] lg:min-h-[580px]",
+    maxWClass: "max-w-6xl",
+    titleClass: "text-2xl sm:text-4xl lg:text-6xl",
+    subtitleClass: "text-xs mb-4 px-3 py-1",
+    contentPadding: "px-8 py-12 sm:px-14 lg:px-20",
+  },
+};
 
+function resolveSize(size?: string): BannerSize {
+  if (size && size in BANNER_SIZES) return size as BannerSize;
+  return "medium";
+}
+
+// Single banner slide
 function BannerSlide({ banner }: { banner: Banner }) {
   const hasCta = banner.ctaText && banner.ctaLink;
+  const cfg = BANNER_SIZES[resolveSize(banner.size)];
 
   const inner = (
-    <div className="relative w-full overflow-hidden" style={{ minHeight: 220 }}>
+    <div className={`relative w-full overflow-hidden ${cfg.heightClass}`}>
       {/* Desktop image */}
       <picture>
         {banner.mobileImageUrl && (
@@ -37,24 +82,24 @@ function BannerSlide({ banner }: { banner: Banner }) {
       />
 
       {/* Text content */}
-      <div className="relative z-10 flex h-full flex-col justify-center px-6 py-10 sm:px-10 lg:px-16">
+      <div className={`relative z-10 flex h-full flex-col justify-center ${cfg.contentPadding}`}>
         {banner.subtitle && (
           <span
-            className="mb-3 inline-block w-fit bg-primary px-2.5 py-0.5 text-[11px] font-black uppercase tracking-widest text-primary-foreground"
+            className={`w-fit bg-primary font-black uppercase tracking-widest text-primary-foreground ${cfg.subtitleClass}`}
             style={{ letterSpacing: "0.14em" }}
           >
             {banner.subtitle}
           </span>
         )}
         <h2
-          className="font-display text-2xl font-black uppercase leading-tight text-white sm:text-3xl lg:text-4xl"
+          className={`font-display font-black uppercase leading-tight text-white ${cfg.titleClass}`}
           style={{ maxWidth: "55ch", textShadow: "0 2px 12px rgba(0,0,0,0.5)" }}
         >
           {banner.title}
         </h2>
 
         {hasCta && (
-          <span className="mt-6 inline-flex w-fit items-center gap-2 border-2 border-primary bg-primary px-5 py-2.5 text-xs font-extrabold uppercase tracking-widest text-primary-foreground transition-all hover:bg-transparent hover:text-white">
+          <span className="mt-5 sm:mt-6 inline-flex w-fit items-center gap-2 border-2 border-primary bg-primary px-4 py-2 sm:px-5 sm:py-2.5 text-xs font-extrabold uppercase tracking-widest text-primary-foreground transition-all hover:bg-transparent hover:text-white">
             {banner.ctaText}
             <ArrowRight className="h-3.5 w-3.5" />
           </span>
@@ -72,32 +117,33 @@ function BannerSlide({ banner }: { banner: Banner }) {
           href={banner.ctaLink}
           target="_blank"
           rel="noopener noreferrer"
-          className="block w-full"
-          style={{ minHeight: 220 }}
+          className={`block w-full ${cfg.heightClass}`}
         >
           {inner}
         </a>
       );
     }
     return (
-      <Link to={banner.ctaLink as never} className="block w-full" style={{ minHeight: 220 }}>
+      <Link to={banner.ctaLink as never} className={`block w-full ${cfg.heightClass}`}>
         {inner}
       </Link>
     );
   }
 
   return (
-    <div className="block w-full" style={{ minHeight: 220 }}>
+    <div className={`block w-full ${cfg.heightClass}`}>
       {inner}
     </div>
   );
 }
 
-// â”€â”€â”€ Carousel wrapper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
+// Carousel wrapper
 function BannerCarousel({ banners }: { banners: Banner[] }) {
   const [idx, setIdx] = useState(0);
   const [dir, setDir] = useState<1 | -1>(1);
+
+  const currentBanner = banners[idx] || banners[0];
+  const cfg = BANNER_SIZES[resolveSize(currentBanner?.size)];
 
   const go = useCallback(
     (delta: 1 | -1) => {
@@ -121,7 +167,7 @@ function BannerCarousel({ banners }: { banners: Banner[] }) {
   };
 
   return (
-    <div className="relative overflow-hidden" style={{ minHeight: 220 }}>
+    <div className={`relative overflow-hidden transition-all duration-300 ${cfg.heightClass}`}>
       <AnimatePresence initial={false} custom={dir} mode="popLayout">
         <motion.div
           key={banners[idx].id}
@@ -137,7 +183,7 @@ function BannerCarousel({ banners }: { banners: Banner[] }) {
         </motion.div>
       </AnimatePresence>
 
-      {/* Prev / Next arrows â€” only if >1 banners */}
+      {/* Prev / Next arrows — only if >1 banners */}
       {banners.length > 1 && (
         <>
           <button
@@ -177,12 +223,7 @@ function BannerCarousel({ banners }: { banners: Banner[] }) {
   );
 }
 
-// â”€â”€â”€ Public component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-/**
- * Shows active offers in a dismissible popup. Closing it only hides it for
- * the current visit, so it appears again after a page refresh.
- */
+// Public component
 export function SpecialOfferBanner() {
   const { data: banners } = useQuery({
     ...activeBannersQuery,
@@ -200,6 +241,9 @@ export function SpecialOfferBanner() {
   };
 
   if (!banners?.length) return null;
+
+  const currentBanner = banners[0];
+  const cfg = BANNER_SIZES[resolveSize(currentBanner?.size)];
 
   return (
     <AnimatePresence>
@@ -221,7 +265,7 @@ export function SpecialOfferBanner() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.97 }}
             transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-            className="relative w-full max-w-4xl overflow-hidden rounded-xl bg-black shadow-2xl"
+            className={`relative w-full ${cfg.maxWClass} overflow-hidden rounded-xl bg-black shadow-2xl transition-all duration-300`}
           >
             <button
               type="button"

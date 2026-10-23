@@ -10,35 +10,42 @@ export function FullScreenLoader() {
   useEffect(() => {
     let isMounted = true;
 
-    // Track initial application & backend / Supabase loading
-    const catalogPromise = syncCatalogWithBackend();
-    const settingsPromise = fetchSettingsApi().catch(() => null);
+    // Track initial application & backend / Supabase loading in background
+    void syncCatalogWithBackend();
+    void fetchSettingsApi().catch(() => null);
 
     // Document readiness check
     const docReadyPromise = new Promise<void>((resolve) => {
-      if (document.readyState === "complete") {
+      if (document.readyState === "complete" || document.readyState === "interactive") {
         resolve();
       } else {
         const onReady = () => {
+          window.removeEventListener("DOMContentLoaded", onReady);
           window.removeEventListener("load", onReady);
           resolve();
         };
+        window.addEventListener("DOMContentLoaded", onReady);
         window.addEventListener("load", onReady);
       }
     });
 
-    Promise.allSettled([catalogPromise, settingsPromise, docReadyPromise]).then(() => {
+    // Provide a brief, polished 350ms minimum display so brand logo is crisp without stalling
+    const minDisplayPromise = new Promise<void>((resolve) => {
+      setTimeout(resolve, 350);
+    });
+
+    Promise.all([docReadyPromise, minDisplayPromise]).then(() => {
       if (isMounted) {
         setIsReady(true);
       }
     });
 
-    // Safety fallback: ensure website reveals even if network stalls or is offline
+    // Safety fallback: reveal after max 650ms under any network conditions
     const safetyTimeout = setTimeout(() => {
       if (isMounted) {
         setIsReady(true);
       }
-    }, 4500);
+    }, 650);
 
     return () => {
       isMounted = false;
@@ -46,12 +53,12 @@ export function FullScreenLoader() {
     };
   }, []);
 
-  // Smooth fade-out duration before removing from DOM
+  // Quick, smooth fade-out duration before removing from DOM
   useEffect(() => {
     if (!isReady) return;
     const timer = setTimeout(() => {
       setIsRendered(false);
-    }, 550);
+    }, 280);
     return () => clearTimeout(timer);
   }, [isReady]);
 
@@ -62,7 +69,7 @@ export function FullScreenLoader() {
       role="status"
       aria-live="polite"
       aria-label="Loading Asia Electronics & Cellular"
-      className={`fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-background px-4 transition-opacity duration-500 ease-out select-none ${
+      className={`fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-background px-4 transition-opacity duration-300 ease-out select-none ${
         isReady ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}
     >

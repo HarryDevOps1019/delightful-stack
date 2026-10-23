@@ -2,6 +2,8 @@ import { z } from "zod";
 
 // ─── Zod Schema ───────────────────────────────────────────────────────────────
 
+export type BannerSize = "compact" | "medium" | "large" | "hero";
+
 export const bannerSchema = z.object({
   title: z.string().min(1, "Title is required").max(100),
   subtitle: z.string().max(200).optional(),
@@ -14,6 +16,7 @@ export const bannerSchema = z.object({
   endDate: z.string().optional(),
   active: z.boolean(),
   displayOrder: z.number().int().min(0).max(999),
+  size: z.enum(["compact", "medium", "large", "hero"]).default("medium").optional(),
 });
 
 export type BannerFormValues = z.infer<typeof bannerSchema>;
@@ -22,6 +25,7 @@ export type BannerFormValues = z.infer<typeof bannerSchema>;
 
 export interface Banner extends BannerFormValues {
   id: string;
+  size?: BannerSize;
   createdAt: string;
   updatedAt: string;
 }
