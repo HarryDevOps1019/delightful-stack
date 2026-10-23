@@ -4,18 +4,7 @@ import type { Banner, BannerFormValues } from "@/lib/bannerTypes";
 import { isBannerLive } from "@/lib/bannerTypes";
 import { getApiBaseUrl } from "@/services/api";
 
-const STORAGE_KEY = "ae_banners_v1";
 const AUTH_TOKEN_KEY = "ae_auth_token_v1";
-
-function loadLocalBanners(): Banner[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as Banner[]) : [];
-  } catch {
-    return [];
-  }
-}
 
 function apiUrl(path: string) {
   const base = getApiBaseUrl();
@@ -55,12 +44,7 @@ export async function uploadBannerImage(file: File): Promise<string> {
 }
 
 export async function listBanners(): Promise<Banner[]> {
-  try {
-    return await request<Banner[]>("/banners");
-  } catch (error) {
-    console.warn("Banner API unavailable; using this device's saved banners:", error);
-    return loadLocalBanners().sort((a, b) => a.displayOrder - b.displayOrder);
-  }
+  return request<Banner[]>("/banners");
 }
 
 export async function createBanner(values: BannerFormValues): Promise<Banner> {
@@ -85,13 +69,16 @@ export async function getActiveBanners(): Promise<Banner[]> {
 export const bannersQuery = queryOptions({
   queryKey: ["banners"],
   queryFn: listBanners,
-  staleTime: 5_000,
+  staleTime: 0,
+  refetchOnMount: "always",
+  refetchOnWindowFocus: true,
 });
 
 export const activeBannersQuery = queryOptions({
   queryKey: ["banners", "active"],
   queryFn: getActiveBanners,
-  staleTime: 30_000,
+  staleTime: 0,
+  refetchOnMount: "always",
   refetchOnWindowFocus: true,
 });
 
